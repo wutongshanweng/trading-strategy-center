@@ -2,7 +2,10 @@ import pytest
 import pandas as pd
 import numpy as np
 from signals.base import Signal, Direction, BaseStrategy
-from signals.indicators import SMA, RSI, MACD, ATR
+from signals.indicators import (
+    SMA, RSI, MACD, ATR, BB, KDJ, AROON, CCI, OBV, VWAP, DONCHIAN, ADX,
+    SUPERTREND, WILLIAMS_R, MFI, TRIX, AROON_OSCILLATOR,
+)
 from signals.registry import register, get_strategy, list_strategies, get_all_strategies
 from signals.engine import StrategyEngine
 
@@ -35,6 +38,32 @@ class TestIndicators:
 
     def test_atr_positive(self, ohlcv_df):
         assert (ATR(ohlcv_df, 14).dropna() > 0).all()
+
+    def test_supertrend(self, ohlcv_df):
+        st, direction = SUPERTREND(ohlcv_df, period=10, multiplier=3.0)
+        assert isinstance(st, pd.Series)
+        assert isinstance(direction, pd.Series)
+        assert len(st) == len(ohlcv_df)
+        assert set(direction.dropna().unique()).issubset({-1, 1})
+
+    def test_williams_r_bounds(self, ohlcv_df):
+        wr = WILLIAMS_R(ohlcv_df, 14).dropna()
+        assert wr.between(-100, 0).all()
+
+    def test_mfi_bounds(self, ohlcv_df):
+        mfi = MFI(ohlcv_df, 14).dropna()
+        assert mfi.between(0, 100).all()
+
+    def test_trix(self, ohlcv_df):
+        result = TRIX(ohlcv_df["close"], 15)
+        assert isinstance(result, pd.Series)
+        assert len(result) == len(ohlcv_df)
+
+    def test_aroon_oscillator(self, ohlcv_df):
+        result = AROON_OSCILLATOR(ohlcv_df, 14)
+        assert isinstance(result, pd.Series)
+        assert len(result) == len(ohlcv_df)
+        assert result.dropna().between(-100, 100).all()
 
 
 class TestSignal:
