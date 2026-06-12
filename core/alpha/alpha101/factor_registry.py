@@ -35,6 +35,7 @@ class FactorRegistry:
         cls._factors[instance.name] = factor_class
         cls._names[factor_class.__name__] = instance.name
         cls._categories[instance.name] = instance.category
+        return factor_class
 
     @classmethod
     def get(cls, name: str) -> Optional[Type[AlphaFactor]]:

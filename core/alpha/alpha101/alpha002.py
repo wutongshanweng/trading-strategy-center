@@ -1,9 +1,11 @@
 import pandas as pd
 
-from .base import AlphaBase
+from .base import AlphaFactor
+from .factor_registry import FactorRegistry
 
 
-class Alpha002(AlphaBase):
+@FactorRegistry.register
+class Alpha002(AlphaFactor):
     @property
     def name(self) -> str:
         return "alpha002"

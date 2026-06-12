@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from core.alpha.alpha101 import Alpha001, Alpha002, Alpha003, AlphaBase
+from core.alpha.alpha101 import Alpha001, Alpha002, Alpha003, AlphaBase, AlphaFactor
 
 
 def _make_price_data(n: int = 100) -> pd.DataFrame:
@@ -51,7 +51,7 @@ class TestAlphaBase:
 
 class TestAlpha001:
     def test_is_alpha_base(self):
-        assert issubclass(Alpha001, AlphaBase)
+        assert issubclass(Alpha001, AlphaFactor)
 
     def test_properties(self):
         alpha = Alpha001()
@@ -80,7 +80,7 @@ class TestAlpha001:
 
 class TestAlpha002:
     def test_is_alpha_base(self):
-        assert issubclass(Alpha002, AlphaBase)
+        assert issubclass(Alpha002, AlphaFactor)
 
     def test_properties(self):
         alpha = Alpha002()
@@ -99,7 +99,7 @@ class TestAlpha002:
 
 class TestAlpha003:
     def test_is_alpha_base(self):
-        assert issubclass(Alpha003, AlphaBase)
+        assert issubclass(Alpha003, AlphaFactor)
 
     def test_properties(self):
         alpha = Alpha003()
