@@ -5,6 +5,21 @@ import pytest
 from core.alpha.alpha101 import AlphaFactor, FactorRegistry
 
 
+class DummyFactor(AlphaFactor):
+    """Test dummy factor for unit tests."""
+
+    @property
+    def name(self):
+        return "dummy_factor"
+
+    @property
+    def category(self):
+        return "test"
+
+    def compute(self, data):
+        return pd.Series(0, index=data.index)
+
+
 def _make_price_data(n: int = 100) -> pd.DataFrame:
     np.random.seed(42)
     dates = pd.date_range("2024-01-01", periods=n, freq="D")
@@ -25,18 +40,6 @@ class TestAlphaFactor:
             AlphaFactor()
 
     def test_subclass_interface(self):
-        class DummyFactor(AlphaFactor):
-            @property
-            def name(self):
-                return "dummy_factor"
-
-            @property
-            def category(self):
-                return "test"
-
-            def compute(self, data):
-                return pd.Series(0, index=data.index)
-
         factor = DummyFactor()
         assert factor.name == "dummy_factor"
         assert factor.category == "test"
@@ -44,35 +47,11 @@ class TestAlphaFactor:
         assert isinstance(result, pd.Series)
 
     def test_validate_with_complete_data(self):
-        class DummyFactor(AlphaFactor):
-            @property
-            def name(self):
-                return "dummy"
-
-            @property
-            def category(self):
-                return "test"
-
-            def compute(self, data):
-                return pd.Series(0, index=data.index)
-
         factor = DummyFactor()
         data = _make_price_data()
         assert factor.validate(data) is True
 
     def test_validate_with_missing_columns(self):
-        class DummyFactor(AlphaFactor):
-            @property
-            def name(self):
-                return "dummy"
-
-            @property
-            def category(self):
-                return "test"
-
-            def compute(self, data):
-                return pd.Series(0, index=data.index)
-
         factor = DummyFactor()
         data = pd.DataFrame({"close": [1, 2, 3], "volume": [100, 200, 300]})
         assert factor.validate(data) is False
@@ -183,3 +162,20 @@ class TestFactorRegistry:
         factor_instance = factor_class()
         assert factor_instance.name == "custom_factor"
         assert factor_instance.category == "custom_category"
+
+    def test_register_duplicate_factor_warns(self):
+        class DuplicateFactor(AlphaFactor):
+            @property
+            def name(self):
+                return "duplicate_factor"
+
+            @property
+            def category(self):
+                return "test"
+
+            def compute(self, data):
+                return pd.Series(0, index=data.index)
+
+        FactorRegistry.register(DuplicateFactor)
+        with pytest.warns(UserWarning, match="Factor 'duplicate_factor' is already registered"):
+            FactorRegistry.register(DuplicateFactor)
