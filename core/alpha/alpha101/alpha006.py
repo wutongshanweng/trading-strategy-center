@@ -14,6 +14,10 @@ class Alpha006(AlphaFactor):
     def category(self) -> str:
         return "volume_price"
 
-    def compute(self, data: pd.DataFrame) -> pd.Series:
-        vwap = (data['close'] * data['volume']).rolling(20).sum() / data['volume'].rolling(20).sum()
+    @property
+    def description(self) -> str:
+        return "Volume-weighted average price ratio - close relative to VWAP"
+
+    def compute(self, data: pd.DataFrame, lookback: int = 20) -> pd.Series:
+        vwap = (data['close'] * data['volume']).rolling(lookback).sum() / data['volume'].rolling(lookback).sum()
         return data['close'] / vwap

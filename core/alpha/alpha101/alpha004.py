@@ -14,5 +14,9 @@ class Alpha004(AlphaFactor):
     def category(self) -> str:
         return "price_position"
 
-    def compute(self, data: pd.DataFrame) -> pd.Series:
+    @property
+    def description(self) -> str:
+        return "Price position factor - normalized position within daily range"
+
+    def compute(self, data: pd.DataFrame, lookback: int = 20) -> pd.Series:
         return (data['close'] - data['low']) / (data['high'] - data['low'])

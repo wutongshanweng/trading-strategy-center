@@ -14,5 +14,9 @@ class Alpha005(AlphaFactor):
     def category(self) -> str:
         return "range"
 
-    def compute(self, data: pd.DataFrame) -> pd.Series:
+    @property
+    def description(self) -> str:
+        return "Range factor - high-low range relative to close price"
+
+    def compute(self, data: pd.DataFrame, lookback: int = 20) -> pd.Series:
         return (data['high'] - data['low']) / data['close']

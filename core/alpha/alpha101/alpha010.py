@@ -14,5 +14,9 @@ class Alpha010(AlphaFactor):
     def category(self) -> str:
         return "volume_rank"
 
-    def compute(self, data: pd.DataFrame) -> pd.Series:
-        return data['volume'].rolling(20).rank()
+    @property
+    def description(self) -> str:
+        return "Volume rank factor - rolling rank of volume over lookback period"
+
+    def compute(self, data: pd.DataFrame, lookback: int = 20) -> pd.Series:
+        return data['volume'].rolling(lookback).rank()

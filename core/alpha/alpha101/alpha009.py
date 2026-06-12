@@ -14,5 +14,9 @@ class Alpha009(AlphaFactor):
     def category(self) -> str:
         return "momentum"
 
-    def compute(self, data: pd.DataFrame) -> pd.Series:
+    @property
+    def description(self) -> str:
+        return "Momentum factor - close relative to previous close (5-day shift)"
+
+    def compute(self, data: pd.DataFrame, lookback: int = 20) -> pd.Series:
         return data['close'] / data['close'].shift(5)

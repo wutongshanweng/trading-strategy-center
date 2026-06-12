@@ -14,5 +14,9 @@ class Alpha007(AlphaFactor):
     def category(self) -> str:
         return "correlation"
 
-    def compute(self, data: pd.DataFrame) -> pd.Series:
-        return data['close'].rolling(20).corr(data['volume'])
+    @property
+    def description(self) -> str:
+        return "Price-volume correlation factor - rolling correlation between close and volume"
+
+    def compute(self, data: pd.DataFrame, lookback: int = 20) -> pd.Series:
+        return data['close'].rolling(lookback).corr(data['volume'])

@@ -14,6 +14,10 @@ class Alpha008(AlphaFactor):
     def category(self) -> str:
         return "risk_return"
 
-    def compute(self, data: pd.DataFrame) -> pd.Series:
+    @property
+    def description(self) -> str:
+        return "Risk-return ratio - rolling Sharpe-like ratio of returns"
+
+    def compute(self, data: pd.DataFrame, lookback: int = 20) -> pd.Series:
         returns = data['close'].pct_change()
-        return returns.rolling(20).mean() / returns.rolling(20).std()
+        return returns.rolling(lookback).mean() / returns.rolling(lookback).std()
