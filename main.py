@@ -1,0 +1,63 @@
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).parent))
+
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from loguru import logger
+
+from core.config.settings import get_settings
+from core.utils.logger import setup_logger
+from api.middleware.error_handler import app_exception_handler, unhandled_exception_handler
+from core.exceptions import AppException
+from api.routes.health_routes import router as health_router
+from api.routes.data_routes import router as data_router
+from api.routes.strategy_routes import router as strategy_router
+from api.routes.trading_routes import router as trading_router
+from api.routes.backtest_routes import router as backtest_router
+from api.routes.portfolio_routes import router as portfolio_router
+from api.routes.ml_routes import router as ml_router
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    settings = get_settings()
+    setup_logger(debug=settings.debug)
+    logger.info("Trading Strategy Center starting...")
+    yield
+    from core.db.session import async_engine
+    await async_engine.dispose()
+    logger.info("Shutting down.")
+
+
+settings = get_settings()
+app = FastAPI(
+    title="Trading Strategy Center",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=bool(settings.cors_origins != ["*"]),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.add_exception_handler(AppException, app_exception_handler)
+app.add_exception_handler(Exception, unhandled_exception_handler)
+
+app.include_router(health_router)
+app.include_router(data_router)
+app.include_router(strategy_router)
+app.include_router(trading_router)
+app.include_router(backtest_router)
+app.include_router(portfolio_router)
+app.include_router(ml_router)
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

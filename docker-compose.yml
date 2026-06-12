@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports: ["8000:8000"]
+    depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_started } }
+    env_file: .env
+    volumes: [./logs:/app/logs]
+    restart: unless-stopped
+    networks: [trading-net]
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${DB_USER:-trading}
+      POSTGRES_PASSWORD: ${DB_PASS:-trading_pass}
+      POSTGRES_DB: ${DB_NAME:-trading_strategy_center}
+    volumes: [postgres_data:/var/lib/postgresql/data]
+    healthcheck: { test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-trading}"], interval: 10s, timeout: 5s, retries: 5 }
+    restart: unless-stopped
+    networks: [trading-net]
+
+  redis:
+    image: redis:7-alpine
+    volumes: [redis_data:/data]
+    command: redis-server --appendonly yes
+    healthcheck: { test: ["CMD", "redis-cli", "ping"], interval: 10s, timeout: 3s, retries: 5 }
+    restart: unless-stopped
+    networks: [trading-net]
+
+  celery_worker:
+    build: .
+    command: celery -A tasks.celery_app worker -Q backtest,training --loglevel=info --concurrency=2
+    depends_on: { postgres: { condition: service_healthy }, redis: { condition: service_started } }
+    env_file: .env
+    volumes: [./logs:/app/logs]
+    restart: unless-stopped
+    networks: [trading-net]
+
+  nginx:
+    image: nginx:alpine
+    ports: ["80:80"]
+    volumes: [./nginx.conf:/etc/nginx/nginx.conf:ro]
+    depends_on: [app]
+    restart: unless-stopped
+    networks: [trading-net]
+
+volumes: { postgres_data: {}, redis_data: {} }
+networks: { trading-net: { driver: bridge } }
