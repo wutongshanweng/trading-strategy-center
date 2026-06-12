@@ -22,3 +22,23 @@ class AlphaBase(ABC):
     @abstractmethod
     def compute(self, data: pd.DataFrame) -> pd.Series:
         raise NotImplementedError
+
+
+class AlphaFactor(ABC):
+    @property
+    @abstractmethod
+    def name(self) -> str:
+        pass
+
+    @property
+    @abstractmethod
+    def category(self) -> str:
+        pass
+
+    @abstractmethod
+    def compute(self, data: pd.DataFrame) -> pd.Series:
+        pass
+
+    def validate(self, data: pd.DataFrame) -> bool:
+        required = ['open', 'high', 'low', 'close', 'volume']
+        return all(col in data.columns for col in required)
