@@ -29,7 +29,37 @@ from .alpha027 import Alpha027
 from .alpha028 import Alpha028
 from .alpha029 import Alpha029
 from .alpha030 import Alpha030
+from .alpha031 import Alpha031
+from .alpha032 import Alpha032
+from .alpha033 import Alpha033
+from .alpha034 import Alpha034
+from .alpha035 import Alpha035
+from .alpha036 import Alpha036
+from .alpha037 import Alpha037
+from .alpha038 import Alpha038
+from .alpha039 import Alpha039
+from .alpha040 import Alpha040
+from .alpha041 import Alpha041
+from .alpha042 import Alpha042
+from .alpha043 import Alpha043
+from .alpha044 import Alpha044
+from .alpha045 import Alpha045
+from .alpha046 import Alpha046
+from .alpha047 import Alpha047
+from .alpha048 import Alpha048
+from .alpha049 import Alpha049
+from .alpha050 import Alpha050
+from .alpha051 import Alpha051
+from .alpha052 import Alpha052
+from .alpha053 import Alpha053
+from .alpha054 import Alpha054
+from .alpha055 import Alpha055
+from .alpha056 import Alpha056
+from .alpha057 import Alpha057
+from .alpha058 import Alpha058
+from .alpha059 import Alpha059
+from .alpha060 import Alpha060
 from .factor_registry import FactorRegistry
 from .factor_pipeline import FactorPipeline
 
-__all__ = ["AlphaBase", "AlphaFactor", "Alpha001", "Alpha002", "Alpha003", "Alpha004", "Alpha005", "Alpha006", "Alpha007", "Alpha008", "Alpha009", "Alpha010", "Alpha011", "Alpha012", "Alpha013", "Alpha014", "Alpha015", "Alpha016", "Alpha017", "Alpha018", "Alpha019", "Alpha020", "Alpha021", "Alpha022", "Alpha023", "Alpha024", "Alpha025", "Alpha026", "Alpha027", "Alpha028", "Alpha029", "Alpha030", "FactorRegistry", "FactorPipeline"]
+__all__ = ["AlphaBase", "AlphaFactor", "Alpha001", "Alpha002", "Alpha003", "Alpha004", "Alpha005", "Alpha006", "Alpha007", "Alpha008", "Alpha009", "Alpha010", "Alpha011", "Alpha012", "Alpha013", "Alpha014", "Alpha015", "Alpha016", "Alpha017", "Alpha018", "Alpha019", "Alpha020", "Alpha021", "Alpha022", "Alpha023", "Alpha024", "Alpha025", "Alpha026", "Alpha027", "Alpha028", "Alpha029", "Alpha030", "Alpha031", "Alpha032", "Alpha033", "Alpha034", "Alpha035", "Alpha036", "Alpha037", "Alpha038", "Alpha039", "Alpha040", "Alpha041", "Alpha042", "Alpha043", "Alpha044", "Alpha045", "Alpha046", "Alpha047", "Alpha048", "Alpha049", "Alpha050", "Alpha051", "Alpha052", "Alpha053", "Alpha054", "Alpha055", "Alpha056", "Alpha057", "Alpha058", "Alpha059", "Alpha060", "FactorRegistry", "FactorPipeline"]
