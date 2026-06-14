@@ -17,7 +17,9 @@
       "Bash(curl -s http://localhost:8000/api/v1/strategies)",
       "Bash(python -c ' *)",
       "Bash(python diagnose_frontend.py)",
-      "Bash(git commit -m 'docs: add frontend issues summary and complete fix guide *)"
+      "Bash(git commit -m 'docs: add frontend issues summary and complete fix guide *)",
+      "Bash(git commit -m 'docs: add comprehensive user requirements analysis *)",
+      "Bash(git commit -m 'feat: implement core user requirements - Phase 1 *)"
     ]
   }
 }
