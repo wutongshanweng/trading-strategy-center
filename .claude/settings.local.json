@@ -7,7 +7,17 @@
       "Bash(python -m pytest tests/test_options.py -q)",
       "Bash(python -m pytest tests/ -q)",
       "Bash(python -c \"from signals.engine import StrategyEngine; e=StrategyEngine\\(\\); e.load_all\\(\\); print\\('count=', e.count\\)\")",
-      "Bash(cmd.exe /c \"del \\\\\\\\\\\\\\\\.\\\\\\\\nul\")"
+      "Bash(cmd.exe /c \"del \\\\\\\\\\\\\\\\.\\\\\\\\nul\")",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:8000/health)",
+      "Bash(curl -s http://localhost:8000/)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8000)",
+      "Bash(findstr :3000)",
+      "Bash(curl -s http://localhost:8000/api/v1/strategies)",
+      "Bash(python -c ' *)",
+      "Bash(python diagnose_frontend.py)",
+      "Bash(git commit -m 'docs: add frontend issues summary and complete fix guide *)"
     ]
   }
 }

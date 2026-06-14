@@ -26,6 +26,7 @@ const menuItems = [
   { key: "/backtest", icon: <ExperimentOutlined />, label: "回测" },
   { key: "/portfolio", icon: <PieChartOutlined />, label: "组合" },
   { key: "/ml", icon: <RobotOutlined />, label: "机器学习" },
+  { key: "/factors", icon: <ExperimentOutlined />, label: "因子研究" },
   { key: "/data", icon: <DatabaseOutlined />, label: "数据中心" },
   { key: "/tournament", icon: <TrophyOutlined />, label: "锦标赛" },
   { key: "/settings", icon: <SettingOutlined />, label: "设置" },
