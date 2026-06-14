@@ -1,0 +1,32 @@
+# 可选依赖（development环境）
+pytest>=8.0
+pytest-asyncio>=0.23
+pytest-cov>=4.1
+black>=23.0
+ruff>=0.1
+mypy>=1.7
+ipython>=8.0
+
+# Jupyter研究环境
+jupyter>=1.0
+jupyterlab>=4.0
+ipywidgets>=8.0
+matplotlib>=3.7
+seaborn>=0.12
+plotly>=5.17
+
+# 数据可视化
+bokeh>=3.3
+altair>=5.1
+
+# 文档生成
+mkdocs>=1.5
+mkdocs-material>=9.4
+
+# 性能分析
+py-spy>=0.3
+memory_profiler>=0.61
+
+# 代码质量
+bandit>=1.7
+safety>=2.3

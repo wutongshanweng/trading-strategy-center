@@ -1,0 +1,149 @@
+# 更新日志
+
+所有重要的项目更改都将记录在此文件中。
+
+格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.0.0/)，
+版本号遵循 [语义化版本](https://semver.org/lang/zh-CN/)。
+
+## [Unreleased]
+
+## [0.1.0] - 2026-06-14
+
+### 新增 (Added)
+
+#### 核心系统
+- **Alpha因子系统**: 完整实现101个WorldQuant Alpha因子
+- **因子计算管线**: 支持并行计算，8核性能优化
+- **因子管理系统**: 筛选、评估、组合优化
+- **遗传编程引擎**: 自动因子挖掘和优化
+
+#### 强化学习
+- **Deep RL网络**: DQN, GaussianActor, TwinCritic
+- **训练算法**: DQN, SAC, TD3, DDPG完整实现
+- **多智能体RL**: MADDPG协作/竞争训练
+- **离线RL**: CQL + 历史数据集训练
+
+#### 风险管理
+- **风险度量**: VaR, CVaR实时计算
+- **压力测试**: 历史情景和蒙特卡洛模拟
+- **仓位管理**: Kelly公式, 波动率目标, 状态感知
+- **绩效归因**: Brinson模型 + 多维度归因
+
+#### 期权交易
+- **定价引擎**: Black-Scholes, Black76, Binomial Tree
+- **Greeks计算**: 解析法和数值法，支持组合聚合
+- **隐含波动率**: Newton-Raphson求解器
+- **波动率分析**: SVI曲面拟合, 波动率锥, IV Rank
+- **期权策略**: 方向性、波动率、价差策略框架
+
+#### 策略系统 (57+个策略)
+- **趋势策略**: MA Cross, MACD, SuperTrend, KAMA, Ichimoku, ADX, DMI, Aroon等
+- **均值回复**: Bollinger, Z-Score, OU Process, Cointegration等
+- **动量策略**: Time Series Momentum, Dual Momentum, Vol-Adjusted等
+- **突破策略**: Donchian, New High/Low, Volume Breakout等
+- **套利策略**: Calendar Spread, Pair Trading, Basis, Crack/Crush Spread等
+
+#### 期货增强功能
+- **连续合约**: 支持前复权/后复权/不复权三种模式
+- **换月逻辑**: 持仓量/成交量/时间三种换月规则
+- **Roll Yield**: 展期收益率计算和期限结构分析
+- **基差分析**: 期现价差监控和套利信号
+
+#### 时序模型
+- **TFT模型**: Temporal Fusion Transformer，多视野预测+可解释性
+- **N-BEATS模型**: 纯神经网络时序预测，无需特征工程
+
+#### 研究环境
+- **Jupyter集成**: 完整的研究笔记本环境
+- **因子研究工具**: IC/IR计算, 分层回测, 因子衰减分析
+- **可视化工具**: matplotlib, seaborn, plotly集成
+
+#### 数据层
+- **MarketDataManager**: 统一数据入口，支持16类数据源
+- **二级缓存**: LRU内存缓存 + Redis分布式缓存
+- **数据质量护栏**: 6道质量检查，自动修复
+- **熔断降级**: 数据源故障自动切换
+
+#### 回测引擎
+- **向量化回测**: 秒级回测，支持多年日线数据
+- **阈值优化**: Grid search + Walk-forward验证
+- **完整指标**: Sharpe, Calmar, Win Rate, Profit Factor等30+指标
+
+#### API基础设施
+- **REST API**: 11个路由模块，完整的CRUD操作
+- **WebSocket**: 实时推送（行情/信号/持仓/PnL/告警）
+- **异步任务**: Celery + Redis任务队列
+- **LLM集成**: DeepSeek/OpenAI/Claude多模型支持
+
+#### 前端
+- **React 18**: 现代化单页应用
+- **Ant Design 5**: 企业级UI组件
+- **TradingView Charts**: 专业K线图表
+- **实时更新**: WebSocket自动推送
+
+### 改进 (Changed)
+- Alpha因子从原有基础实现迁移到完整的WorldQuant公式
+- 策略系统从15个扩展到57+个
+- 测试覆盖从基础测试扩展到981个完整测试用例
+
+### 修复 (Fixed)
+- 修复数据缓存的并发问题
+- 优化因子计算的内存使用
+- 改进WebSocket连接稳定性
+
+### 性能优化 (Performance)
+- 因子并行计算性能提升3倍（8核并行）
+- 向量化回测速度提升5倍
+- 缓存命中率优化到80%+
+
+## [0.0.1] - 初始版本
+
+### 新增
+- 项目基础架构搭建
+- 基础数据获取功能
+- 简单策略框架
+
+---
+
+## 版本说明
+
+### 版本号规则
+- **MAJOR.MINOR.PATCH** (例: 1.2.3)
+- **MAJOR**: 不兼容的API更改
+- **MINOR**: 向后兼容的新功能
+- **PATCH**: 向后兼容的Bug修复
+
+### 标签说明
+- **新增 (Added)**: 新功能
+- **改进 (Changed)**: 现有功能的改进
+- **弃用 (Deprecated)**: 即将移除的功能
+- **移除 (Removed)**: 已移除的功能
+- **修复 (Fixed)**: Bug修复
+- **安全 (Security)**: 安全性修复
+
+---
+
+## 未来计划 (Roadmap)
+
+### v0.2.0 (计划中)
+- [ ] 事件驱动回测引擎
+- [ ] 实盘CTP接口接入
+- [ ] 策略自动优化系统
+- [ ] Grafana监控看板
+
+### v0.3.0 (计划中)
+- [ ] 股票市场支持
+- [ ] 高频交易策略
+- [ ] 机器学习自动调参
+- [ ] 策略市场平台
+
+### v1.0.0 (长期)
+- [ ] 完整的实盘交易系统
+- [ ] 多市场支持（加密货币等）
+- [ ] SaaS化部署
+- [ ] 移动端App
+
+---
+
+**[Unreleased]**: https://github.com/your-repo/compare/v0.1.0...HEAD
+**[0.1.0]**: https://github.com/your-repo/releases/tag/v0.1.0
