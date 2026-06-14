@@ -146,8 +146,12 @@ export default function DataCenter() {
           );
         })
       )}
-      {/* Static source cards — 仅当后端未启动时显示 */}
-      {sources.length === 0 && ["AKShare", "Yahoo Finance", "TDX (通达信)", "FRED", "Alpha Vantage", "CFTC"].map((name) => (
+      {/* Static source cards — 仅当后端未启动时显示 (16个数据源) */}
+      {sources.length === 0 && [
+        "AKShare", "Yahoo Finance", "TDX (通达信)", "FRED", "Alpha Vantage",
+        "CFTC", "EIA", "Quandl", "Tushare", "Wind",
+        "IEX Cloud", "Polygon.io", "CSMAR", "CRSP", "Compustat", "Bloomberg"
+      ].map((name) => (
         <Col xs={24} sm={12} lg={6} key={name}>
           <Card size="small" hoverable>
             <Space>

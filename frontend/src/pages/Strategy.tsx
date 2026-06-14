@@ -220,14 +220,41 @@ export default function Strategy() {
   );
 }
 
-/* ── Mock data ── */
-const MOCK_STRATEGIES: Strategy[] = [
-  { id: "1", name: "双均线趋势跟踪", type: "趋势跟踪", status: "active", signals: ["ma_cross"], created_at: "2024-01-15", updated_at: "2024-06-01", performance: { sharpe: 1.82, total_return: 0.34, win_rate: 0.58, max_drawdown: -0.12 } },
-  { id: "2", name: "RSI均值回归", type: "均值回归", status: "active", signals: ["rsi_overbought"], created_at: "2024-02-20", updated_at: "2024-06-10", performance: { sharpe: 1.45, total_return: 0.22, win_rate: 0.63, max_drawdown: -0.08 } },
-  { id: "3", name: "布林带突破", type: "突破策略", status: "paused", signals: ["bollinger"], created_at: "2024-03-05", updated_at: "2024-05-20", performance: { sharpe: 0.95, total_return: 0.15, win_rate: 0.45, max_drawdown: -0.18 } },
-  { id: "4", name: "Alpha因子组合", type: "多因子", status: "backtest", signals: ["alpha031", "alpha058"], created_at: "2024-04-10", updated_at: "2024-06-12", performance: { sharpe: 2.10, total_return: 0.52, win_rate: 0.55, max_drawdown: -0.10 } },
-  { id: "5", name: "LSTM价格预测", type: "机器学习", status: "draft", signals: ["lstm_pred"], created_at: "2024-05-01", updated_at: "2024-05-01", performance: { sharpe: 0, total_return: 0, win_rate: 0, max_drawdown: 0 } },
-  { id: "6", name: "套利动量策略", type: "套利策略", status: "active", signals: ["pair_spread"], created_at: "2024-03-15", updated_at: "2024-06-08", performance: { sharpe: 1.67, total_return: 0.28, win_rate: 0.71, max_drawdown: -0.05 } },
-  { id: "7", name: "海龟交易法则", type: "趋势跟踪", status: "active", signals: ["turtle"], created_at: "2024-01-01", updated_at: "2024-06-11", performance: { sharpe: 1.95, total_return: 0.41, win_rate: 0.42, max_drawdown: -0.22 } },
-  { id: "8", name: "统计套利策略", type: "均值回归", status: "paused", signals: ["zscore"], created_at: "2024-04-20", updated_at: "2024-06-05", performance: { sharpe: 0.78, total_return: 0.09, win_rate: 0.52, max_drawdown: -0.14 } },
-];
+/* ── Mock data - Updated to 67 strategies (matching backend) ── */
+const MOCK_STRATEGIES: Strategy[] = Array.from({ length: 67 }, (_, i) => {
+  const types = ["趋势跟踪", "均值回归", "套利策略", "动量策略", "突破策略"];
+  const statuses = ["active", "paused", "backtest", "draft"];
+  const names = [
+    "双均线趋势", "布林带反转", "MACD动量", "RSI超买超卖", "海龟交易",
+    "配对交易", "统计套利", "动量突破", "均值回复", "跨期套利",
+    "SuperTrend", "KAMA自适应", "Keltner通道", "抛物线SAR", "Vortex指标",
+    "Aroon趋势", "TTM压缩", "ADX趋势强度", "DMI方向", "一目均衡",
+    "日历价差", "压榨价差", "裂解价差", "Roll Yield", "基差套利",
+    "时间序列动量", "双重动量", "波动率调整", "残差动量", "Donchian突破",
+    "新高新低", "成交量突破", "区间突破", "趋势反转", "Z-Score均值",
+    "协整套利", "OU过程", "卡尔曼滤波", "EMA多周期", "多空策略",
+    "网格交易", "马丁格尔", "凯利公式", "风险平价", "波动率目标",
+    "Alpha001", "Alpha002", "Alpha003", "Alpha004", "Alpha005",
+    "趋势跟随组合", "套利组合", "动量组合", "机器学习策略", "深度学习",
+    "强化学习DQN", "SAC策略", "TD3策略", "MADDPG", "期权策略",
+    "Greeks对冲", "波动率交易", "日内回转", "高频策略", "市场中性",
+    "CTA策略", "量化选股"
+  ];
+
+  const isActive = i < 35;
+  return {
+    id: String(i + 1),
+    name: names[i] || `策略${i + 1}`,
+    type: types[i % types.length],
+    status: isActive ? (i % 4 === 3 ? "paused" : "active") : (i % 2 === 0 ? "backtest" : "draft"),
+    signals: [`signal_${i + 1}`],
+    created_at: `2024-${String((i % 6) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`,
+    updated_at: "2024-06-14",
+    performance: {
+      sharpe: parseFloat((Math.random() * 2.5 + 0.3).toFixed(2)),
+      total_return: parseFloat((Math.random() * 0.5 - 0.05).toFixed(3)),
+      win_rate: parseFloat((Math.random() * 0.3 + 0.45).toFixed(3)),
+      max_drawdown: parseFloat(-(Math.random() * 0.2 + 0.03).toFixed(3)),
+    },
+  };
+});
