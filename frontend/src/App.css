@@ -1,4 +1,5 @@
-/* 全局样式 */
+/* 全局样式 - 主题变量在 styles/global.css 中定义 */
+
 * {
   margin: 0;
   padding: 0;
@@ -11,31 +12,6 @@ body {
     'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* 亮色主题（默认） */
-:root {
-  --bg-color: #f0f2f5;
-  --text-color: #000000d9;
-  --border-color: #d9d9d9;
-  --card-bg: #ffffff;
-  --hover-bg: #fafafa;
-}
-
-/* 暗色主题 */
-.dark-theme {
-  --bg-color: #000000;
-  --text-color: #ffffffd9;
-  --border-color: #434343;
-  --card-bg: #141414;
-  --hover-bg: #1f1f1f;
-}
-
-/* 应用主题变量 */
-body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
 }
 
 /* 滚动条样式 */
@@ -45,7 +21,7 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg-color);
+  background: var(--bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -54,42 +30,16 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #888;
-}
-
-/* 暗色主题下的滚动条 */
-.dark-theme ::-webkit-scrollbar-track {
-  background: #1f1f1f;
-}
-
-.dark-theme ::-webkit-scrollbar-thumb {
-  background: #434343;
-}
-
-.dark-theme ::-webkit-scrollbar-thumb:hover {
-  background: #595959;
+  background: var(--text-muted);
 }
 
 /* 卡片阴影 */
 .ant-card {
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease;
 }
 
 .ant-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-.dark-theme .ant-card:hover {
-  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
-}
-
-/* 表格斑马纹 */
-.ant-table-tbody > tr:nth-child(even) {
-  background-color: rgba(0, 0, 0, 0.02);
-}
-
-.dark-theme .ant-table-tbody > tr:nth-child(even) {
-  background-color: rgba(255, 255, 255, 0.02);
+  box-shadow: var(--card-shadow);
 }
 
 /* 按钮悬停效果 */
@@ -111,14 +61,6 @@ a {
 
 a:hover {
   color: #40a9ff;
-}
-
-.dark-theme a {
-  color: #1890ff;
-}
-
-.dark-theme a:hover {
-  color: #69c0ff;
 }
 
 /* 选中文本颜色 */
