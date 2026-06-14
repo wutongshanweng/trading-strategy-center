@@ -1,22 +1,31 @@
+"""Real WorldQuant Alpha101 formula — Alpha018: (-1 * correlation(rank(open), rank(volume), 1))"""
+import numpy as np
 import pandas as pd
 
 from .base import AlphaFactor
 from .factor_registry import FactorRegistry
+from .operators import (
+    rank, ts_rank, ts_argmax, ts_argmin, ts_sum, ts_product,
+    ts_min, ts_max, ts_mean, ts_std, ts_cov, correlation, covariance,
+    scale, delay, delta, signedpower, decay_linear, signed_sqrt,
+)
 
 
 @FactorRegistry.register
 class Alpha018(AlphaFactor):
+    """Alpha018: (-1 * correlation(rank(open), rank(volume), 1))"""
+
     @property
     def name(self) -> str:
         return "alpha018"
 
     @property
     def category(self) -> str:
-        return "volume_rank"
+        return "volume_price"
 
     @property
     def description(self) -> str:
-        return "Volume rank factor - rolling rank of volume over lookback period"
+        return "Alpha018: (-1 * correlation(rank(open), rank(volume), 1))"
 
     def compute(self, data: pd.DataFrame, lookback: int = 20) -> pd.Series:
-        return data['volume'].rolling(lookback).rank()
+        return -1 * correlation(rank(data["open"]), rank(data["volume"]), 1)

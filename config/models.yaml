@@ -1,0 +1,123 @@
+# ============================================================================
+# Trading Strategy Center — 多模型配置
+# ============================================================================
+# 使用方式:
+#   1. 填写你的 API Key (或设置环境变量)
+#   2. 设置 active_provider 为当前使用的模型
+#   3. 代码中通过 ProviderRegistry.get() 或 get_active_provider() 获取
+#   4. 随时切换 active_provider 来对比不同模型的结果
+#
+# 支持的协议:
+#   - openai:      OpenAI GPT 系列 (兼容 OpenAI 协议的都可以用)
+#   - deepseek:    DeepSeek (OpenAI 兼容协议)
+#   - anthropic:   Anthropic Claude 系列
+#   - groq:        Groq (OpenAI 兼容协议, 极速推理)
+#   - ollama:      本地 Ollama 模型 (无需 API Key)
+#   - together:    Together AI (OpenAI 兼容协议)
+#   - moonshot:    Moonshot Kimi (OpenAI 兼容协议)
+#   - qwen:        通义千问 DashScope (OpenAI 兼容协议)
+#   - zhipu:       智谱 GLM (OpenAI 兼容协议)
+#   - openrouter:  OpenRouter (OpenAI 兼容协议, 聚合多模型)
+# ============================================================================
+
+# 当前激活的模型 (修改这一行即可切换)
+active_provider: deepseek-chat
+
+providers:
+  # ---- DeepSeek ----
+  deepseek-chat:
+    type: deepseek
+    api_key: ${DEEPSEEK_API_KEY}
+    model: deepseek-chat
+    description: "DeepSeek Chat — 性价比最高, 中文能力强"
+
+  deepseek-reasoner:
+    type: deepseek
+    api_key: ${DEEPSEEK_API_KEY}
+    model: deepseek-reasoner
+    description: "DeepSeek Reasoner — 深度推理, 复杂分析"
+
+  # ---- OpenAI ----
+  gpt-4o:
+    type: openai
+    api_key: ${OPENAI_API_KEY}
+    model: gpt-4o
+    description: "GPT-4o — 综合能力最强"
+
+  gpt-4o-mini:
+    type: openai
+    api_key: ${OPENAI_API_KEY}
+    model: gpt-4o-mini
+    description: "GPT-4o Mini — 快速便宜"
+
+  o3-mini:
+    type: openai
+    api_key: ${OPENAI_API_KEY}
+    model: o3-mini
+    description: "o3-mini — 推理能力强"
+
+  # ---- Anthropic Claude ----
+  claude-sonnet:
+    type: anthropic
+    api_key: ${ANTHROPIC_API_KEY}
+    model: claude-sonnet-4-20250514
+    description: "Claude Sonnet 4 — 代码能力强"
+
+  claude-haiku:
+    type: anthropic
+    api_key: ${ANTHROPIC_API_KEY}
+    model: claude-3-5-haiku-20241022
+    description: "Claude 3.5 Haiku — 极速响应"
+
+  # ---- Groq (极速推理) ----
+  groq-llama:
+    type: groq
+    api_key: ${GROQ_API_KEY}
+    model: llama-3.3-70b-versatile
+    description: "Groq Llama 3.3 70B — 速度极快"
+
+  groq-mixtral:
+    type: groq
+    api_key: ${GROQ_API_KEY}
+    model: mixtral-8x7b-32768
+    description: "Groq Mixtral 8x7B — 长上下文"
+
+  # ---- 通义千问 ----
+  qwen-max:
+    type: qwen
+    api_key: ${QWEN_API_KEY}
+    model: qwen-max
+    description: "通义千问 Max — 中文最强"
+
+  qwen-plus:
+    type: qwen
+    api_key: ${QWEN_API_KEY}
+    model: qwen-plus
+    description: "通义千问 Plus — 性价比高"
+
+  # ---- 智谱 GLM ----
+  glm-4:
+    type: zhipu
+    api_key: ${ZHIPU_API_KEY}
+    model: glm-4-plus
+    description: "智谱 GLM-4 Plus"
+
+  # ---- Moonshot ----
+  moonshot-v1:
+    type: moonshot
+    api_key: ${MOONSHOT_API_KEY}
+    model: moonshot-v1-8k
+    description: "Moonshot Kimi v1 — 长文本"
+
+  # ---- 本地模型 ----
+  local-llama3:
+    type: ollama
+    api_base: http://localhost:11434
+    model: llama3
+    description: "本地 Ollama Llama3 (无需 API Key)"
+
+  local-qwen2:
+    type: ollama
+    api_base: http://localhost:11434
+    model: qwen2:7b
+    description: "本地 Ollama Qwen2 (无需 API Key)"

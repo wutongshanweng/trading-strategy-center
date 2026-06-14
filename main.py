@@ -18,6 +18,12 @@ from api.routes.trading_routes import router as trading_router
 from api.routes.backtest_routes import router as backtest_router
 from api.routes.portfolio_routes import router as portfolio_router
 from api.routes.ml_routes import router as ml_router
+from api.routes.intelligence_routes import router as intelligence_router
+from api.routes.tournament_routes import router as tournament_router
+from api.routes.llm_routes import router as llm_router
+from api.routes.db_routes import router as db_router
+from api.websocket.trading_stream import router as ws_router, start_periodic_updates
+from data_center.api import router as data_center_router
 
 
 @asynccontextmanager
@@ -56,6 +62,12 @@ app.include_router(trading_router)
 app.include_router(backtest_router)
 app.include_router(portfolio_router)
 app.include_router(ml_router)
+app.include_router(intelligence_router)
+app.include_router(tournament_router)
+app.include_router(llm_router)
+app.include_router(db_router)
+app.include_router(ws_router)
+app.include_router(data_center_router)
 
 
 if __name__ == "__main__":

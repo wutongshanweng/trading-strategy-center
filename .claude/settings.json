@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(del nul *)",
+      "Bash(del \"\\\\\\\\?\\\\D:\\\\完整项目\\\\trading-strategy-center\\\\nul\")",
+      "Bash(dir nul *)"
+    ]
+  }
+}

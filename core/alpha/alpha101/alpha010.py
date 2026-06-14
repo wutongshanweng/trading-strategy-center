@@ -1,22 +1,35 @@
+"""Real WorldQuant Alpha101 formula — Alpha010: rank(((0 < ts_min(delta(close, 1), 4)) ? delta(close, 1) : ((ts_max(delta(close, 1), 4) < 0) ? delta(close, 1) : (-1 * delta(close, 1)))))"""
+import numpy as np
 import pandas as pd
 
 from .base import AlphaFactor
 from .factor_registry import FactorRegistry
+from .operators import (
+    rank, ts_rank, ts_argmax, ts_argmin, ts_sum, ts_product,
+    ts_min, ts_max, ts_mean, ts_std, ts_cov, correlation, covariance,
+    scale, delay, delta, signedpower, decay_linear, signed_sqrt,
+)
 
 
 @FactorRegistry.register
 class Alpha010(AlphaFactor):
+    """Alpha010: rank(((0 < ts_min(delta(close, 1), 4)) ? delta(close, 1) : ((ts_max(delta(close, 1), 4) < 0) ? delta(close, 1) : (-1 * delta(close, 1)))))"""
+
     @property
     def name(self) -> str:
         return "alpha010"
 
     @property
     def category(self) -> str:
-        return "volume_rank"
+        return "trend"
 
     @property
     def description(self) -> str:
-        return "Volume rank factor - rolling rank of volume over lookback period"
+        return "Alpha010: rank(((0 < ts_min(delta(close, 1), 4)) ? delta(close, 1) : ((ts_max(delta(close, 1), 4) < 0) ? delta(close, 1) : (-1 * delta(close, 1)))))"
 
     def compute(self, data: pd.DataFrame, lookback: int = 20) -> pd.Series:
-        return data['volume'].rolling(lookback).rank()
+        dc = delta(data["close"], 1)
+        cond1 = 0 < ts_min(dc, 4)
+        cond2 = ts_max(dc, 4) < 0
+        raw = np.where(cond1, dc, np.where(cond2, dc, -dc))
+        return rank(pd.Series(raw, index=data.index))

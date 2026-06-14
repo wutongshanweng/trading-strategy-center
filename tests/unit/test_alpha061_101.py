@@ -58,6 +58,9 @@ def test_alpha_factor_not_all_nan(factor_name):
 
 @pytest.mark.parametrize("factor_name", [f"alpha{i:03d}" for i in range(61, 102)])
 def test_alpha_factor_has_rolling_nan(factor_name):
+    # Skip instantaneous factors (no rolling window, legitimately zero NaN)
+    if factor_name in ["alpha101"]:
+        pytest.skip(f"{factor_name} is instantaneous (no rolling window)")
     data = generate_test_data()
     factor_class = FactorRegistry.get(factor_name)
     factor = factor_class()

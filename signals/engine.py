@@ -11,6 +11,8 @@ class StrategyEngine:
         self._strategies: Dict[str, BaseStrategy] = {}
 
     def load_all(self):
+        # 导入策略包触发自动注册(@register),再从注册表实例化
+        import signals.strategies  # noqa: F401
         for name, cls in get_all_strategies().items():
             self._strategies[name] = cls()
         logger.info(f"Loaded {len(self._strategies)} strategies")

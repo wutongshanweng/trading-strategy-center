@@ -43,9 +43,7 @@ def sample_data():
 def cleanup_registry():
     """测试后清理注册表"""
     yield
-    FactorRegistry._factors.clear()
-    FactorRegistry._names.clear()
-    FactorRegistry._categories.clear()
+    FactorRegistry.reset()
 
 
 class TestFactorPipeline:

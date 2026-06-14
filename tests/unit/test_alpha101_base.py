@@ -59,7 +59,7 @@ class TestAlphaFactor:
 
 class TestFactorRegistry:
     def setup_method(self):
-        FactorRegistry._factors.clear()
+        FactorRegistry.reset()
 
     def test_register_and_get(self):
         class TestFactor(AlphaFactor):

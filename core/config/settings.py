@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings
-from typing import Literal, List
+from typing import Literal, List, Optional
 from functools import lru_cache
 
 
@@ -24,11 +24,31 @@ class Settings(BaseSettings):
     lru_cache_size: int = 1000
     redis_cache_ttl: int = 300
 
+    initial_capital: float = 1_000_000.0  # 模拟账户初始资金
     max_position_size: int = 100
     max_drawdown_pct: float = 0.15
     max_leverage: float = 3.0
 
     cors_origins: List[str] = ["*"]
+
+    # DeepSeek API Configuration
+    deepseek_api_key: Optional[str] = None
+    deepseek_api_base: str = "https://api.deepseek.com"
+    deepseek_model: str = "deepseek-chat"
+    deepseek_max_tokens: int = 4096
+    deepseek_temperature: float = 0.7
+
+    # OpenAI API Configuration (for comparison)
+    openai_api_key: Optional[str] = None
+    openai_api_base: str = "https://api.openai.com/v1"
+    openai_model: str = "gpt-4"
+
+    # Claude API Configuration (for comparison)
+    claude_api_key: Optional[str] = None
+    claude_model: str = "claude-3-opus-20240229"
+
+    # Default LLM provider
+    default_llm_provider: Literal["deepseek", "openai", "claude"] = "deepseek"
 
     @property
     def db_url(self) -> str:
@@ -36,7 +56,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
-        extra = "forbid"
+        extra = "ignore"
 
 
 @lru_cache()

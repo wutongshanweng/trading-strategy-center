@@ -166,3 +166,180 @@ def TRIX(series: pd.Series, period: int = 15) -> pd.Series:
 def AROON_OSCILLATOR(df: pd.DataFrame, period: int = 14) -> pd.Series:
     up, down = AROON(df, period)
     return up - down
+
+
+# ============================================================
+# 扩展指标库(供新策略使用)
+# ============================================================
+
+def STDDEV(series: pd.Series, period: int = 20) -> pd.Series:
+    """滚动标准差。"""
+    return series.rolling(period).std(ddof=0)
+
+
+def ZSCORE(series: pd.Series, period: int = 20) -> pd.Series:
+    """滚动 Z-score = (x - 均值) / 标准差。"""
+    mean = series.rolling(period).mean()
+    std = series.rolling(period).std(ddof=0)
+    return (series - mean) / std.replace(0, np.nan)
+
+
+def ROC(series: pd.Series, period: int = 12) -> pd.Series:
+    """Rate of Change(变动率,%)。"""
+    return (series / series.shift(period) - 1) * 100
+
+
+def KAMA(series: pd.Series, period: int = 10, fast: int = 2, slow: int = 30) -> pd.Series:
+    """Kaufman 自适应均线 (KAMA)。"""
+    change = (series - series.shift(period)).abs()
+    volatility = series.diff().abs().rolling(period).sum()
+    er = (change / volatility.replace(0, np.nan)).fillna(0)
+    fast_sc = 2 / (fast + 1)
+    slow_sc = 2 / (slow + 1)
+    sc = (er * (fast_sc - slow_sc) + slow_sc) ** 2
+    kama = pd.Series(index=series.index, dtype=float)
+    first_valid = series.first_valid_index()
+    if first_valid is None:
+        return kama
+    start = series.index.get_loc(first_valid)
+    kama.iloc[start] = series.iloc[start]
+    for i in range(start + 1, len(series)):
+        prev = kama.iloc[i - 1]
+        if pd.isna(prev):
+            kama.iloc[i] = series.iloc[i]
+        else:
+            kama.iloc[i] = prev + sc.iloc[i] * (series.iloc[i] - prev)
+    return kama
+
+
+def KELTNER(df: pd.DataFrame, period: int = 20, mult: float = 2.0):
+    """Keltner 通道(EMA ± mult*ATR)。返回 (upper, mid, lower)。"""
+    mid = EMA(df["close"], period)
+    atr = ATR(df, period)
+    upper = mid + mult * atr
+    lower = mid - mult * atr
+    return upper, mid, lower
+
+
+def PARABOLIC_SAR(df: pd.DataFrame, af_step: float = 0.02, af_max: float = 0.2) -> pd.Series:
+    """抛物线 SAR。"""
+    high, low = df["high"].values, df["low"].values
+    n = len(df)
+    sar = np.zeros(n)
+    if n < 2:
+        return pd.Series(sar, index=df.index)
+    trend = 1  # 1 上涨, -1 下跌
+    af = af_step
+    ep = high[0]
+    sar[0] = low[0]
+    for i in range(1, n):
+        sar[i] = sar[i - 1] + af * (ep - sar[i - 1])
+        if trend == 1:
+            if low[i] < sar[i]:
+                trend = -1
+                sar[i] = ep
+                ep = low[i]
+                af = af_step
+            else:
+                if high[i] > ep:
+                    ep = high[i]
+                    af = min(af + af_step, af_max)
+                sar[i] = min(sar[i], low[i - 1], low[max(i - 2, 0)])
+        else:
+            if high[i] > sar[i]:
+                trend = 1
+                sar[i] = ep
+                ep = high[i]
+                af = af_step
+            else:
+                if low[i] < ep:
+                    ep = low[i]
+                    af = min(af + af_step, af_max)
+                sar[i] = max(sar[i], high[i - 1], high[max(i - 2, 0)])
+    return pd.Series(sar, index=df.index)
+
+
+def VORTEX(df: pd.DataFrame, period: int = 14):
+    """涡旋指标。返回 (vi_plus, vi_minus)。"""
+    high, low, close = df["high"], df["low"], df["close"]
+    tr = pd.concat([high - low, (high - close.shift()).abs(),
+                    (low - close.shift()).abs()], axis=1).max(axis=1)
+    vm_plus = (high - low.shift()).abs()
+    vm_minus = (low - high.shift()).abs()
+    tr_sum = tr.rolling(period).sum()
+    vi_plus = vm_plus.rolling(period).sum() / tr_sum.replace(0, np.nan)
+    vi_minus = vm_minus.rolling(period).sum() / tr_sum.replace(0, np.nan)
+    return vi_plus, vi_minus
+
+
+def TSI(series: pd.Series, long: int = 25, short: int = 13) -> pd.Series:
+    """True Strength Index(真实强度指标)。"""
+    diff = series.diff()
+    abs_diff = diff.abs()
+    ema1 = diff.ewm(span=long, adjust=False).mean().ewm(span=short, adjust=False).mean()
+    ema2 = abs_diff.ewm(span=long, adjust=False).mean().ewm(span=short, adjust=False).mean()
+    return 100 * ema1 / ema2.replace(0, np.nan)
+
+
+def CHAIKIN_MONEY_FLOW(df: pd.DataFrame, period: int = 20) -> pd.Series:
+    """蔡金资金流 (CMF)。"""
+    high, low, close, vol = df["high"], df["low"], df["close"], df["volume"]
+    mfm = ((close - low) - (high - close)) / (high - low).replace(0, np.nan)
+    mfv = mfm * vol
+    return mfv.rolling(period).sum() / vol.rolling(period).sum().replace(0, np.nan)
+
+
+def FORCE_INDEX(df: pd.DataFrame, period: int = 13) -> pd.Series:
+    """强力指数 (Elder Force Index)。"""
+    fi = df["close"].diff() * df["volume"]
+    return fi.ewm(span=period, adjust=False).mean()
+
+
+def EASE_OF_MOVEMENT(df: pd.DataFrame, period: int = 14) -> pd.Series:
+    """简易波动指标 (EOM)。"""
+    high, low, vol = df["high"], df["low"], df["volume"]
+    distance = ((high + low) / 2) - ((high.shift() + low.shift()) / 2)
+    box_ratio = (vol / 1e8) / (high - low).replace(0, np.nan)
+    emv = distance / box_ratio.replace(0, np.nan)
+    return emv.rolling(period).mean()
+
+
+def HURST_EXPONENT(series: pd.Series, max_lag: int = 20) -> float:
+    """Hurst 指数(分形维度)。>0.5 趋势,<0.5 均值回归。"""
+    s = series.dropna().values
+    if len(s) < max_lag * 2:
+        return float("nan")
+    lags = range(2, max_lag)
+    tau = [np.std(s[lag:] - s[:-lag]) for lag in lags]
+    tau = [t if t > 0 else 1e-10 for t in tau]
+    poly = np.polyfit(np.log(list(lags)), np.log(tau), 1)
+    return float(poly[0])
+
+
+def DI_PLUS_MINUS(df: pd.DataFrame, period: int = 14):
+    """DMI 的 +DI / -DI(复用 ADX 内部计算)。"""
+    adx, pdi, ndi = ADX(df, period)
+    return pdi, ndi
+
+
+def STOCH_RSI(series: pd.Series, period: int = 14, k_smooth: int = 3, d_smooth: int = 3):
+    """随机 RSI。返回 (k, d)。"""
+    rsi = RSI(series, period)
+    rsi_min = rsi.rolling(period).min()
+    rsi_max = rsi.rolling(period).max()
+    stoch = (rsi - rsi_min) / (rsi_max - rsi_min).replace(0, np.nan) * 100
+    k = stoch.rolling(k_smooth).mean()
+    d = k.rolling(d_smooth).mean()
+    return k, d
+
+
+def TTM_SQUEEZE(df: pd.DataFrame, period: int = 20, bb_mult: float = 2.0, kc_mult: float = 1.5):
+    """TTM 挤压:布林带在 Keltner 通道内 = 挤压(蓄势)。返回 (squeeze_on, momentum)。"""
+    bb_up, bb_mid, bb_low = BB(df["close"], period, bb_mult)
+    kc_up, kc_mid, kc_low = KELTNER(df, period, kc_mult)
+    squeeze_on = (bb_up < kc_up) & (bb_low > kc_low)
+    highest = df["high"].rolling(period).max()
+    lowest = df["low"].rolling(period).min()
+    mid = (highest + lowest) / 2
+    momentum = df["close"] - (mid + bb_mid) / 2
+    return squeeze_on, momentum
