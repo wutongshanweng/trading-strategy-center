@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { Layout as AntLayout, Menu, Button, Typography, theme } from "antd";
+import { Layout as AntLayout, Menu, Button, Typography, theme, Switch } from "antd";
 import {
   DashboardOutlined,
   FundOutlined,
@@ -14,6 +14,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   GithubOutlined,
+  BulbOutlined,
 } from "@ant-design/icons";
 
 const { Sider, Header, Content, Footer } = AntLayout;
@@ -36,7 +37,31 @@ export default function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const { token } = theme.useToken();
+
+  // 从localStorage读取主题设置
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      setIsDarkMode(true);
+      document.documentElement.classList.add("dark-theme");
+    }
+  }, []);
+
+  // 切换主题
+  const toggleTheme = () => {
+    const newTheme = !isDarkMode;
+    setIsDarkMode(newTheme);
+
+    if (newTheme) {
+      document.documentElement.classList.add("dark-theme");
+      localStorage.setItem("theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark-theme");
+      localStorage.setItem("theme", "light");
+    }
+  };
 
   const selectedKey = menuItems
     .filter((m) => location.pathname.startsWith(m.key))
@@ -49,89 +74,110 @@ export default function Layout() {
         collapsed={collapsed}
         onCollapse={setCollapsed}
         width={240}
-        theme="dark"
         style={{
-          overflow: "auto",
-          height: "100vh",
-          position: "fixed",
-          left: 0,
-          top: 0,
-          bottom: 0,
-          zIndex: 100,
-          borderRight: `1px solid ${token.colorBorderSecondary}`,
+          background: isDarkMode ? "#141414" : token.colorBgContainer,
+          borderRight: `1px solid ${isDarkMode ? "#303030" : token.colorBorderSecondary}`,
         }}
       >
-        {/* Logo */}
         <div
           style={{
             height: 64,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
-            margin: "0 16px",
+            borderBottom: `1px solid ${isDarkMode ? "#303030" : token.colorBorderSecondary}`,
+            background: isDarkMode ? "#1f1f1f" : token.colorBgElevated,
           }}
         >
           <Text
             strong
             style={{
               fontSize: collapsed ? 16 : 18,
-              background: "linear-gradient(135deg, #1677ff, #00d4aa)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              whiteSpace: "nowrap",
+              color: isDarkMode ? "#ffffff" : token.colorText,
             }}
           >
-            {collapsed ? "TSC" : "Trading Strategy Center"}
+            {collapsed ? "TSC" : "Trading Center"}
           </Text>
         </div>
 
         <Menu
-          theme="dark"
           mode="inline"
           selectedKeys={[selectedKey]}
           items={menuItems}
           onClick={({ key }) => navigate(key)}
-          style={{ marginTop: 8, borderRight: 0 }}
+          style={{
+            background: isDarkMode ? "#141414" : "transparent",
+            border: "none",
+          }}
+          theme={isDarkMode ? "dark" : "light"}
         />
       </Sider>
 
-      <AntLayout style={{ marginLeft: collapsed ? 80 : 240, transition: "margin-left 0.2s" }}>
+      <AntLayout>
         <Header
           style={{
+            padding: "0 24px",
+            background: isDarkMode ? "#1f1f1f" : token.colorBgContainer,
+            borderBottom: `1px solid ${isDarkMode ? "#303030" : token.colorBorderSecondary}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "0 24px",
-            position: "sticky",
-            top: 0,
-            zIndex: 99,
           }}
         >
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
-            style={{ color: token.colorTextSecondary, fontSize: 16 }}
+            style={{
+              color: isDarkMode ? "#ffffff" : token.colorTextSecondary,
+              fontSize: 16
+            }}
           />
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <Text type="secondary" style={{ fontSize: 13 }}>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            {/* 主题切换开关 */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <BulbOutlined style={{ color: isDarkMode ? "#ffd666" : "#faad14", fontSize: 16 }} />
+              <Switch
+                checked={isDarkMode}
+                onChange={toggleTheme}
+                checkedChildren="暗色"
+                unCheckedChildren="亮色"
+              />
+            </div>
+
+            <Button
+              type="text"
+              icon={<GithubOutlined />}
+              href="https://github.com"
+              target="_blank"
+              style={{ color: isDarkMode ? "#ffffff" : token.colorTextSecondary }}
+            />
+
+            <Text type="secondary" style={{ fontSize: 13, color: isDarkMode ? "#8c8c8c" : undefined }}>
               {new Date().toLocaleString("zh-CN")}
             </Text>
           </div>
         </Header>
 
-        <Content style={{ margin: 24, minHeight: "calc(100vh - 64px - 48px - 48px)" }}>
+        <Content
+          style={{
+            margin: 24,
+            minHeight: "calc(100vh - 64px - 48px - 48px)",
+            background: isDarkMode ? "#000000" : token.colorBgLayout,
+          }}
+        >
           <Outlet />
         </Content>
 
         <Footer
           style={{
             textAlign: "center",
-            color: token.colorTextDisabled,
+            color: isDarkMode ? "#8c8c8c" : token.colorTextDisabled,
             fontSize: 12,
-            borderTop: `1px solid ${token.colorBorderSecondary}`,
+            borderTop: `1px solid ${isDarkMode ? "#303030" : token.colorBorderSecondary}`,
             padding: "12px 24px",
+            background: isDarkMode ? "#141414" : token.colorBgContainer,
           }}
         >
           Trading Strategy Center v0.1.0 &copy; {new Date().getFullYear()} &mdash; Built with React +
