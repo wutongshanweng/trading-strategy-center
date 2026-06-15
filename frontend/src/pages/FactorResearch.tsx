@@ -844,7 +844,7 @@ export default function FactorResearch() {
                 </>
               ) : (
                 <Alert
-                  message="请选择因子和标的后点击"开始分析"按钮"
+                  message='请选择因子和标的后点击"开始分析"按钮'
                   type="info"
                   showIcon
                 />
@@ -901,7 +901,7 @@ export default function FactorResearch() {
                 renderLayeredBacktest()
               ) : (
                 <Alert
-                  message="请选择因子和标的后点击"开始回测"按钮"
+                  message='请选择因子和标的后点击"开始回测"按钮'
                   type="info"
                   showIcon
                 />
@@ -950,7 +950,7 @@ export default function FactorResearch() {
                 renderFactorCombine()
               ) : (
                 <Alert
-                  message="请选择至少2个因子后点击"组合分析"按钮"
+                  message='请选择至少2个因子后点击"组合分析"按钮'
                   type="info"
                   showIcon
                 />
