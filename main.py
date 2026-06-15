@@ -22,6 +22,7 @@ from api.routes.intelligence_routes import router as intelligence_router
 from api.routes.tournament_routes import router as tournament_router
 from api.routes.llm_routes import router as llm_router
 from api.routes.db_routes import router as db_router
+from api.routes.factor_routes import router as factor_router
 from api.websocket.trading_stream import router as ws_router, start_periodic_updates
 from data_center.api import router as data_center_router
 
@@ -66,6 +67,7 @@ app.include_router(intelligence_router)
 app.include_router(tournament_router)
 app.include_router(llm_router)
 app.include_router(db_router)
+app.include_router(factor_router)
 app.include_router(ws_router)
 app.include_router(data_center_router)
 
