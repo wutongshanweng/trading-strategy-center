@@ -1,0 +1,33 @@
+{
+  "session_id": "",
+  "files_read": {
+    "d:/完整项目/trading-strategy-center/.wolf/anatomy.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-06-15T14:12:13.681Z"
+    },
+    "d:/完整项目/trading-strategy-center/.wolf/OPENWOLF.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-06-15T14:12:36.309Z"
+    },
+    "d:/完整项目/trading-strategy-center/.wolf/cerebrum.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-06-15T14:12:36.469Z"
+    },
+    "d:/完整项目/trading-strategy-center/.wolf/token-ledger.json": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-06-15T14:12:36.504Z"
+    },
+    "d:/完整项目/trading-strategy-center/.claude/settings.local.json": {
+      "count": 1,
+      "tokens": 748,
+      "first_read": "2026-06-15T14:12:56.182Z"
+    }
+  },
+  "anatomy_hits": 1,
+  "anatomy_misses": 2,
+  "repeated_reads_warned": 0
+}
