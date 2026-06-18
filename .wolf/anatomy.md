@@ -1,17 +1,17 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-15T14:18:13.468Z
-> Files: 506 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-18T14:24:19.617Z
+> Files: 536 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.dockerignore` — Docker ignore rules (~26 tok)
-- `.gitignore` — Git ignore rules (~43 tok)
+- `.gitignore` — Git ignore rules (~73 tok)
 - `alembic.ini` (~162 tok)
 - `api.log` (~177 tok)
 - `ARCHITECTURE.md` — 交易策略中心 — 架构设计文档 (~18087 tok)
 - `CHANGELOG.md` — Change log (~751 tok)
-- `CLAUDE.md` — OpenWolf (~57 tok)
+- `CLAUDE.md` — OpenWolf (~575 tok)
 - `CONTRIBUTING.md` — 交易策略中心 - 贡献指南 (~1419 tok)
 - `DELIVERY_REPORT.md` — 🎉 系统交付报告 (~1508 tok)
 - `diagnose_frontend.py` (~370 tok)
@@ -29,7 +29,7 @@
 - `IMPLEMENTATION_COMPLETE_PHASE1.md` — 🎉 用户需求全面实施完成报告 (~1770 tok)
 - `IMPLEMENTATION_COMPLETE_PHASE2.md` — 🎉 Phase 2 实施完成报告 (~1631 tok)
 - `LICENSE` — Project license (~292 tok)
-- `main.py` — lifespan (~769 tok)
+- `main.py` — lifespan (~846 tok)
 - `nginx.conf` — Nginx configuration (~605 tok)
 - `OPENWOLF_INTEGRATION.md` — OpenWolf Integration Report (~1788 tok)
 - `PROJECT_CLEANUP_REPORT.md` — 项目文件整理完成报告 (~1813 tok)
@@ -70,6 +70,16 @@
 
 - `nodeids` (~20678 tok)
 - `stepwise` (~1 tok)
+
+## C:/Users/Administrator/.claude/
+
+- `.mcp.json` (~252 tok)
+- `CLAUDE.md` — Global Guidelines (~601 tok)
+- `settings.json` (~1284 tok)
+
+## C:/Users/Administrator/.claude/rules/
+
+- `openwolf.md` (~318 tok)
 
 ## analysis/
 
@@ -269,7 +279,7 @@
 ## core/config/
 
 - `__init__.py` (~0 tok)
-- `settings.py` — Settings: db_url, get_settings (~535 tok)
+- `settings.py` — Settings: db_url, get_settings (~576 tok)
 
 ## core/data/
 
@@ -410,38 +420,74 @@
 ## data_center/
 
 - `__init__.py` (~216 tok)
+- `aggregator.py` — aggregate_symbol, aggregate_all (~902 tok)
+- `cross_market.py` — compute_all (~1047 tok)
+
+## data_center/ (DuckDB 统一仓库 — 2026-06-18 新增)
+
 
 ## data_center/api/
 
-- `__init__.py` — API: GET, POST (18 endpoints) (~3588 tok)
+- `__init__.py` — API: 13 endpoints (~5545 tok)
+- `warehouse.py` — API: 13 endpoints (~3406 tok)
+
+## data_center/collectors/
+
+- `__init__.py` — 资产类别采集器 — 编排 fetch -> normalize -> DuckDB 写入。 (~114 tok)
+- `base_collector.py` — BaseCollector: col, store_kline (~668 tok)
+- `futures_collector.py` — FuturesCollector: discover_contracts, collect_contract, mark_main_contract, collect_product + 2 more (~2411 tok)
+- `macro_collector.py` — MacroCollector: collect, conv, collect_all (~962 tok)
+- `options_collector.py` — OptionsCollector: collect_etf_option_daily, collect_index_option_daily, collect_greeks_snapshot (~910 tok)
+- `stocks_collector.py` — StocksCollector: list_all_symbols, collect_kline, collect_financial (~1083 tok)
+
+## data_center/collectors/ (资产类别采集器 — 2026-06-18 新增)
+
 
 ## data_center/core/
 
 - `__init__.py` (~24 tok)
 - `base_fetcher.py` — KlineInterval: name, display_name, info, get_kline + 3 more (~1337 tok)
-- `data_source.py` — DataSourceManager: register, unregister, list_sources, get_source + 7 more (~3025 tok)
+- `data_source.py` — DataSourceManager: register, unregister, list_sources, get_source + 7 more (~3107 tok)
+
+## data_center/db/
+
+- `__init__.py` — 统一数据库 schema 与品种/合约注册表。 (~28 tok)
+- `init_schema.sql` — 交易系统统一数据库 — DuckDB Schema (~2237 tok)
+- `registry.py` — SymbolRegistry: get_or_create_product, parse_contract, get_or_create_symbol (~1320 tok)
+- `seed_loader.py` — load_products, load_cross_market, load_all (~744 tok)
+
+## data_center/db/seeds/
+
+- `cross_market_seed.csv` (~146 tok)
+- `macro_indicators.csv` (~98 tok)
+- `products.csv` (~457 tok)
 
 ## data_center/fetchers/
 
 - `__init__.py` (~102 tok)
-- `akshare_fetcher.py` — AKShareFetcher: get_futures_daily, get_futures_hist_em, get_kline, get_futures_minute + 4 more (~2871 tok)
+- `akshare_fetcher.py` — AKShareFetcher: get_futures_daily, get_futures_hist_em, get_kline, get_futures_minute + 4 more (~3034 tok)
 - `alpha_vantage_fetcher.py` — AlphaVantageFetcher: get_stock_daily, get_forex_rate, get_forex_daily, get_crypto_daily + 4 more (~1881 tok)
+- `baostock_fetcher.py` — BaoStockFetcher: get_kline, get_realtime, get_trade_dates, validate (~1415 tok)
 - `ctp_fetcher.py` — CTPFetcher: get_kline, get_realtime, ticks_to_bars, validate (~836 tok)
 - `eia_cftc_fetcher.py` — EIAFetcher: get_crude_oil_inventories, get_gasoline_inventories, get_natural_gas_storage, get_kline + 6 more (~1822 tok)
 - `fmp_fetcher.py` — FMPFetcher: get_company_profile, get_income_statement, get_balance_sheet, get_cash_flow + 5 more (~1331 tok)
 - `fred_fetcher.py` — FREDFetcher: get_series, get_series_df, get_multiple_series, get_gdp + 8 more (~1496 tok)
-- `options_fetcher.py` — ChinaOptionsFetcher: get_etf_option_daily, get_index_option_realtime, get_commodity_option_daily, get_kline + 14 more (~2090 tok)
+- `options_fetcher.py` — ChinaOptionsFetcher: get_etf_option_daily, get_etf_option_realtime, get_etf_option_codes, get_index_ (~3871 tok)
 - `tdx_fetcher.py` — TDXFetcher: get_kline, get_realtime, get_batch_quotes (~4860 tok)
 - `tiingo_fetcher.py` — TiingoFetcher: get_stock_daily, get_forex_prices, get_crypto_prices, get_ticker_metadata + 3 more (~1435 tok)
+- `tqsdk_fetcher.py` — TqSdkFetcher: get_kline, get_realtime, close, validate + 1 more (~1837 tok)
+- `tushare_fetcher.py` — TushareFetcher: get_kline, get_realtime, get_trade_dates, get_financial + 2 more (~1543 tok)
 - `unified_fetcher.py` — UnifiedFetcher: get_kline, get_realtime, get_source_name, validate + 1 more (~1618 tok)
 - `yfinance_fetcher.py` — YFinanceFetcher: get_kline, get_realtime, get_info, validate + 1 more (~1946 tok)
 
 ## data_center/history/
 
 - `__init__.py` (~71 tok)
+- `collect_jobs.py` — CollectJobs: is_running, start, status, get_jobs (~604 tok)
 - `data_store.py` — URL configuration (~1622 tok)
 - `download_manager.py` — DownloadStatus: display_name, create_task, execute_task, execute_batch + 7 more (~3198 tok)
-- `sync_scheduler.py` — class: add_symbol, remove_symbol, start, stop + 3 more (~1318 tok)
+- `full_downloader.py` — collect_futures_product, run_full, default_test_start (~1646 tok)
+- `sync_scheduler.py` — class: add_symbol, remove_symbol, start, stop + 3 more (~1248 tok)
 
 ## data_center/knowledge/
 
@@ -450,6 +496,11 @@
 - `exchanges.py` — from: get_exchange, list_exchanges (~384 tok)
 - `main_contract.py` — MainContractResolver: parse_contract_code, is_valid_contract_month, get_main_contract_month, get_main_contract_code + 2 more (~2260 tok)
 
+## data_center/storage/
+
+- `__init__.py` — DuckDB 统一数据仓库存储层。 (~33 tok)
+- `duckdb_store.py` — DuckDBStore: execute, upsert_df, query, close + 1 more (~833 tok)
+
 ## data_center/verification/
 
 - `__init__.py` (~21 tok)
@@ -457,6 +508,7 @@
 
 ## docs/
 
+- `数据采集系统升级说明.md` — 数据采集系统升级说明 (~280 tok)
 - `API_REFERENCE.md` — Trading Strategy Center — API 参考文档 (~866 tok)
 - `DATABASE.md` — 数据库设计文档 (~4433 tok)
 - `IMPLEMENTATION_PROGRESS.md` — Strategy Intelligence V2 - Implementation Progress (~1747 tok)
@@ -509,8 +561,8 @@
 
 - `Backtest.tsx` — MOCK_RESULTS — renders form, table — uses useForm, useEffect (~2193 tok)
 - `Dashboard.tsx` — MOCK_EQUITY — renders table, chart — uses useEffect, useState (~2593 tok)
-- `DataCenter.tsx` — API — renders table — uses useState, useEffect (~8588 tok)
-- `FactorResearch.tsx` — mockFactors — renders chart — uses useState (~7828 tok)
+- `DataCenter.tsx` — API — renders table (~15407 tok)
+- `FactorResearch.tsx` — mockFactors (~7828 tok)
 - `ML.tsx` — MOCK_MODELS — renders form, table, modal — uses useState, useForm, useEffect (~2184 tok)
 - `Monitoring.tsx` — METRICS — renders table, chart — uses useState, useEffect (~3049 tok)
 - `Portfolio.tsx` — MOCK_PORTFOLIO — renders form, table, chart, modal — uses useState, useForm, useEffect (~2601 tok)
@@ -711,6 +763,7 @@
 
 - `daily_close.py` — class: log_info, log_ok, log_warn, log_error + 3 more (~7163 tok)
 - `deploy.sh` (~289 tok)
+- `download_all.py` — Checkpoint: save, is_done, mark_done, mark_fail + 6 more (~1586 tok)
 - `generate_alpha_factors.py` — Generate alpha033-101 factor files with real WorldQuant-style formulas. (~6326 tok)
 - `init_db.py` (~7008 tok)
 - `init_vps.sh` (~362 tok)
@@ -790,3 +843,4 @@
 - `test_alpha061_101.py` — Tests: alpha_factor, alpha_factor_description, alpha_factor_compute_with_lookback, alpha_factor_not_all_nan + 1 more (~739 tok)
 - `test_alpha101_base.py` — Tests: is_abstract, subclass_interface, validate_with_complete_data, validate_with_missing_columns + 6 more (~1521 tok)
 - `test_alpha101.py` — Tests: is_abstract, subclass_interface, is_alpha_base, properties + 8 more (~1053 tok)
+- `test_warehouse.py` — TestDuckDBStore: store, test_schema_tables_created, test_upsert_dedup, test_upsert_empty_df + 8 more (~1540 tok)

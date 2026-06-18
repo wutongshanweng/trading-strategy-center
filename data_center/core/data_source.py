@@ -97,12 +97,18 @@ class DataSourceManager:
             if "tdx" in self._fetchers:
                 return self._fetchers["tdx"]
         
-        # 中国股票: AKShare > TDX
+        # 中国股票: BaoStock (免费历史复权) > AKShare > TDX
         if market_type == "stock":
-            if symbol.replace(".", "").isdigit():
-                if "akshare" in self._fetchers:
-                    return self._fetchers["akshare"]
-        
+            if "baostock" in self._fetchers:
+                return self._fetchers["baostock"]
+            if "akshare" in self._fetchers:
+                return self._fetchers["akshare"]
+
+        # 期权: 中国期权专用源
+        if market_type == "option":
+            if "china_options" in self._fetchers:
+                return self._fetchers["china_options"]
+
         # 国际: YFinance > Alpha Vantage
         if "yfinance" in self._fetchers:
             return self._fetchers["yfinance"]
@@ -121,21 +127,22 @@ class DataSourceManager:
         end_date: Optional[str] = None,
         contract: Optional[str] = None,
         source: Optional[str] = None,
+        market_type: str = "futures",
     ) -> KlineData:
         """
         获取 K 线数据，自动路由到最佳数据源。
-        
+
         支持多数据源校验:
         如果指定了 source，使用指定数据源。
-        否则自动选择最优数据源。
+        否则按 market_type (futures/stock/option) 自动选择最优数据源。
         """
         if source:
             fetcher = self._fetchers.get(source)
             if not fetcher:
                 raise ValueError(f"Data source '{source}' not found")
             return fetcher.get_kline(symbol, interval, start_date, end_date, contract)
-        
-        fetcher = self.get_best_source(symbol)
+
+        fetcher = self.get_best_source(symbol, market_type)
         return fetcher.get_kline(symbol, interval, start_date, end_date, contract)
 
     def get_kline_multi_source(

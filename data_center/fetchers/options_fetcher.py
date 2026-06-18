@@ -41,35 +41,178 @@ class ChinaOptionsFetcher(BaseFetcher):
                 raise ImportError("请安装 akshare: pip install akshare")
         return self._ak
 
-    def get_etf_option_daily(self, symbol: str = "510050") -> pd.DataFrame:
-        """获取 ETF 期权日线 (510050=50ETF, 510300=300ETF)"""
+    # 商品期权交易所映射
+    COMMODITY_EXCHANGES = {"大商所": "dce", "郑商所": "czce", "上期所": "shfe"}
+    COMMODITY_OPTION_SYMBOLS = {
+        "大商所": ["豆粕期权", "玉米期权", "豆油期权", "棕榈油期权", "铁矿石期权",
+                   "聚丙烯期权", "聚氯乙烯期权", "线型低密度聚乙烯期权"],
+        "郑商所": ["白糖期权", "棉花期权", "PTA期权", "甲醇期权", "菜籽粕期权",
+                   "菜籽油期权", "动力煤期权", "纯碱期权", "尿素期权", "短纤期权"],
+        "上期所": ["铜期权", "黄金期权", "铝期权", "锌期权", "橡胶期权",
+                   "螺纹钢期权", "白银期权"],
+    }
+
+    # ─── 上交所 ETF 期权 ───────────────────────────────
+    def get_etf_option_daily(self, symbol: str) -> pd.DataFrame:
+        """ETF期权日线 (合约代码如 10003889)，新浪源。"""
         ak = self._get_ak()
         try:
-            return ak.option_50etf_daily(symbol)
+            return ak.option_sse_daily_sina(symbol=symbol)
         except Exception as e:
-            logger.warning(f"China options daily failed: {e}")
+            logger.warning(f"ETF option daily failed [{symbol}]: {e}")
+            return pd.DataFrame()
+
+    def get_etf_option_realtime(self, symbol: str) -> pd.DataFrame:
+        ak = self._get_ak()
+        try:
+            return ak.option_sse_spot_price_sina(symbol=symbol)
+        except Exception as e:
+            logger.warning(f"ETF option realtime failed [{symbol}]: {e}")
+            return pd.DataFrame()
+
+    def get_etf_option_codes(self, option_type: str = "看涨期权",
+                             trade_date: str = "", underlying: str = "510050") -> pd.DataFrame:
+        """查询ETF期权合约代码列表 (underlying: 510050/510300/510500)。"""
+        ak = self._get_ak()
+        try:
+            if not trade_date:
+                trade_date = datetime.now().strftime("%Y%m")
+            return ak.option_sse_codes_sina(symbol=option_type, trade_date=trade_date,
+                                            underlying=underlying)
+        except Exception as e:
+            logger.warning(f"ETF option codes failed: {e}")
+            return pd.DataFrame()
+
+    # ─── 中金所股指期权 ────────────────────────────────
+    def get_index_option_daily(self, symbol: str) -> pd.DataFrame:
+        """股指期权日线 (IO=沪深300, HO=上证50)，如 io2202P4350。"""
+        ak = self._get_ak()
+        symbol = symbol.upper()
+        try:
+            if symbol.startswith("IO"):
+                return ak.option_cffex_hs300_daily_sina(symbol=symbol)
+            if symbol.startswith("HO"):
+                return ak.option_cffex_sz50_daily_sina(symbol=symbol)
+            logger.warning(f"不支持的股指期权: {symbol[:2]}")
+            return pd.DataFrame()
+        except Exception as e:
+            logger.warning(f"Index option daily failed [{symbol}]: {e}")
             return pd.DataFrame()
 
     def get_index_option_realtime(self, variety: str = "io") -> pd.DataFrame:
-        """获取股指期权实时行情 (io=沪深300, ho=上证50, mo=中证1000)"""
+        """股指期权实时 (io=沪深300, ho=上证50)。"""
         ak = self._get_ak()
+        v = variety.lower()
         try:
-            return ak.option_cffex_sz50_index_spot()
+            if v == "io":
+                return ak.option_cffex_hs300_spot_sina(symbol="io")
+            if v == "ho":
+                return ak.option_cffex_sz50_spot_sina(symbol="ho")
+            return pd.DataFrame()
         except Exception as e:
-            logger.warning(f"Index option realtime failed: {e}")
+            logger.warning(f"Index option realtime failed [{variety}]: {e}")
             return pd.DataFrame()
 
-    def get_commodity_option_daily(self, symbol: str = "m") -> pd.DataFrame:
-        """获取商品期权日线 (m=豆粕, sr=白糖, etc.)"""
+    # ─── 商品期权 ──────────────────────────────────────
+    def get_commodity_option_daily(self, exchange: str = "大商所",
+                                   symbol: str = "豆粕期权", trade_date: str = "") -> pd.DataFrame:
+        """商品期权某交易日全合约 (含隐含波动率)。exchange: 大商所/郑商所/上期所。"""
         ak = self._get_ak()
         try:
-            return ak.option_daily(symbol)
+            if not trade_date:
+                trade_date = datetime.now().strftime("%Y%m%d")
+            ex = self.COMMODITY_EXCHANGES.get(exchange, exchange)
+            if ex == "dce":
+                return ak.option_hist_dce(symbol=symbol, trade_date=trade_date)
+            if ex == "czce":
+                return ak.option_hist_czce(symbol=symbol, trade_date=trade_date)
+            if ex == "shfe":
+                return ak.option_hist_shfe(symbol=symbol, trade_date=trade_date)
+            return pd.DataFrame()
         except Exception as e:
-            logger.warning(f"Commodity option daily failed: {e}")
+            logger.warning(f"Commodity option daily failed [{exchange}/{symbol}]: {e}")
             return pd.DataFrame()
 
-    def get_kline(self, *args, **kwargs) -> KlineData:
-        return KlineData(symbol=kwargs.get("symbol",""), interval="1d", open=[], high=[], low=[], close=[], volume=[], timestamps=[], source=self.name)
+    # ─── 波动率指数 (QVIX) ─────────────────────────────
+    def get_50etf_volatility_index(self) -> pd.DataFrame:
+        ak = self._get_ak()
+        try:
+            return ak.index_option_50etf_qvix()
+        except Exception as e:
+            logger.warning(f"50ETF QVIX failed: {e}")
+            return pd.DataFrame()
+
+    def get_300etf_volatility_index(self) -> pd.DataFrame:
+        ak = self._get_ak()
+        try:
+            return ak.index_option_300etf_qvix()
+        except Exception as e:
+            logger.warning(f"300ETF QVIX failed: {e}")
+            return pd.DataFrame()
+
+    # ─── 希腊值 / 风险分析 (东方财富) ──────────────────
+    def get_option_risk_analysis(self) -> pd.DataFrame:
+        """各期权合约 Delta/Gamma/Vega/Theta/Rho 希腊值。"""
+        ak = self._get_ak()
+        try:
+            return ak.option_risk_analysis_em()
+        except Exception as e:
+            logger.warning(f"Option risk analysis failed: {e}")
+            return pd.DataFrame()
+
+    def get_option_premium_analysis(self) -> pd.DataFrame:
+        """各期权合约 溢价率/时间价值/内在价值。"""
+        ak = self._get_ak()
+        try:
+            return ak.option_premium_analysis_em()
+        except Exception as e:
+            logger.warning(f"Option premium analysis failed: {e}")
+            return pd.DataFrame()
+
+    def get_option_value_analysis(self) -> pd.DataFrame:
+        """各期权合约 内在价值/时间价值/杠杆率。"""
+        ak = self._get_ak()
+        try:
+            return ak.option_value_analysis_em()
+        except Exception as e:
+            logger.warning(f"Option value analysis failed: {e}")
+            return pd.DataFrame()
+
+    def get_kline(self, symbol: str, interval: KlineInterval = KlineInterval.DAY,
+                  start_date: Optional[str] = None, end_date: Optional[str] = None,
+                  contract: Optional[str] = None) -> KlineData:
+        """期权合约日线 -> KlineData。按代码前缀路由:
+        IO* -> 沪深300股指期权; HO* -> 上证50股指期权; 纯数字 -> 上交所ETF期权。"""
+        code = (contract or symbol).strip()
+        empty = KlineData(symbol=symbol, interval=interval.value, open=[], high=[],
+                          low=[], close=[], volume=[], timestamps=[], source=self.name,
+                          contract=contract)
+        up = code.upper()
+        if up.startswith("IO") or up.startswith("HO"):
+            df = self.get_index_option_daily(code)
+        elif code.isdigit():
+            df = self.get_etf_option_daily(code)
+        else:
+            logger.warning(f"无法识别的期权合约代码: {code}")
+            return empty
+        if df is None or df.empty:
+            return empty
+
+        rename = {"日期": "date", "开盘": "open", "最高": "high", "最低": "low",
+                  "收盘": "close", "成交量": "volume", "持仓量": "open_interest"}
+        df = df.rename(columns={k: v for k, v in rename.items() if k in df.columns})
+        tcol = "date" if "date" in df.columns else ("datetime" if "datetime" in df.columns else None)
+        if tcol is None or "close" not in df.columns:
+            logger.warning(f"{code} 期权日线缺少时间/收盘列: {list(df.columns)}")
+            return empty
+        num = lambda c: pd.to_numeric(df[c], errors="coerce").fillna(0).tolist() if c in df.columns else []
+        return KlineData(
+            symbol=symbol, interval=interval.value,
+            open=num("open"), high=num("high"), low=num("low"),
+            close=num("close"), volume=num("volume"),
+            timestamps=pd.to_datetime(df[tcol]).tolist(),
+            source=self.name, contract=contract,
+        )
 
     def get_realtime(self, symbol: str, contract=None) -> RealtimeQuote:
         return RealtimeQuote(symbol=symbol, last_price=0, open_price=0, high_price=0, low_price=0,

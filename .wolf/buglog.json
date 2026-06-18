@@ -1,4 +1,388 @@
 {
   "version": 1,
-  "bugs": []
+  "bugs": [
+    {
+      "id": "bug-001",
+      "timestamp": "2026-06-18T06:09:01.589Z",
+      "error_message": "POST /api/v1/data-center/kline -> 'No data source available for RB'; /sources returns []",
+      "file": "data_center/api/__init__.py",
+      "root_cause": "DataSourceManager() singleton was instantiated but no fetchers were ever registered, so every kline/source request failed.",
+      "fix": "Added _register_default_fetchers(): registers akshare/tdx/baostock/options/yfinance with no key; tushare/tqsdk only when creds present; FRED/EIA/etc only when env var set. Called at module import.",
+      "tags": [
+        "data-center",
+        "fetcher",
+        "registration",
+        "startup"
+      ],
+      "related_bugs": [
+        "bug-002"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T06:09:01.589Z"
+    },
+    {
+      "id": "bug-002",
+      "timestamp": "2026-06-18T06:09:01.589Z",
+      "error_message": "AKShare futures_daily_sina failed for RB: Length mismatch: Expected axis has 0 elements, new values have 8 elements; RB bars: 0",
+      "file": "data_center/fetchers/akshare_fetcher.py",
+      "root_cause": "get_futures_daily passed bare product code 'RB' to ak.futures_zh_daily_sina, which needs the Sina continuous code 'RB0'. Empty df then failed column rename.",
+      "fix": "Added _to_sina_continuous() to append '0' to bare product codes (RB->RB0; contract codes with digits pass through). Also mapped sina 'hold'->open_interest and 'settle'->settlement in _clean_futures_df.",
+      "tags": [
+        "akshare",
+        "futures",
+        "symbol-mapping",
+        "sina"
+      ],
+      "related_bugs": [
+        "bug-001",
+        "bug-003"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T06:09:01.589Z"
+    },
+    {
+      "id": "bug-003",
+      "timestamp": "2026-06-18T07:00:00.000Z",
+      "error_message": "FuturesCollector M5 returned 0 rows while D1 worked; minute kline silently dropped",
+      "file": "data_center/fetchers/akshare_fetcher.py",
+      "root_cause": "_clean_futures_df 'keep' list had 'date' but not 'datetime'. Minute data (futures_zh_minute_sina) uses 'datetime' column, so the time axis was stripped during cleaning and all rows dropped downstream.",
+      "fix": "Added 'datetime' to the keep list in _clean_futures_df alongside 'date'.",
+      "tags": [
+        "akshare",
+        "futures",
+        "minute",
+        "collector",
+        "datetime"
+      ],
+      "related_bugs": [
+        "bug-002"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T07:00:00.000Z"
+    },
+    {
+      "id": "bug-004",
+      "timestamp": "2026-06-18T07:46:54.782Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/collectors/macro_collector.py",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 11→23 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T07:46:54.782Z"
+    },
+    {
+      "id": "bug-005",
+      "timestamp": "2026-06-18T11:59:52.311Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/core/data_source.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 7→13 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T11:59:52.311Z"
+    },
+    {
+      "id": "bug-006",
+      "timestamp": "2026-06-18T12:00:54.546Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/fetchers/options_fetcher.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 11→44 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T12:00:54.546Z"
+    },
+    {
+      "id": "bug-007",
+      "timestamp": "2026-06-18T12:01:12.354Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/fetchers/akshare_fetcher.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 6→8 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T12:01:12.354Z"
+    },
+    {
+      "id": "bug-008",
+      "timestamp": "2026-06-18T12:04:14.445Z",
+      "error_message": "Incorrect value in code",
+      "file": "data_center/api/__init__.py",
+      "root_cause": "Had \"/download/list\"",
+      "fix": "Changed to \"/data-files\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T12:04:14.445Z"
+    },
+    {
+      "id": "bug-009",
+      "timestamp": "2026-06-18T12:09:20.725Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T12:09:20.725Z"
+    },
+    {
+      "id": "bug-010",
+      "timestamp": "2026-06-18T12:09:46.244Z",
+      "error_message": "Type error",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T12:09:46.244Z"
+    },
+    {
+      "id": "bug-011",
+      "timestamp": "2026-06-18T12:11:40.242Z",
+      "error_message": "Null/undefined access in ",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T12:11:40.242Z"
+    },
+    {
+      "id": "bug-012",
+      "timestamp": "2026-06-18T12:58:49.632Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/collectors/futures_collector.py",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 18→39 lines (4 removed) | Also: with_minute: bool = True) -> Dict[str, int]:; \"\"\"采集单个真实合约 D1 + M5。返回各周期写入行数。\"\"\" | Also: sleep: float = 0.3) -> Dict[str, int]:; \"\"\"采集某品种所有真实合约。\"\"\"",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-06-18T13:01:22.714Z"
+    },
+    {
+      "id": "bug-013",
+      "timestamp": "2026-06-18T13:07:12.750Z",
+      "error_message": "Missing await",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T13:07:12.750Z"
+    },
+    {
+      "id": "bug-014",
+      "timestamp": "2026-06-18T13:15:00.000Z",
+      "error_message": "_duckdb.ConstraintException: Violates foreign key constraint because key 'symbol_id: 3' is still referenced by a foreign key in a different table — on UPDATE symbols SET is_main=...",
+      "file": "data_center/collectors/futures_collector.py",
+      "root_cause": "DuckDB 1.5.4 禁止 UPDATE 任何被外键引用的行 (kline.symbol_id REFERENCES symbols)，即使不改键列、即使值不变也报错。mark_main_contract 用 UPDATE symbols SET is_main 因此必失败。纯内存表复现不出，真实库 (有 kline 引用 + idx_sym_main 索引) 才触发。",
+      "fix": "改用独立表 main_contracts(product_id, symbol_code) 存主力关系，避开对被引用 symbols 表的 UPDATE。枚举接口 /contracts/discover 仍实时返回主力，前端不依赖 symbols.is_main。mark_main_contract 改为 upsert main_contracts，且失败不中断采集主流程。",
+      "tags": [
+        "duckdb",
+        "foreign-key",
+        "update-limitation",
+        "main-contract",
+        "collector"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T13:15:00.000Z"
+    },
+    {
+      "id": "bug-015",
+      "timestamp": "2026-06-18T13:18:54.682Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/collectors/futures_collector.py",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 14→19 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T13:18:54.682Z"
+    },
+    {
+      "id": "bug-016",
+      "timestamp": "2026-06-18T13:24:27.438Z",
+      "error_message": "CSS fix: baseURL",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "baseURL: \"/api/v1/data-center\", timeout: 15000 → \"/api/v1/warehouse\", timeout: 30000",
+      "fix": "Changed baseURL: \"/api/v1/data-center\", timeout: 15000 → \"/api/v1/warehouse\", timeout: 30000",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-18T13:25:16.620Z"
+    },
+    {
+      "id": "bug-017",
+      "timestamp": "2026-06-18T13:26:04.033Z",
+      "error_message": "Null/undefined access in ",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: // 仓库预览内容 (质量 + 走势 + 表格)，被仓库预览卡片复用; const renderWhPreviewBody = (data: any) => {",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-18T13:27:36.718Z"
+    },
+    {
+      "id": "bug-018",
+      "timestamp": "2026-06-18T13:37:17.935Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/collectors/futures_collector.py",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 15→35 lines (8 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T13:37:17.935Z"
+    },
+    {
+      "id": "bug-019",
+      "timestamp": "2026-06-18T13:38:54.197Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 22→64 lines (8 removed) | Also: with_minute: bool = Query(True, description=\"期货是否采; \"\"\"触发全量/批量采集 (后台任务)。测试环境默认只下近1个月。\"\"\"",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-18T13:40:11.409Z"
+    },
+    {
+      "id": "bug-020",
+      "timestamp": "2026-06-18T13:39:50.539Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/history/full_downloader.py",
+      "root_cause": "16 lines replaced/restructured",
+      "fix": "Rewrote 85→107 lines (16 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T13:39:50.539Z"
+    },
+    {
+      "id": "bug-021",
+      "timestamp": "2026-06-18T13:42:25.418Z",
+      "error_message": "CSS fix: params",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "params: { phase: fullPhase, start_date: fullStart || undefined, with_minute: true → { phase: fullPhase, year: fullPhase === \"futures\" || fullPhase === \"all\" ? whYear : undefined,",
+      "fix": "Changed params: { phase: fullPhase, start_date: fullStart || undefined, with_minute: true → { phase: fullPhase, year: fullPhase === \"futures\" || fullPhase === \"all\" ? whYear : undefined,",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-18T13:43:22.801Z"
+    },
+    {
+      "id": "bug-022",
+      "timestamp": "2026-06-18T14:05:00.000Z",
+      "error_message": "股票全市场采集 universe:0 — ak.stock_zh_a_spot_em() raises ('Connection aborted.', RemoteDisconnected)",
+      "file": "data_center/collectors/stocks_collector.py",
+      "root_cause": "list_all_symbols 用 ak.stock_zh_a_spot_em() (东财实时行情接口) 拉全市场代码，该接口对网络敏感，用户环境网络波动时连续 RemoteDisconnected。无重试，异常被吞成空列表导致 universe:0。注: 这是网络问题不是逻辑 bug，代码已容错(返回空不崩)。",
+      "fix": "加重试+退避；主源改用更稳的静态代码表 ak.stock_info_a_code_name()，实时行情 spot_em 作兜底。契合 cerebrum 网络容错要求。",
+      "tags": [
+        "akshare",
+        "network",
+        "econnreset",
+        "stock-universe",
+        "retry"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T14:05:00.000Z"
+    },
+    {
+      "id": "bug-023",
+      "timestamp": "2026-06-18T14:10:11.698Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/collectors/stocks_collector.py",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 18→38 lines (8 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-18T14:10:11.698Z"
+    }
+  ]
 }

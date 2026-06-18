@@ -14,5 +14,13 @@ build/
 .pytest_cache/
 .mypy_cache/
 
+# DuckDB 运行时文件
+*.db.wal
+*.db.tmp/
+# 下载进度 (运行时状态)
+data_center/download_checkpoint.json
+# TS 构建缓存
+*.tsbuildinfo
+
 # Frontend dependencies
 node_modules/

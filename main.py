@@ -25,6 +25,7 @@ from api.routes.db_routes import router as db_router
 from api.routes.factor_routes import router as factor_router
 from api.websocket.trading_stream import router as ws_router, start_periodic_updates
 from data_center.api import router as data_center_router
+from data_center.api.warehouse import router as warehouse_router
 
 
 @asynccontextmanager
@@ -70,8 +71,13 @@ app.include_router(db_router)
 app.include_router(factor_router)
 app.include_router(ws_router)
 app.include_router(data_center_router)
+app.include_router(warehouse_router)
 
 
 if __name__ == "__main__":
+    import os
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    # 默认单进程运行 — DuckDB 是单进程独占锁, --reload 的双进程会冲突,
+    # 且长时下载任务会被文件改动重启打断。开发期可设 DEV_RELOAD=1 开启热重载。
+    dev_reload = os.getenv("DEV_RELOAD") == "1"
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=dev_reload)

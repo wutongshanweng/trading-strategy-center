@@ -101,32 +101,29 @@ class SyncScheduler:
             await asyncio.sleep(30)  # 每30秒检查一次
 
     async def _sync_symbol(self, config: SyncConfig) -> bool:
-        """同步单个品种"""
-        success = True
-        for interval in config.intervals:
-            try:
-                # 下载最新数据
-                end = datetime.now().strftime("%Y-%m-%d")
-                if interval in (KlineInterval.M5, KlineInterval.M15,
-                                KlineInterval.M30, KlineInterval.M60):
-                    start = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
-                else:
-                    start = (datetime.now() - timedelta(days=10)).strftime("%Y-%m-%d")
+        """同步单个品种 — 采集主力合约最新数据写入 DuckDB 仓库 (增量补齐)。
 
-                task = self._dl_mgr.create_task(
-                    symbol=config.symbol,
-                    interval=interval,
-                    start_date=start,
-                    end_date=end,
-                )
-                result = await self._dl_mgr.execute_task(task.id)
-                if result.status == "completed":
-                    # 存储数据
-                    pass  # 由 DownloadManager 处理
-            except Exception as e:
-                logger.warning(f"Sync {config.symbol} {interval.value}: {e}")
-                success = False
-        return success
+        注意: 采集是同步阻塞的, 用 to_thread 避免阻塞事件循环;
+        若有全量采集任务在跑, 跳过本轮以避免 DuckDB 写锁争用。
+        """
+        from .collect_jobs import get_jobs
+        if get_jobs().is_running():
+            logger.debug(f"采集任务运行中, 跳过同步 {config.symbol}")
+            return False
+
+        # 近1个月增量 (主力合约 + 子合约一并刷新)
+        start = (datetime.now() - timedelta(days=31)).strftime("%Y-%m-%d")
+        try:
+            from ..collectors import FuturesCollector
+            fc = FuturesCollector()
+            res = await asyncio.to_thread(
+                fc.collect_product, config.symbol, True, 0.3, start
+            )
+            logger.info(f"同步 {config.symbol}: {res}")
+            return True
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"同步 {config.symbol} 失败: {e}")
+            return False
 
     def get_status(self) -> Dict[str, Any]:
         """获取同步状态"""

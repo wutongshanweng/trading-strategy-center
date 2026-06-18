@@ -17,6 +17,7 @@ const { TabPane } = Tabs;
 
 /* ── API client ── */
 const API = axios.create({ baseURL: "/api/v1/data-center", timeout: 15000 });
+const WH = axios.create({ baseURL: "/api/v1/warehouse", timeout: 30000 });
 
 export default function DataCenter() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -50,6 +51,38 @@ export default function DataCenter() {
 
   // Sync
   const [syncStatus, setSyncStatus] = useState<any>(null);
+
+  // Asset class for download (futures/stock/option)
+  const [assetType, setAssetType] = useState<"futures" | "stock" | "option">("futures");
+  const [stockSymbol, setStockSymbol] = useState<string>("600019.SH");
+  const [optUnderlying, setOptUnderlying] = useState<string>("510050");
+  const [optCodes, setOptCodes] = useState<string[]>([]);
+  const [optContract, setOptContract] = useState<string>("");
+
+  // Preview
+  const [pvAsset, setPvAsset] = useState<"futures" | "stock" | "option">("futures");
+  const [pvFiles, setPvFiles] = useState<any[]>([]);
+  const [pvFile, setPvFile] = useState<string>("");
+  const [pvData, setPvData] = useState<any>(null);
+  const [pvLoading, setPvLoading] = useState(false);
+
+  // Warehouse: 期货按品种+年份采集
+  const [whProduct, setWhProduct] = useState<string>("RB");
+  const [whYear, setWhYear] = useState<number>(new Date().getFullYear());
+  const [whEndYear, setWhEndYear] = useState<number>(new Date().getFullYear());
+
+  // Warehouse: 全量/批量采集 + 进度
+  const [fullPhase, setFullPhase] = useState<string>("futures");
+  const [fullStart, setFullStart] = useState<string>("");
+  const [stockLimit, setStockLimit] = useState<number>(50);
+  const [collectProgress, setCollectProgress] = useState<any>(null);
+  const [mainContracts, setMainContracts] = useState<any[]>([]);
+
+  // Warehouse: 仓库预览 (按合约代码)
+  const [whPvCode, setWhPvCode] = useState<string>("");
+  const [whPvTf, setWhPvTf] = useState<string>("D1");
+  const [whPvData, setWhPvData] = useState<any>(null);
+  const [whPvLoading, setWhPvLoading] = useState(false);
 
   // Storage
   const [storage, setStorage] = useState<any>(null);
@@ -325,10 +358,372 @@ export default function DataCenter() {
     setBatchSymbols(merged);
   };
 
+  // ── Stock / Option download helpers ──
+  const STOCK_SEED = ["600019.SH","002110.SZ","601969.SH","601636.SH","000683.SZ",
+    "601899.SH","600547.SH","002311.SZ","600737.SH","000800.SZ"];
+
+  const downloadAsset = async (symbol: string, interval: string,
+    asset: "stock" | "option", contract?: string) => {
+    if (!symbol) { message.warning("请填写代码"); return; }
+    const end = dayjs().format("YYYY-MM-DD");
+    const start = dayjs().subtract(5, "year").format("YYYY-MM-DD");
+    message.loading({ content: "下载中...", key: "asset" });
+    try {
+      const res = await API.post("/download/range", null, {
+        params: { symbol, interval, start_date: start, end_date: end,
+          contract: contract || undefined, asset_type: asset },
+        timeout: 60000,
+      });
+      if (res.data.bars > 0) {
+        message.success({ content: `成功下载 ${res.data.bars} 条 (${res.data.source})`, key: "asset" });
+      } else {
+        message.info({ content: "未获取到数据", key: "asset" });
+      }
+    } catch (err: any) {
+      message.error({ content: `下载失败: ${err.response?.data?.detail || err.message}`, key: "asset" });
+    }
+  };
+
+  const loadOptionCodes = async (underlying: string) => {
+    try {
+      const res = await API.get("/options/codes", { params: { underlying } });
+      setOptCodes(res.data?.codes || []);
+      if (!res.data?.codes?.length) message.info("未获取到合约代码 (可能非交易时段)");
+    } catch { message.error("获取期权合约失败"); }
+  };
+
+  // ── Preview helpers ──
+  const loadPreviewFiles = async (asset: string) => {
+    try {
+      const res = await API.get("/data-files", { params: { asset_type: asset } });
+      setPvFiles(res.data?.files || []);
+    } catch { setPvFiles([]); }
+  };
+
+  const runPreview = async () => {
+    const f = pvFiles.find((x) => x.path === pvFile);
+    if (!f) { message.warning("请选择已下载的数据文件"); return; }
+    setPvLoading(true);
+    try {
+      const res = await API.get("/preview", {
+        params: { symbol: f.symbol, interval: f.interval, asset_type: pvAsset,
+          contract: f.contract || undefined, limit: 200, offset: 0 },
+      });
+      setPvData(res.data);
+    } catch (err: any) {
+      message.error(`预览失败: ${err.response?.data?.detail || err.message}`);
+      setPvData(null);
+    } finally { setPvLoading(false); }
+  };
+
+  // ── Warehouse: 期货按品种+年份采集 ──
+  const collectProduct = async () => {
+    if (!whProduct) { message.warning("请选择品种"); return; }
+    message.loading({ content: `采集 ${whProduct} ${whYear}-${whEndYear} 合约中...`, key: "wh" });
+    try {
+      await WH.post("/collect/product", null, {
+        params: { product: whProduct, year: whYear, end_year: whEndYear,
+          with_minute: false, start_date: fullStart || undefined },
+      });
+      message.success({ content: `${whProduct} 采集任务已启动`, key: "wh" });
+      pollProgress();
+    } catch (err: any) {
+      const detail = err.response?.data?.detail || err.message;
+      message.error({ content: `采集失败: ${detail}`, key: "wh" });
+    }
+  };
+
+  // ── Warehouse: 刷新主力合约 (独立于下载) ──
+  const refreshMain = async (product?: string) => {
+    message.loading({ content: "刷新主力合约中...", key: "main" });
+    try {
+      const res = await WH.post("/main-contracts/refresh", null, {
+        params: { product: product || undefined },
+      });
+      message.success({ content: `已刷新 ${res.data.count} 个品种主力`, key: "main" });
+      loadMainContracts();
+    } catch (err: any) {
+      message.error({ content: `刷新失败: ${err.response?.data?.detail || err.message}`, key: "main" });
+    }
+  };
+
+  const loadMainContracts = async () => {
+    try {
+      const res = await WH.get("/main-contracts");
+      setMainContracts(res.data?.main_contracts || []);
+    } catch { /* ignore */ }
+  };
+
+  // ── Warehouse: 全量/批量采集 ──
+  const startFullCollect = async () => {
+    message.loading({ content: "全量采集任务启动中...", key: "full" });
+    try {
+      await WH.post("/collect/full", null, {
+        params: { phase: fullPhase, year: fullPhase === "futures" || fullPhase === "all" ? whYear : undefined,
+          end_year: fullPhase === "futures" || fullPhase === "all" ? whEndYear : undefined,
+          start_date: fullStart || undefined, with_minute: false, stock_limit: stockLimit },
+      });
+      message.success({ content: "全量采集任务已启动", key: "full" });
+      pollProgress();
+    } catch (err: any) {
+      const detail = err.response?.data?.detail || err.message;
+      message.error({ content: `启动失败: ${detail}`, key: "full" });
+    }
+  };
+
+  const pollProgress = async () => {
+    try {
+      const res = await WH.get("/collect/progress");
+      setCollectProgress(res.data);
+      // 若仍在运行, 3秒后再查
+      if (res.data?.job?.running) setTimeout(pollProgress, 3000);
+    } catch { /* ignore */ }
+  };
+
+  // ── Warehouse: 按合约代码预览 ──
+  const runWhPreview = async (code?: string) => {
+    const c = code || whPvCode;
+    if (!c) { message.warning("请输入合约代码"); return; }
+    setWhPvLoading(true);
+    try {
+      const res = await WH.get("/preview", { params: { code: c, timeframe: whPvTf, limit: 200 } });
+      setWhPvData(res.data);
+      setWhPvCode(c);
+    } catch (err: any) {
+      message.error(`预览失败: ${err.response?.data?.detail || err.message}`);
+      setWhPvData(null);
+    } finally { setWhPvLoading(false); }
+  };
+
   // ── Render: Download Manager ──
   const renderDownload = () => (
     <div>
-      {/* 快捷下载操作栏 */}
+      {/* 资产类别选择 */}
+      <Card size="small" style={{ marginBottom: 16 }}>
+        <Space align="center">
+          <Text strong>资产类别:</Text>
+          <Select value={assetType} onChange={(v) => setAssetType(v)} style={{ width: 140 }}>
+            <Select.Option value="futures">期货</Select.Option>
+            <Select.Option value="stock">股票</Select.Option>
+            <Select.Option value="option">期权</Select.Option>
+          </Select>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {assetType === "futures" ? "中国期货 (akshare)"
+              : assetType === "stock" ? "A股 (BaoStock 前复权日线)"
+              : "中国期权 (ETF/股指期权日线)"}
+          </Text>
+        </Space>
+      </Card>
+
+      {/* 股票下载 */}
+      {assetType === "stock" && (
+        <Card title="股票下载" size="small" style={{ marginBottom: 16 }}>
+          <Row gutter={[12, 12]} align="middle">
+            <Col span={2}><Text strong>代码:</Text></Col>
+            <Col span={5}>
+              <Select
+                style={{ width: "100%" }}
+                showSearch
+                value={stockSymbol}
+                onChange={setStockSymbol}
+                options={STOCK_SEED.map((s) => ({ value: s, label: s }))}
+              />
+            </Col>
+            <Col span={5}>
+              <Input placeholder="或输入代码 如 600519.SH"
+                onPressEnter={(e) => setStockSymbol((e.target as HTMLInputElement).value.trim())}
+                onBlur={(e) => e.target.value && setStockSymbol(e.target.value.trim())}
+                allowClear />
+            </Col>
+            <Col>
+              <Button type="primary" size="small" icon={<DownloadOutlined />}
+                onClick={() => downloadAsset(stockSymbol, "1d", "stock")}>日线</Button>
+            </Col>
+            <Col>
+              <Button size="small" icon={<DownloadOutlined />}
+                onClick={() => downloadAsset(stockSymbol, "1w", "stock")}>周线</Button>
+            </Col>
+            <Col>
+              <Button size="small" icon={<DownloadOutlined />}
+                onClick={() => downloadAsset(stockSymbol, "30m", "stock")}>M30</Button>
+            </Col>
+            <Col><Text type="secondary" style={{ fontSize: 11 }}>日/周线取近5年</Text></Col>
+          </Row>
+        </Card>
+      )}
+
+      {/* 期权下载 */}
+      {assetType === "option" && (
+        <Card title="期权下载" size="small" style={{ marginBottom: 16 }}>
+          <Row gutter={[12, 12]} align="middle">
+            <Col span={2}><Text strong>标的:</Text></Col>
+            <Col span={4}>
+              <Select style={{ width: "100%" }} value={optUnderlying}
+                onChange={(v) => { setOptUnderlying(v); setOptContract(""); }}>
+                <Select.Option value="510050">50ETF (510050)</Select.Option>
+                <Select.Option value="510300">300ETF (510300)</Select.Option>
+                <Select.Option value="510500">500ETF (510500)</Select.Option>
+                <Select.Option value="IO">沪深300股指 (IO)</Select.Option>
+                <Select.Option value="HO">上证50股指 (HO)</Select.Option>
+              </Select>
+            </Col>
+            <Col>
+              <Button size="small" onClick={() => loadOptionCodes(optUnderlying)}>
+                获取合约列表
+              </Button>
+            </Col>
+            <Col span={6}>
+              <Select style={{ width: "100%" }} showSearch placeholder="选择期权合约"
+                value={optContract || undefined} onChange={setOptContract}
+                options={optCodes.map((c) => ({ value: c, label: c }))} />
+            </Col>
+            <Col span={4}>
+              <Input placeholder="或直接输入合约代码"
+                onBlur={(e) => e.target.value && setOptContract(e.target.value.trim())}
+                allowClear />
+            </Col>
+            <Col>
+              <Button type="primary" size="small" icon={<DownloadOutlined />}
+                onClick={() => downloadAsset(optContract, "1d", "option", optContract)}>
+                下载日线
+              </Button>
+            </Col>
+          </Row>
+        </Card>
+      )}
+
+      {/* 快捷下载 (期货) */}
+      {assetType === "futures" && (
+      <>
+      {/* 期货按品种+年份采集 → 统一仓库 */}
+      <Card title="按品种采集 → 统一仓库" size="small" style={{ marginBottom: 16 }}
+        extra={<Text type="secondary" style={{ fontSize: 11 }}>选品种+年份 → 生成 M2601~M2612 全月份合约，无数据的自然为空</Text>}>
+        <Row gutter={[12, 12]} align="middle">
+          <Col span={2}><Text strong>品种:</Text></Col>
+          <Col span={3}>
+            <Select style={{ width: "100%" }} showSearch value={whProduct} onChange={setWhProduct}
+              options={ALL_SYMBOLS.map((s) => ({ value: s, label: s }))} />
+          </Col>
+          <Col span={2}><Text strong>年份:</Text></Col>
+          <Col span={3}>
+            <Select style={{ width: "100%" }} value={whYear} onChange={setWhYear}
+              options={Array.from({ length: 17 }, (_, i) => 2010 + i).map((y) => ({ value: y, label: String(y) }))} />
+          </Col>
+          <Col><Text type="secondary">至</Text></Col>
+          <Col span={3}>
+            <Select style={{ width: "100%" }} value={whEndYear} onChange={setWhEndYear}
+              options={Array.from({ length: 17 }, (_, i) => 2010 + i).map((y) => ({ value: y, label: String(y) }))} />
+          </Col>
+          <Col>
+            <Button type="primary" icon={<DownloadOutlined />} onClick={collectProduct}>
+              采集到仓库
+            </Button>
+          </Col>
+        </Row>
+        <Row style={{ marginTop: 8 }}>
+          <Col span={3}><Text type="secondary" style={{ fontSize: 12 }}>起始日期(可选):</Text></Col>
+          <Col span={4}>
+            <DatePicker size="small" style={{ width: "100%" }} placeholder="测试可填近1月"
+              value={fullStart ? dayjs(fullStart) : null}
+              onChange={(d) => setFullStart(d ? d.format("YYYY-MM-DD") : "")} />
+          </Col>
+          <Col><Text type="secondary" style={{ fontSize: 11 }}>留空=该年全部数据；不判断主力</Text></Col>
+        </Row>
+      </Card>
+
+      {/* 主力合约 (独立于下载, 供交易流程判断) */}
+      <Card title="主力合约标注" size="small" style={{ marginBottom: 16 }}
+        extra={<Text type="secondary" style={{ fontSize: 11 }}>按最新持仓量计算，与下载解耦</Text>}>
+        <Space style={{ marginBottom: 8 }}>
+          <Button onClick={() => refreshMain(whProduct)}>刷新 {whProduct} 主力</Button>
+          <Button type="primary" ghost onClick={() => refreshMain()}>刷新全部品种主力</Button>
+          <Button onClick={loadMainContracts}>查看当前主力</Button>
+        </Space>
+        {mainContracts.length > 0 && (
+          <div>
+            {mainContracts.map((m: any) => (
+              <Tag key={m.product} color="gold" style={{ cursor: "pointer", marginBottom: 4 }}
+                onClick={() => runWhPreview(m.main)}>
+                {m.product} → {m.main}
+              </Tag>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      {/* 全量/批量采集 → 仓库 (带进度) */}
+      <Card title="全量历史采集 → 统一仓库" size="small" style={{ marginBottom: 16 }}>
+        <Row gutter={[12, 12]} align="middle">
+          <Col span={2}><Text strong>范围:</Text></Col>
+          <Col span={4}>
+            <Select style={{ width: "100%" }} value={fullPhase} onChange={setFullPhase}>
+              <Select.Option value="futures">期货 (全品种)</Select.Option>
+              <Select.Option value="stocks">股票</Select.Option>
+              <Select.Option value="options">期权</Select.Option>
+              <Select.Option value="all">全部</Select.Option>
+            </Select>
+          </Col>
+          <Col span={3}>
+            <DatePicker style={{ width: "100%" }} placeholder="起始(留空=近1月)"
+              value={fullStart ? dayjs(fullStart) : null}
+              onChange={(d) => setFullStart(d ? d.format("YYYY-MM-DD") : "")} />
+          </Col>
+          <Col span={3}>
+            <Input type="number" addonBefore="股票限量" value={stockLimit}
+              onChange={(e) => setStockLimit(Number(e.target.value) || 0)} />
+          </Col>
+          <Col>
+            <Button type="primary" style={{ background: "#722ed1", borderColor: "#722ed1" }}
+              icon={<DownloadOutlined />} onClick={startFullCollect}>
+              开始全量采集
+            </Button>
+          </Col>
+          <Col>
+            <Button onClick={pollProgress}>刷新进度</Button>
+          </Col>
+          <Col><Text type="secondary" style={{ fontSize: 11 }}>测试: 起始留空=近1月, 股票限量50; 生产填0=全市场</Text></Col>
+        </Row>
+
+        {collectProgress && (
+          <div style={{ marginTop: 12 }}>
+            <Space>
+              <Badge status={collectProgress.job?.running ? "processing" : "success"}
+                text={collectProgress.job?.running ? `运行中: ${collectProgress.job?.name || ""}` : "空闲"} />
+              <Text type="secondary">已完成 {collectProgress.checkpoint?.done || 0} 项</Text>
+              {collectProgress.checkpoint?.failures > 0 &&
+                <Text type="danger">失败 {collectProgress.checkpoint.failures} 项</Text>}
+            </Space>
+            {collectProgress.job?.error &&
+              <div><Text type="danger" style={{ fontSize: 12 }}>错误: {collectProgress.job.error}</Text></div>}
+            {!collectProgress.job?.running && collectProgress.job?.result &&
+              <div><Text type="success" style={{ fontSize: 12 }}>
+                结果: {JSON.stringify(collectProgress.job.result)}</Text></div>}
+          </div>
+        )}
+      </Card>
+
+      {/* 仓库数据预览 (按合约代码) */}
+      <Card title={<span><SearchOutlined /> 仓库数据预览 (校验子合约数据)</span>}
+        size="small" style={{ marginBottom: 16 }}>
+        <Row gutter={[12, 12]} align="middle">
+          <Col span={4}>
+            <Input placeholder="合约代码 如 RB2610" value={whPvCode}
+              onChange={(e) => setWhPvCode(e.target.value.trim())} allowClear />
+          </Col>
+          <Col span={3}>
+            <Select style={{ width: "100%" }} value={whPvTf} onChange={setWhPvTf}>
+              <Select.Option value="D1">日线</Select.Option>
+              <Select.Option value="M5">5分钟</Select.Option>
+            </Select>
+          </Col>
+          <Col>
+            <Button type="primary" loading={whPvLoading} onClick={() => runWhPreview()}>预览</Button>
+          </Col>
+        </Row>
+        {whPvData && renderWhPreviewBody(whPvData)}
+      </Card>
+
+      {/* 快捷下载 (期货) */}
       <Card title="快捷下载" size="small" style={{ marginBottom: 16 }}>
         <Row gutter={[12, 12]} align="middle">
           <Col span={2}>
@@ -597,6 +992,8 @@ export default function DataCenter() {
           )}
         </Row>
       </Card>
+      </>
+      )}
 
       {/* 统计和同步操作 */}
       <Row gutter={16} style={{ marginBottom: 16 }}>
@@ -645,8 +1042,161 @@ export default function DataCenter() {
         size="small"
         pagination={{ pageSize: 5 }}
       />
+
+      {renderPreview()}
     </div>
   );
+
+  // ── Render: Data Preview (table + chart + quality) ──
+  const renderPreview = () => {
+    const q = pvData?.quality;
+    const closes: number[] = pvData?.chart?.close || [];
+    return (
+      <Card title={<span><SearchOutlined /> 数据预览 (校验下载数据)</span>}
+        size="small" style={{ marginTop: 16 }}>
+        <Row gutter={[12, 12]} align="middle" style={{ marginBottom: 12 }}>
+          <Col span={3}>
+            <Select value={pvAsset} style={{ width: "100%" }}
+              onChange={(v) => { setPvAsset(v); setPvFile(""); setPvData(null); loadPreviewFiles(v); }}>
+              <Select.Option value="futures">期货</Select.Option>
+              <Select.Option value="stock">股票</Select.Option>
+              <Select.Option value="option">期权</Select.Option>
+            </Select>
+          </Col>
+          <Col span={8}>
+            <Select style={{ width: "100%" }} showSearch placeholder="选择已下载数据文件"
+              value={pvFile || undefined} onChange={setPvFile}
+              options={pvFiles.map((f) => ({
+                value: f.path,
+                label: `${f.symbol}${f.contract ? "/" + f.contract : ""} · ${f.interval} · ${f.size_kb}KB`,
+              }))} />
+          </Col>
+          <Col>
+            <Button size="small" onClick={() => loadPreviewFiles(pvAsset)}>刷新文件</Button>
+          </Col>
+          <Col>
+            <Button type="primary" size="small" loading={pvLoading} onClick={runPreview}>预览</Button>
+          </Col>
+        </Row>
+
+        {q && (
+          <Row gutter={16} style={{ marginBottom: 12 }}>
+            <Col span={3}><Statistic title="总条数" value={q.rows} /></Col>
+            <Col span={6}><Statistic title="日期范围"
+              valueStyle={{ fontSize: 13 }}
+              value={`${String(q.start).slice(0, 10)} ~ ${String(q.end).slice(0, 10)}`} /></Col>
+            <Col span={3}><Statistic title="收盘NaN" value={q.nan_close}
+              valueStyle={{ color: q.nan_close ? "#ff4d4f" : "#52c41a" }} /></Col>
+            <Col span={3}><Statistic title="负值" value={q.negative_values}
+              valueStyle={{ color: q.negative_values ? "#ff4d4f" : "#52c41a" }} /></Col>
+            <Col span={3}><Statistic title="高<低" value={q.high_lt_low}
+              valueStyle={{ color: q.high_lt_low ? "#ff4d4f" : "#52c41a" }} /></Col>
+            <Col span={3}><Statistic title="重复时间" value={q.duplicate_timestamps}
+              valueStyle={{ color: q.duplicate_timestamps ? "#ff4d4f" : "#52c41a" }} /></Col>
+            <Col span={3}>
+              <Statistic title="质量" value={q.is_clean ? "正常" : "异常"}
+                valueStyle={{ color: q.is_clean ? "#52c41a" : "#faad14" }} />
+            </Col>
+          </Row>
+        )}
+
+        {closes.length > 1 && (
+          <div style={{ marginBottom: 12 }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>收盘价走势</Text>
+            {renderSparkline(closes)}
+          </div>
+        )}
+
+        {pvData?.rows?.length > 0 && (
+          <Table
+            dataSource={pvData.rows}
+            columns={[
+              { title: "时间", dataIndex: "datetime", key: "datetime",
+                render: (v: string) => String(v).slice(0, 19) },
+              { title: "开", dataIndex: "open", key: "open" },
+              { title: "高", dataIndex: "high", key: "high" },
+              { title: "低", dataIndex: "low", key: "low" },
+              { title: "收", dataIndex: "close", key: "close" },
+              { title: "量", dataIndex: "volume", key: "volume" },
+            ]}
+            rowKey={(_: any, i?: number) => String(i)}
+            size="small"
+            pagination={{ pageSize: 10 }}
+          />
+        )}
+      </Card>
+    );
+  };
+
+  // 轻量 SVG 折线图 (匹配项目自绘 SVG 约定)
+  const renderSparkline = (vals: number[]) => {
+    const W = 800, H = 120, pad = 4;
+    const nums = vals.filter((v) => typeof v === "number" && !isNaN(v));
+    if (nums.length < 2) return null;
+    const min = Math.min(...nums), max = Math.max(...nums);
+    const span = max - min || 1;
+    const pts = nums.map((v, i) => {
+      const x = pad + (i / (nums.length - 1)) * (W - 2 * pad);
+      const y = H - pad - ((v - min) / span) * (H - 2 * pad);
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+    return (
+      <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none"
+        style={{ display: "block", border: "1px solid #f0f0f0", borderRadius: 4 }}>
+        <polyline points={pts} fill="none" stroke="#1677ff" strokeWidth={1.5} />
+      </svg>
+    );
+  };
+
+  // 仓库预览内容 (质量 + 走势 + 表格)，被仓库预览卡片复用
+  const renderWhPreviewBody = (data: any) => {
+    const q = data?.quality;
+    const closes: number[] = data?.chart?.close || [];
+    return (
+      <div style={{ marginTop: 12 }}>
+        {q && (
+          <Row gutter={16} style={{ marginBottom: 12 }}>
+            <Col span={3}><Statistic title="总条数" value={q.rows} /></Col>
+            <Col span={6}><Statistic title="日期范围" valueStyle={{ fontSize: 13 }}
+              value={`${String(q.start).slice(0, 10)} ~ ${String(q.end).slice(0, 10)}`} /></Col>
+            <Col span={3}><Statistic title="收盘NaN" value={q.nan_close}
+              valueStyle={{ color: q.nan_close ? "#ff4d4f" : "#52c41a" }} /></Col>
+            <Col span={3}><Statistic title="负值" value={q.negative_values}
+              valueStyle={{ color: q.negative_values ? "#ff4d4f" : "#52c41a" }} /></Col>
+            <Col span={3}><Statistic title="高<低" value={q.high_lt_low}
+              valueStyle={{ color: q.high_lt_low ? "#ff4d4f" : "#52c41a" }} /></Col>
+            <Col span={3}><Statistic title="重复时间" value={q.duplicate_timestamps}
+              valueStyle={{ color: q.duplicate_timestamps ? "#ff4d4f" : "#52c41a" }} /></Col>
+            <Col span={3}><Statistic title="质量" value={q.is_clean ? "正常" : "异常"}
+              valueStyle={{ color: q.is_clean ? "#52c41a" : "#faad14" }} /></Col>
+          </Row>
+        )}
+        {closes.length > 1 && (
+          <div style={{ marginBottom: 12 }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>收盘价走势</Text>
+            {renderSparkline(closes)}
+          </div>
+        )}
+        {data?.rows?.length > 0 && (
+          <Table
+            dataSource={data.rows}
+            columns={[
+              { title: "时间", dataIndex: "datetime", key: "datetime",
+                render: (v: string) => String(v).slice(0, 19) },
+              { title: "开", dataIndex: "open", key: "open" },
+              { title: "高", dataIndex: "high", key: "high" },
+              { title: "低", dataIndex: "low", key: "low" },
+              { title: "收", dataIndex: "close", key: "close" },
+              { title: "量", dataIndex: "volume", key: "volume" },
+            ]}
+            rowKey={(_: any, i?: number) => String(i)}
+            size="small"
+            pagination={{ pageSize: 10 }}
+          />
+        )}
+      </div>
+    );
+  };
 
   // ── Render: Storage ──
   const renderStorage = () => {
@@ -718,7 +1268,7 @@ export default function DataCenter() {
           setActiveTab(k);
           if (k === "sources") loadSources();
           if (k === "knowledge") loadExchanges();
-          if (k === "download") loadDownloadData();
+          if (k === "download") { loadDownloadData(); loadPreviewFiles(pvAsset); }
           if (k === "storage") loadStorage();
           if (k === "sync") loadSyncStatus();
         }}>

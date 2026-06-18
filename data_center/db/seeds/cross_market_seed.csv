@@ -1,0 +1,12 @@
+product_a,product_b,relation_type,logic_desc,direction
+RB,600019.SH,下游产品,螺纹涨价→宝钢利润增→股价涨(偏板材联动弱),bidirectional
+RB,002110.SZ,下游产品,螺纹涨价→三钢闽光利润增(纯正联动强),bidirectional
+I,601969.SH,上游原料,铁矿涨价→海南矿业利润增,bidirectional
+I,RB,成本传导,铁矿涨价→螺纹成本增,bidirectional
+FG,601636.SH,下游产品,玻璃涨价→旗滨集团利润增,bidirectional
+SA,FG,成本传导,纯碱涨价→玻璃成本增,bidirectional
+SA,000683.SZ,下游产品,纯碱涨价→远兴能源利润增,bidirectional
+CU,601899.SH,下游产品,铜涨价→紫金矿业利润增,bidirectional
+AU,600547.SH,下游产品,金涨价→山东黄金利润增,bidirectional
+M,002311.SZ,上游原料,豆粕涨价→海大集团成本增(反向),bidirectional
+SR,600737.SH,下游产品,糖涨价→中粮糖业利润增,bidirectional

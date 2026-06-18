@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     # Default LLM provider
     default_llm_provider: Literal["deepseek", "openai", "claude"] = "deepseek"
 
+    # 数据源凭据 (可选, 留空则对应源不启用)
+    tushare_token: Optional[str] = None
+    tq_account: Optional[str] = None
+    tq_password: Optional[str] = None
+
     @property
     def db_url(self) -> str:
         return f"postgresql+asyncpg://{self.db_user}:{self.db_pass}@{self.db_host}:{self.db_port}/{self.db_name}"

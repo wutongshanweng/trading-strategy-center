@@ -1,0 +1,13 @@
+code,name,frequency,unit,importance
+GDP,国内生产总值,quarterly,亿元,5
+CPI,居民消费价格指数,monthly,%,5
+PPI,工业生产者出厂价格,monthly,%,4
+PMI,制造业采购经理指数,monthly,点,5
+M2,货币供应量M2,monthly,%,4
+SOCFIN,社会融资规模,monthly,亿元,4
+SPECBOND,专项债发行额,monthly,亿元,3
+INDUSTOUTPUT,工业增加值,monthly,%,4
+FIXEDINVEST,固定资产投资,monthly,%,3
+PROPERTYINVEST,房地产开发投资,monthly,%,3
+LPR1Y,一年期LPR,monthly,%,4
+LPR5Y,五年期LPR,monthly,%,4

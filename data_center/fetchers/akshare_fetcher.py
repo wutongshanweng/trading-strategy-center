@@ -103,20 +103,29 @@ class AKShareFetcher(BaseFetcher):
             "收盘": "close", "成交量": "volume", "持仓量": "open_interest",
             "date": "date", "open": "open", "high": "high", "low": "low",
             "close": "close", "volume": "volume",
+            "hold": "open_interest", "settle": "settlement",
         }
         df = df.rename(columns={c: col_map.get(c, c) for c in df.columns})
         # 只保留标准列
-        keep = ["date", "open", "high", "low", "close", "volume", "open_interest"]
+        keep = ["date", "datetime", "open", "high", "low", "close", "volume", "open_interest", "settlement"]
         return df[[c for c in keep if c in df.columns]]
+
+    def _to_sina_continuous(self, symbol: str) -> str:
+        """裸品种代码 → 新浪主力连续代码 (RB → RB0)。已带数字的合约号原样返回。"""
+        s = symbol.upper()
+        if any(ch.isdigit() for ch in s):
+            return s
+        return f"{s}0"
 
     def get_futures_daily(self, symbol: str) -> pd.DataFrame:
         """获取期货主力连续日线"""
         ak = self._get_ak()
+        sina_symbol = self._to_sina_continuous(symbol)
         try:
-            df = ak.futures_zh_daily_sina(symbol=symbol)
+            df = ak.futures_zh_daily_sina(symbol=sina_symbol)
             return self._clean_futures_df(df)
         except Exception as e:
-            logger.warning(f"AKShare futures_daily_sina failed for {symbol}: {e}")
+            logger.warning(f"AKShare futures_daily_sina failed for {sina_symbol}: {e}")
             return pd.DataFrame()
 
     def get_futures_hist_em(self, symbol: str, contract: str = "",
@@ -135,8 +144,10 @@ class AKShareFetcher(BaseFetcher):
     def get_kline(self, symbol: str, interval: KlineInterval = KlineInterval.DAY,
                   start_date: Optional[str] = None, end_date: Optional[str] = None,
                   contract: Optional[str] = None) -> KlineData:
-        """获取 K 线数据"""
-        df = self.get_futures_daily(symbol)
+        """获取 K 线数据。A股代码 (600019.SH / 6位数字) 走个股日线, 其余走期货。"""
+        bare = symbol.split(".")[0]
+        is_stock = ("." in symbol) or (bare.isdigit() and len(bare) == 6)
+        df = self.get_stock_daily(bare) if is_stock else self.get_futures_daily(symbol)
         if df.empty:
             return KlineData(
                 symbol=symbol, interval=interval.value,

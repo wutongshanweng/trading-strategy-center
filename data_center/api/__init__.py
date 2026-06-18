@@ -45,6 +45,81 @@ _dl_mgr = DownloadManager(_source_mgr)
 _scheduler = SyncScheduler(_dl_mgr, _data_store)
 _verifier = DataVerifier(_source_mgr)
 
+
+# asset_type -> DataStore market 目录名
+_MARKET_DIRS = {"futures": "futures", "stock": "stock", "option": "options"}
+
+
+def _market_for(asset_type: str) -> str:
+    return _MARKET_DIRS.get((asset_type or "futures").lower(), "futures")
+
+
+def _register_default_fetchers() -> None:
+    """注册所有可用数据源。无需密钥的优先注册；需密钥的仅在环境变量存在时注册。"""
+    import os
+
+    # 无需密钥 — 中国市场优先
+    try:
+        from ..fetchers.akshare_fetcher import AKShareFetcher
+        _source_mgr.register(AKShareFetcher(), priority=10)
+    except Exception as e:
+        logger.warning(f"akshare 注册失败: {e}")
+    try:
+        from ..fetchers.tdx_fetcher import TDXFetcher
+        _source_mgr.register(TDXFetcher(), priority=20)
+    except Exception as e:
+        logger.warning(f"tdx 注册失败: {e}")
+    try:
+        from ..fetchers.baostock_fetcher import BaoStockFetcher
+        _source_mgr.register(BaoStockFetcher(), priority=30)
+    except Exception as e:
+        logger.warning(f"baostock 注册失败: {e}")
+    try:
+        from ..fetchers.options_fetcher import ChinaOptionsFetcher
+        _source_mgr.register(ChinaOptionsFetcher(), priority=40)
+    except Exception as e:
+        logger.warning(f"china_options 注册失败: {e}")
+    try:
+        from ..fetchers.yfinance_fetcher import YFinanceFetcher
+        _source_mgr.register(YFinanceFetcher(), priority=50)
+    except Exception as e:
+        logger.warning(f"yfinance 注册失败: {e}")
+
+    # 需密钥/账户 — 仅在凭据存在时注册
+    if os.getenv("TUSHARE_TOKEN"):
+        try:
+            from ..fetchers.tushare_fetcher import TushareFetcher
+            _source_mgr.register(TushareFetcher(), priority=15)
+        except Exception as e:
+            logger.warning(f"tushare 注册失败: {e}")
+    if os.getenv("TQ_ACCOUNT") and os.getenv("TQ_PASSWORD"):
+        try:
+            from ..fetchers.tqsdk_fetcher import TqSdkFetcher
+            _source_mgr.register(TqSdkFetcher(), priority=25)
+        except Exception as e:
+            logger.warning(f"tqsdk 注册失败: {e}")
+
+    # 需密钥 — 仅在环境变量存在时注册
+    keyed = [
+        ("FRED_API_KEY", "..fetchers.fred_fetcher", "FREDFetcher", 60),
+        ("EIA_API_KEY", "..fetchers.eia_cftc_fetcher", "EIAFetcher", 70),
+        ("ALPHA_VANTAGE_API_KEY", "..fetchers.alpha_vantage_fetcher", "AlphaVantageFetcher", 80),
+        ("FMP_API_KEY", "..fetchers.fmp_fetcher", "FMPFetcher", 80),
+        ("TIINGO_API_KEY", "..fetchers.tiingo_fetcher", "TiingoFetcher", 80),
+    ]
+    import importlib
+    for env_var, module_path, cls_name, prio in keyed:
+        if not os.getenv(env_var):
+            continue
+        try:
+            mod = importlib.import_module(module_path, package=__name__)
+            _source_mgr.register(getattr(mod, cls_name)(), priority=prio)
+        except Exception as e:
+            logger.warning(f"{cls_name} 注册失败: {e}")
+
+
+_register_default_fetchers()
+
 router = APIRouter(prefix="/api/v1/data-center", tags=["data-center"])
 
 
@@ -186,6 +261,7 @@ async def create_range_download(
     start_date: str = Query(..., description="开始日期 YYYY-MM-DD"),
     end_date: str = Query(..., description="结束日期 YYYY-MM-DD"),
     contract: Optional[str] = Query(None, description="合约号"),
+    asset_type: str = Query("futures", description="资产类别 futures/stock/option"),
 ):
     """创建指定日期范围的数据下载任务（分钟级支持近3个月）"""
     # 验证日期
@@ -211,11 +287,13 @@ async def create_range_download(
         if (e - s).days > 93:
             raise HTTPException(400, "分钟级数据最多下载3个月")
 
+    market = _market_for(asset_type)
     # 直接执行下载
-    data = _source_mgr.get_kline(symbol, kline_interval, start_date, end_date, contract)
+    data = _source_mgr.get_kline(symbol, kline_interval, start_date, end_date,
+                                 contract, market_type=asset_type)
     if data and data.timestamps:
-        _data_store.save_kline(data)
-        return {"symbol": symbol, "interval": interval,
+        _data_store.save_kline(data, market=market)
+        return {"symbol": symbol, "interval": interval, "asset_type": asset_type,
                 "bars": len(data.timestamps), "source": data.source,
                 "start": str(data.timestamps[0]) if data.timestamps else "",
                 "end": str(data.timestamps[-1]) if data.timestamps else "",
@@ -349,6 +427,102 @@ async def get_storage_info():
     usage = _data_store.get_storage_usage()
     available = _data_store.list_available()
     return {"usage": usage, "available": available}
+
+
+# ========== 数据预览 / 质量校验 ==========
+
+@router.get("/data-files")
+async def list_downloaded(asset_type: str = Query("futures", description="资产类别 futures/stock/option")):
+    """列出某资产类别已下载缓存文件。"""
+    market = _market_for(asset_type)
+    return {"asset_type": asset_type, "market": market,
+            "files": _data_store.list_available(market=market)}
+
+
+@router.get("/preview")
+async def preview_data(
+    symbol: str = Query(..., description="品种/股票/期权代码"),
+    interval: str = Query("1d", description="K线周期"),
+    asset_type: str = Query("futures", description="资产类别 futures/stock/option"),
+    contract: Optional[str] = Query(None, description="合约号 (可选)"),
+    limit: int = Query(100, le=1000, description="返回行数"),
+    offset: int = Query(0, ge=0, description="起始行偏移"),
+):
+    """预览已下载数据 — 返回分页 OHLCV 行 + 数据质量统计。"""
+    market = _market_for(asset_type)
+    data = _data_store.load_kline(symbol, interval, market=market, contract=contract)
+    if not data or not data.timestamps:
+        raise HTTPException(404, f"未找到缓存数据: {symbol} {interval} ({market})")
+
+    ts = [str(t) for t in data.timestamps]
+    n = len(ts)
+
+    def _col(v):
+        return v if v and len(v) == n else (v or [])
+
+    o, h, l, c, vol = (_col(data.open), _col(data.high), _col(data.low),
+                       _col(data.close), _col(data.volume))
+
+    # 质量校验
+    def _count(pred, seq):
+        return sum(1 for x in seq if pred(x))
+
+    is_num = lambda x: isinstance(x, (int, float))
+    nan_close = _count(lambda x: x is None or (is_num(x) and x != x), c)
+    zero_close = _count(lambda x: is_num(x) and x == 0, c)
+    neg = _count(lambda x: is_num(x) and x < 0, c) + _count(lambda x: is_num(x) and x < 0, l)
+    # high<low 异常
+    hl_bad = sum(1 for hi, lo in zip(h, l)
+                 if is_num(hi) and is_num(lo) and hi < lo)
+    dup = n - len(set(ts))
+
+    quality = {
+        "rows": n,
+        "start": ts[0] if ts else "",
+        "end": ts[-1] if ts else "",
+        "nan_close": nan_close,
+        "zero_close": zero_close,
+        "negative_values": neg,
+        "high_lt_low": hl_bad,
+        "duplicate_timestamps": dup,
+        "is_clean": nan_close == 0 and neg == 0 and hl_bad == 0 and dup == 0,
+    }
+
+    sl = slice(offset, offset + limit)
+    rows = [
+        {"datetime": ts[i], "open": o[i] if i < len(o) else None,
+         "high": h[i] if i < len(h) else None, "low": l[i] if i < len(l) else None,
+         "close": c[i] if i < len(c) else None, "volume": vol[i] if i < len(vol) else None}
+        for i in range(*sl.indices(n))
+    ]
+    return {
+        "symbol": symbol, "interval": interval, "asset_type": asset_type,
+        "contract": contract, "source": data.source, "total": n,
+        "offset": offset, "limit": limit, "rows": rows, "quality": quality,
+        "chart": {"datetime": ts, "close": c},
+    }
+
+
+@router.get("/options/codes")
+async def list_option_codes(
+    underlying: str = Query("510050", description="标的: 510050/510300/510500 (ETF) 或 IO/HO (股指)"),
+    option_type: str = Query("看涨期权", description="看涨期权/看跌期权"),
+):
+    """查询期权合约代码列表 (供下载选择器使用)。"""
+    from ..fetchers.options_fetcher import ChinaOptionsFetcher
+    opt = ChinaOptionsFetcher()
+    u = underlying.upper()
+    if u in ("IO", "HO"):
+        # 股指期权: 用实时行情接口枚举当前在交易的合约代码
+        rt = opt.get_index_option_realtime(u.lower())
+        codes = rt["合约代码"].tolist() if (rt is not None and not rt.empty and "合约代码" in rt.columns) else []
+        return {"underlying": u, "count": len(codes), "codes": codes}
+    df = opt.get_etf_option_codes(option_type=option_type, underlying=underlying)
+    if df is None or df.empty:
+        return {"underlying": underlying, "count": 0, "codes": []}
+    col = "合约代码" if "合约代码" in df.columns else df.columns[0]
+    codes = [str(x) for x in df[col].tolist()]
+    return {"underlying": underlying, "count": len(codes), "codes": codes}
 
 
 # ========== 辅助 ==========
