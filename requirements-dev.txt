@@ -30,3 +30,6 @@ memory_profiler>=0.61
 # 代码质量
 bandit>=1.7
 safety>=2.3
+
+# 遗传因子挖掘 (可选加速; 不安装时 GeneticFactorMiner 自动回退到内置 numpy 引擎)
+deap>=1.4.0

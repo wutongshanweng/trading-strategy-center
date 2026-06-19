@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-19T11:12:20.086Z
-> Files: 554 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-19T11:45:36.286Z
+> Files: 556 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -38,7 +38,7 @@
 - `QUICK_START_PHASE1.md` — 🚀 立即启动指南 - Phase 1 功能使用 (~1814 tok)
 - `QUICK_START.md` — 交易策略中心 - 快速入门指南 (~2397 tok)
 - `README.md` — Project documentation (~1365 tok)
-- `requirements-dev.txt` — 可选依赖（development环境） (~92 tok)
+- `requirements-dev.txt` — 可选依赖（development环境） (~110 tok)
 - `signal_adapter.py` — SignalAdapter: process_symbol, process_batch (~461 tok)
 - `SYSTEM_COMPLETION_REPORT.md` — 交易策略中心 - 系统升级完成报告 (~1244 tok)
 - `THEME_SWITCH_GUIDE.md` — 🎨 主题切换功能使用指南 (~1001 tok)
@@ -109,7 +109,7 @@
 - `backtest_routes.py` — API: POST, GET (2 endpoints) (~583 tok)
 - `data_routes.py` — API: GET (3 endpoints) (~593 tok)
 - `db_routes.py` — API: GET, POST (9 endpoints) (~5290 tok)
-- `factor_routes.py` — API: 4 endpoints (~5154 tok)
+- `factor_routes.py` — API: 4 endpoints (~5042 tok)
 - `health_routes.py` — API: GET (1 endpoints) (~76 tok)
 - `intelligence_routes.py` — API routes for intelligence upgrade: RL, risk monitoring, monitoring. (~2371 tok)
 - `llm_routes.py` — API routes for LLM-powered market analysis and strategy generation. (~1318 tok)
@@ -278,6 +278,7 @@
 ## core/alpha/mining/
 
 - `__init__.py` — Genetic Programming Factor Mining Engine. (~3561 tok)
+- `genetic_programming.py` — class: mine, save_factors, load_factors (~1513 tok)
 - `operator_set.py` — ts_rank, ts_sum, ts_mean, ts_std (~1310 tok)
 
 ## core/config/
@@ -860,5 +861,6 @@
 - `test_alpha061_101.py` — Tests: alpha_factor, alpha_factor_description, alpha_factor_compute_with_lookback, alpha_factor_not_all_nan + 1 more (~739 tok)
 - `test_alpha101_base.py` — Tests: is_abstract, subclass_interface, validate_with_complete_data, validate_with_missing_columns + 6 more (~1521 tok)
 - `test_alpha101.py` — Tests: is_abstract, subclass_interface, is_alpha_base, properties + 8 more (~1053 tok)
+- `test_factor_mining.py` — 因子挖掘 — 单元测试 (Spec §7.1)。 (~1087 tok)
 - `test_factor_phase2.py` — 因子管理 Phase2 — 算子集/健康检测/行业中性化/报告 单元测试。 (~1395 tok)
 - `test_warehouse.py` — TestDuckDBStore: store, test_schema_tables_created, test_upsert_dedup, test_upsert_empty_df + 8 more (~1540 tok)

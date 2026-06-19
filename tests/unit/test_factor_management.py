@@ -137,3 +137,64 @@ class TestFactorRetirement:
         with pytest.raises(ValueError):
             store.load_factor("f")
         store.close()
+
+
+# ═══ Phase2: 因子衰减检测 / 行业中性化 / 研究报告 (Spec §7.2) ═══
+
+from core.alpha.management import (  # noqa: E402
+    FactorDecayDetector, FactorHealth, IndustryNeutralizer, FactorReportGenerator,
+)
+
+
+class TestFactorDecay:
+    def test_healthy_factor(self):
+        np.random.seed(42)
+        ic = pd.Series(np.random.normal(0.05, 0.01, 200))
+        assert FactorDecayDetector().check("h", ic).health == FactorHealth.HEALTHY
+
+    def test_decayed_factor(self):
+        np.random.seed(1)
+        ic = pd.Series(np.linspace(0.08, -0.01, 200) + np.random.normal(0, 0.004, 200))
+        assert FactorDecayDetector().check("d", ic).health == FactorHealth.DECAYED
+
+    def test_batch_check(self):
+        m = {"a": pd.Series(np.random.normal(0.05, 0.01, 100)), "b": pd.Series(np.zeros(100))}
+        out = FactorDecayDetector().batch_check(m)
+        assert set(out.keys()) == {"a", "b"}
+
+
+class TestIndustryNeutralizer:
+    def test_neutralize_by_mean(self):
+        np.random.seed(0)
+        f = pd.Series(np.random.randn(100)); f[:40] += 0.5
+        ind = pd.Series(["A"] * 40 + ["B"] * 30 + ["C"] * 30)
+        neu = IndustryNeutralizer().neutralize_by_mean(f, ind)
+        for i in ["A", "B", "C"]:
+            assert abs(neu[ind == i].mean()) < 0.1
+
+    def test_neutralize_by_zscore(self):
+        np.random.seed(0)
+        f = pd.Series(np.random.randn(60))
+        ind = pd.Series(["A"] * 30 + ["B"] * 30)
+        assert len(IndustryNeutralizer().neutralize_by_zscore(f, ind)) == 60
+
+    def test_neutralize_by_regression(self):
+        np.random.seed(0)
+        f = pd.Series(np.random.randn(90)); f[:30] += 1.0
+        ind = pd.Series(["A"] * 30 + ["B"] * 30 + ["C"] * 30)
+        neu = IndustryNeutralizer().neutralize_by_regression(f, ind)
+        assert abs(neu[ind == "A"].mean()) < 0.1
+
+
+class TestFactorReport:
+    def test_generate_report(self):
+        np.random.seed(7)
+        n = 300
+        ret = pd.Series(np.random.randn(n) * 0.02)
+        fdf = pd.DataFrame({
+            "f_good": ret * 5 + np.random.randn(n) * 0.5,
+            "f_noise": pd.Series(np.random.randn(n)),
+        })
+        rep = FactorReportGenerator().generate(fdf, ret, top_n=10)
+        assert rep.total_factors == 2
+        assert rep.top_factors[0].name == "f_good"

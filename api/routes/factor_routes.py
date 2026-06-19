@@ -400,29 +400,19 @@ class MineRequest(BaseModel):
 
 @router.post("/mine")
 async def mine_factors(req: MineRequest) -> Dict[str, Any]:
-    """遗传编程因子挖掘 (复用 GeneticProgramming + FitnessFunction)。"""
+    """遗传编程因子挖掘 (GeneticFactorMiner, 输出规范 MinedFactor)。"""
     try:
-        from core.alpha.mining import GeneticProgramming, FitnessFunction
+        from core.alpha.mining import GeneticFactorMiner, GeneticConfig
         df, source = _get_ohlcv(req.symbol, req.days)
-        gp = GeneticProgramming(
-            population_size=req.population_size, generations=req.generations, max_depth=3)
-        returns = df["close"].pct_change()
-        best = gp.evolve(df, FitnessFunction(), returns, top_k=req.n_factors)
-        fit = FitnessFunction()
-        out = []
-        for i, expr in enumerate(best, 1):
-            score = fit.evaluate(expr, df, returns)
-            fv = expr.compute(df).dropna()
-            rv = returns.loc[fv.index].dropna()
-            common = fv.index.intersection(rv.index)
-            ic = float(fv.loc[common].corr(rv.loc[common])) if len(common) > 5 else 0.0
-            out.append({
-                "name": f"GF_{i:03d}", "expression": expr.name,
-                "fitness": round(score, 4),
-                "ic": round(ic if not np.isnan(ic) else 0.0, 4),
-            })
+        miner = GeneticFactorMiner(GeneticConfig(
+            population_size=req.population_size, generations=req.generations, max_depth=3))
+        factors = miner.mine(df, n_factors=req.n_factors, seed=42)
+        out = [{
+            "name": f.name, "expression": f.expression, "fitness": f.fitness,
+            "ic": f.ic_mean, "icir": f.icir, "sharpe": f.sharpe, "turnover": f.turnover,
+        } for f in factors]
         return {"success": True, "symbol": req.symbol, "data_source": source,
-                "count": len(out), "factors": out}
+                "backend": miner.backend, "count": len(out), "factors": out}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"因子挖掘失败: {str(e)}")
 

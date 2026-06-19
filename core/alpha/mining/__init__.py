@@ -398,3 +398,9 @@ from .operator_set import (  # noqa: E402
     MATH_OPERATORS,
     BINARY_OPERATORS,
 )
+
+from .genetic_programming import (  # noqa: E402
+    GeneticFactorMiner,
+    MinedFactor,
+    GeneticConfig,
+)
