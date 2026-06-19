@@ -38,6 +38,18 @@ class ContractDetail:
     is_chemical: bool = False
     is_financial: bool = False
 
+    # 🆕 结构化知识层 — 供评分引擎/agent 量化引用 (全部默认空, 渐进填充)
+    macro_sensitivity: Dict[str, float] = field(default_factory=dict)
+    # 宏观敏感度 {"PMI":0.8,"美元指数":0.9}; 决定宏观信号对该品种的权重
+    seasonality: List[Dict] = field(default_factory=list)
+    # 季节性 [{"month":9,"direction":"涨","strength":0.6,"reason":"金九银十"}]
+    data_releases: List[str] = field(default_factory=list)
+    # 关注的数据发布 ["每周四钢联数据","每月USDA报告"]
+    key_indicators: Dict[str, str] = field(default_factory=dict)
+    # 核心基本面指标 {"库存":"港口库存+钢厂库存","开工率":"高炉开工率"}
+    related_products: List[str] = field(default_factory=list)
+    # 强关联品种 ["HC","I"] (卷螺/螺矿)
+
     @property
     def exchange_display(self) -> str:
         exchange_names = {
@@ -368,8 +380,77 @@ class ContractKnowledgeBase:
             "碳酸锂", "Li Carbonate", 1, 50, "9:00-10:15/10:30-11:30/13:30-15:00",
             "21:00-23:00", 0.12, 0.00008, 0.00008, 0.0, "ratio", 0.07,
             [1,2,3,4,5,6,7,8,9,10,11,12], "金属", is_metal=True)
-        
+
+        self._enrich_knowledge(contracts)
         return contracts
+
+    @staticmethod
+    def _enrich_knowledge(contracts: Dict[str, "ContractDetail"]) -> None:
+        """为代表性品种填充结构化知识 (宏观敏感度/季节性/核心指标/关联)。
+        渐进填充: 未覆盖的品种字段保持空, agent 可按需补充。"""
+        enrich = {
+            "RB": {
+                "macro_sensitivity": {"PMI": 0.8, "社融": 0.6, "房地产投资": 0.85, "美元指数": 0.3},
+                "seasonality": [
+                    {"month": 3, "direction": "涨", "strength": 0.7, "reason": "金三银四开工旺季"},
+                    {"month": 9, "direction": "涨", "strength": 0.6, "reason": "金九银十需求回升"},
+                ],
+                "data_releases": ["每周四Mysteel钢联数据", "每月制造业PMI", "每月房地产投资数据"],
+                "key_indicators": {"库存": "钢厂库存+社会库存", "开工率": "高炉开工率",
+                                   "利润": "螺纹钢生产利润", "需求": "表观消费量"},
+                "related_products": ["HC", "I", "J", "JM"],
+            },
+            "HC": {
+                "macro_sensitivity": {"PMI": 0.8, "制造业投资": 0.75, "美元指数": 0.3},
+                "seasonality": [{"month": 3, "direction": "涨", "strength": 0.6, "reason": "制造业旺季"}],
+                "data_releases": ["每周四Mysteel钢联数据", "每月制造业PMI"],
+                "key_indicators": {"库存": "热卷社库", "需求": "制造业/汽车产量"},
+                "related_products": ["RB", "I"],
+            },
+            "I": {
+                "macro_sensitivity": {"PMI": 0.75, "房地产投资": 0.8, "美元指数": 0.4},
+                "seasonality": [{"month": 9, "direction": "涨", "strength": 0.5, "reason": "补库旺季"}],
+                "data_releases": ["每周港口铁矿石库存", "澳巴发运数据"],
+                "key_indicators": {"库存": "45港铁矿石库存", "供应": "澳巴发运量", "需求": "铁水产量"},
+                "related_products": ["RB", "HC", "J"],
+            },
+            "CU": {
+                "macro_sensitivity": {"PMI": 0.85, "美元指数": 0.9, "社融": 0.5, "全球制造业PMI": 0.8},
+                "seasonality": [{"month": 4, "direction": "涨", "strength": 0.5, "reason": "传统消费旺季"}],
+                "data_releases": ["LME库存日报", "每月SMM社会库存", "美联储议息"],
+                "key_indicators": {"库存": "LME+上期所+保税区库存", "升贴水": "现货升贴水",
+                                   "加工费": "铜精矿TC/RC"},
+                "related_products": ["AL", "ZN", "NI"],
+            },
+            "AU": {
+                "macro_sensitivity": {"美元指数": 0.9, "美债实际利率": 0.95, "VIX": 0.6, "通胀预期": 0.7},
+                "seasonality": [{"month": 1, "direction": "涨", "strength": 0.4, "reason": "避险+印度购金"}],
+                "data_releases": ["美联储议息", "美国CPI", "非农就业", "美债收益率"],
+                "key_indicators": {"驱动": "实际利率(名义利率-通胀)", "避险": "地缘风险/VIX",
+                                   "持仓": "SPDR黄金ETF持仓"},
+                "related_products": ["AG"],
+            },
+            "M": {
+                "macro_sensitivity": {"美元指数": 0.5, "厄尔尼诺": 0.6, "生猪存栏": 0.7},
+                "seasonality": [
+                    {"month": 7, "direction": "涨", "strength": 0.6, "reason": "美豆天气炒作"},
+                    {"month": 11, "direction": "跌", "strength": 0.5, "reason": "南美丰产预期"},
+                ],
+                "data_releases": ["每月USDA供需报告", "每周出口销售", "南美天气"],
+                "key_indicators": {"供应": "美豆/巴西大豆产量", "需求": "生猪存栏+压榨利润",
+                                   "库存": "港口大豆库存"},
+                "related_products": ["Y", "RM", "OI"],
+            },
+        }
+        for sym, kn in enrich.items():
+            c = contracts.get(sym)
+            if c is None:
+                continue
+            c.macro_sensitivity = kn.get("macro_sensitivity", {})
+            c.seasonality = kn.get("seasonality", [])
+            c.data_releases = kn.get("data_releases", [])
+            c.key_indicators = kn.get("key_indicators", {})
+            c.related_products = kn.get("related_products", [])
 
     def get_contract(self, symbol: str) -> Optional[ContractDetail]:
         """获取合约品种信息"""

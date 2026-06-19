@@ -39,6 +39,11 @@ def _write_ckpt(data: Dict) -> None:
     _CKPT.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+def reset_ckpt() -> None:
+    """清空 checkpoint — 用于定期全量复跑 (数据校验/补漏)。"""
+    _write_ckpt({"done": [], "failures": {}, "stats": {}})
+
+
 def _products(asset_type: str) -> List[str]:
     df = get_store().query(
         "SELECT code FROM products WHERE asset_type = ? ORDER BY code", [asset_type]
@@ -68,9 +73,13 @@ def collect_futures_product(product: str, year: Optional[int] = None,
 
 def _run_full_sync(phase: str, year: Optional[int], end_year: Optional[int],
                    start_date: Optional[str], with_minute: bool,
-                   stock_limit: Optional[int]) -> Dict:
+                   stock_limit: Optional[int], reset_checkpoint: bool = False) -> Dict:
     """同步执行全量/批量采集。在 to_thread 中调用。
-    stock_limit: 测试期股票只下前 N 只; None=全市场。"""
+    stock_limit: 测试期股票只下前 N 只; None=全市场。
+    reset_checkpoint: 定期全量复跑前清空进度 (数据校验/补漏)。
+    start_date=None: 股票从上市日起全历史。"""
+    if reset_checkpoint:
+        reset_ckpt()
     load_all()  # 幂等: 确保 products 种子就绪
     ckpt = _read_ckpt()
     results: Dict = {}
@@ -121,21 +130,51 @@ def _run_full_sync(phase: str, year: Optional[int], end_year: Optional[int],
 
     if phase in ("options", "all"):
         oc = OptionsCollector()
-        totals = {"rows": 0, "contracts": 0}
-        try:
-            codes_df = oc._opt.get_etf_option_codes(underlying="510050")
-            col = "合约代码" if (codes_df is not None and "合约代码" in codes_df.columns) else None
-            codes = [str(x) for x in codes_df[col].tolist()] if col else []
-            for c in codes:
+        totals = {"rows": 0, "contracts": 0, "underlyings": 0,
+                  "commodity_kline": 0, "commodity_greeks": 0}
+
+        def _codes_col(df):
+            if df is None or df.empty:
+                return None
+            return next((c for c in ("期权代码", "合约代码", "代码") if c in df.columns), None)
+
+        # 商品期权: 指定 year 时按年逐交易日全量 (覆盖该年所有挂过的合约 + IV/Delta)
+        if year is not None:
+            ckpt_done = set(k for k in ckpt["done"] if k.startswith("copt:"))
+            try:
+                ct = oc.collect_commodity_year(
+                    year, ckpt_done={k[5:] for k in ckpt_done})
+                totals["commodity_kline"] = ct.get("kline_rows", 0)
+                totals["commodity_greeks"] = ct.get("greeks_rows", 0)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"商品期权 {year} 年采集失败: {e}")
+
+        # ETF 期权: 50/300/500 ETF, 看涨+看跌 (当前在挂, 代码无年月)
+        for und in ("510050", "510300", "510500"):
+            got = False
+            for otype in ("看涨期权", "看跌期权"):
                 try:
-                    n = oc.collect_etf_option_daily(c, "510050")
-                    totals["rows"] += n
-                    if n > 0:
-                        totals["contracts"] += 1
+                    cdf = oc._opt.get_etf_option_codes(option_type=otype, underlying=und)
+                    col = _codes_col(cdf)
+                    if not col:
+                        continue
+                    for c in [str(x) for x in cdf[col].tolist()]:
+                        key = f"opt:{und}:{c}"
+                        if key in ckpt["done"]:
+                            continue
+                        try:
+                            n = oc.collect_etf_option_daily(c, und)
+                            totals["rows"] += n
+                            if n > 0:
+                                totals["contracts"] += 1; got = True
+                            ckpt["done"].append(key); _write_ckpt(ckpt)
+                        except Exception as e:  # noqa: BLE001
+                            logger.warning(f"{c} 期权采集失败: {e}")
+                            ckpt["failures"][key] = str(e); _write_ckpt(ckpt)
                 except Exception as e:  # noqa: BLE001
-                    logger.warning(f"{c} 期权采集失败: {e}")
-        except Exception as e:  # noqa: BLE001
-            logger.warning(f"期权合约枚举失败: {e}")
+                    logger.warning(f"{und}/{otype} 合约枚举失败: {e}")
+            if got:
+                totals["underlyings"] += 1
         results["options"] = totals
 
     return results
@@ -143,10 +182,12 @@ def _run_full_sync(phase: str, year: Optional[int], end_year: Optional[int],
 
 async def run_full(phase: str = "all", year: Optional[int] = None,
                    end_year: Optional[int] = None, start_date: Optional[str] = None,
-                   with_minute: bool = False, stock_limit: Optional[int] = None) -> Dict:
+                   with_minute: bool = False, stock_limit: Optional[int] = None,
+                   reset_checkpoint: bool = False) -> Dict:
     """异步入口 — 在线程池里跑同步采集, 不阻塞事件循环。"""
     return await asyncio.to_thread(
-        _run_full_sync, phase, year, end_year, start_date, with_minute, stock_limit
+        _run_full_sync, phase, year, end_year, start_date, with_minute,
+        stock_limit, reset_checkpoint
     )
 
 

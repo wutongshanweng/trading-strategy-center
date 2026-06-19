@@ -21,6 +21,8 @@ build/
 data_center/download_checkpoint.json
 # TS 构建缓存
 *.tsbuildinfo
+# OpenWolf 运行时日志 (非追踪)
+.wolf/*.log
 
 # Frontend dependencies
 node_modules/

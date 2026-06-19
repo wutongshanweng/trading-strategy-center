@@ -159,6 +159,13 @@ class FuturesCollector(BaseCollector):
         if "settlement" in df.columns:
             out["settlement"] = pd.to_numeric(df["settlement"], errors="coerce")
         out = out.dropna(subset=["close"])
+        # 生命周期守卫: 真实合约不应有生命周期外数据 (防误存主力连续)
+        from ..knowledge.contract_lifecycle import lifecycle_guard
+        before = len(out)
+        out = lifecycle_guard(out, contract, "datetime")
+        if len(out) < before:
+            logger.warning(f"{contract} 裁剪 {before - len(out)} 条生命周期外数据 "
+                           f"(疑似误存连续合约)")
         return self.store.upsert_df("kline", out, ["datetime", "symbol_id", "timeframe"])
 
     def collect_product(self, product_code: str, with_minute: bool = True,

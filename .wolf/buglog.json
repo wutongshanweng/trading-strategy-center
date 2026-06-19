@@ -383,6 +383,708 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-18T14:10:11.698Z"
+    },
+    {
+      "id": "bug-024",
+      "timestamp": "2026-06-19T02:09:08.722Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/cross_market.py",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 20→32 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T02:09:08.722Z"
+    },
+    {
+      "id": "bug-025",
+      "timestamp": "2026-06-19T02:09:14.994Z",
+      "error_message": "Wrong reference: is_main should be main_contracts",
+      "file": "data_center/cross_market.py",
+      "root_cause": "Used \"is_main\" instead of \"main_contracts\"",
+      "fix": "Changed is_main → main_contracts",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T02:09:14.994Z"
+    },
+    {
+      "id": "bug-026",
+      "timestamp": "2026-06-19T00:00:00",
+      "error_message": "客户报告: cross_market.py 选主力代表用\"D1 数据最多的合约\", 换月期旧主力数据多但已非主力, 选错",
+      "file": "data_center/cross_market.py",
+      "root_cause": "_product_close_series 用 symbol_id.value_counts().idxmax() 取数据最多的合约近似主力连续。换月期旧主力累积历史多但已退场, 导致相关性算在错误合约上。docstring 声称优先 is_main 但代码未实现 (symbols.is_main 因 DuckDB 外键限制已废弃, 见 bug-014)。",
+      "fix": "改为优先 JOIN main_contracts 表取标记的主力合约 (refresh_main_contract 按实时持仓量写入), 仅当无标记或该合约无 D1 K 线时才退回数据最多的合约。同步修正文件头/函数 docstring。",
+      "tags": [
+        "cross_market",
+        "main_contract",
+        "rollover",
+        "duckdb",
+        "correlation"
+      ],
+      "related_bugs": [
+        "bug-014"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T00:00:00"
+    },
+    {
+      "id": "bug-027",
+      "timestamp": "2026-06-19T02:21:48.787Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/collectors/options_collector.py",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 8→141 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T02:21:48.787Z"
+    },
+    {
+      "id": "bug-028",
+      "timestamp": "2026-06-19T02:28:17.898Z",
+      "error_message": "Missing await",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T02:28:17.898Z"
+    },
+    {
+      "id": "bug-029",
+      "timestamp": "2026-06-19T02:58:05.147Z",
+      "error_message": "Function not marked async",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "Function uses await but wasn't declared async",
+      "fix": "Added async modifier",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T02:58:05.147Z"
+    },
+    {
+      "id": "bug-030",
+      "timestamp": "2026-06-19T03:38:00.310Z",
+      "error_message": "Null/undefined access in ",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T03:38:00.310Z"
+    },
+    {
+      "id": "bug-031",
+      "timestamp": "2026-06-19T03:38:26.125Z",
+      "error_message": "CSS fix: title",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "title: \"量\", dataIndex: \"volume\", key: \"volume\" → \"量\", dataIndex: \"volume\", key: \"volume\", render: fmtVol",
+      "fix": "Changed title: \"量\", dataIndex: \"volume\", key: \"volume\" → \"量\", dataIndex: \"volume\", key: \"volume\", render: fmtVol",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-06-19T03:39:23.196Z"
+    },
+    {
+      "id": "bug-032",
+      "timestamp": "2026-06-19T03:39:01.452Z",
+      "error_message": "Significant refactor of ",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "17 lines replaced/restructured",
+      "fix": "Rewrote 25→5 lines (17 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T03:39:01.452Z"
+    },
+    {
+      "id": "bug-033",
+      "timestamp": "2026-06-19T04:06:51.942Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/collectors/stocks_collector.py",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 15→116 lines (4 removed) | Also: def _bigint(v):; n = pd.to_numeric(v, errors=\"coerce\")",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-19T04:07:12.941Z"
+    },
+    {
+      "id": "bug-034",
+      "timestamp": "2026-06-19T04:10:43.875Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/history/full_downloader.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 8→12 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T04:10:43.875Z"
+    },
+    {
+      "id": "bug-035",
+      "timestamp": "2026-06-19T04:11:25.808Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 23→33 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T04:11:25.808Z"
+    },
+    {
+      "id": "bug-036",
+      "timestamp": "2026-06-19T04:11:50.390Z",
+      "error_message": "Missing await",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T04:11:50.390Z"
+    },
+    {
+      "id": "bug-037",
+      "timestamp": "2026-06-19T04:14:03.820Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T04:14:03.820Z"
+    },
+    {
+      "id": "bug-038",
+      "timestamp": "2026-06-19T04:14:54.734Z",
+      "error_message": "Null/undefined access in ",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T04:14:54.734Z"
+    },
+    {
+      "id": "bug-039",
+      "timestamp": "2026-06-19T04:45:01.218Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T04:45:01.218Z"
+    },
+    {
+      "id": "bug-027",
+      "timestamp": "2026-06-19T12:00:00",
+      "error_message": "股票下载点日线报\"下载失败，日期范围最大3年\"",
+      "file": "data_center/api/__init__.py",
+      "root_cause": "前端 downloadAsset 默认请求近5年(dayjs subtract 5 year), 后端 /download/range 卡 (e-s).days>365*3 上限3年, 5年>3年被拦。",
+      "fix": "后端日线总上限由3年放宽到30年(A股最长历史); 分钟级单独的3个月限制保持不动(数据源真实约束)。",
+      "tags": [
+        "frontend-backend-mismatch",
+        "download",
+        "date-range",
+        "stock"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T12:00:00"
+    },
+    {
+      "id": "bug-041",
+      "timestamp": "2026-06-19T05:02:22.650Z",
+      "error_message": "Function not marked async",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "Function uses await but wasn't declared async",
+      "fix": "Added async modifier",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T05:02:22.650Z"
+    },
+    {
+      "id": "bug-042",
+      "timestamp": "2026-06-19T05:04:51.327Z",
+      "error_message": "CSS fix: fontSize",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "fontSize: 12, color: \"#888\", marginTop: 4 → 13",
+      "fix": "Changed fontSize: 12, color: \"#888\", marginTop: 4 → 13",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T05:04:51.327Z"
+    },
+    {
+      "id": "bug-028",
+      "timestamp": "2026-06-19T13:00:00",
+      "error_message": "股票知识库采集基本面后查询失败: 500 Out of range float values are not JSON compliant",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "get_stock_fundamental 用 df.to_dict(records) 直出, stocks_financial 部分指标某些报告期为 NaN, FastAPI/json 不接受 NaN/Inf 导致序列化 500。collect 成功(200)但查询崩。",
+      "fix": "加 _clean_json 递归把 NaN/Inf 替换为 None 后再返回。同时加 _norm_stock_code 支持 600019 无后缀输入(6/9开头->SH,0/3->SZ),前端 normStockCode 同步, 下载/查询/采集统一归一化。",
+      "tags": [
+        "json-nan",
+        "fastapi",
+        "stock-fundamental",
+        "code-normalize"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T13:00:00"
+    },
+    {
+      "id": "bug-044",
+      "timestamp": "2026-06-19T05:16:57.058Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/history/full_downloader.py",
+      "root_cause": "8 lines replaced/restructured",
+      "fix": "Rewrote 20→38 lines (8 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T05:16:57.058Z"
+    },
+    {
+      "id": "bug-045",
+      "timestamp": "2026-06-19T05:18:19.610Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block | Also: const whAssetCount = (asset: string): number => {; const row = (whStats?.by_asset_type || []).find((r: any) => ",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-19T05:19:28.569Z"
+    },
+    {
+      "id": "bug-046",
+      "timestamp": "2026-06-19T05:18:34.585Z",
+      "error_message": "Type error",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Missing or incorrect type annotation",
+      "fix": "Added type assertion/annotation",
+      "tags": [
+        "auto-detected",
+        "type-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T05:18:34.585Z"
+    },
+    {
+      "id": "bug-047",
+      "timestamp": "2026-06-19T05:18:56.447Z",
+      "error_message": "CSS fix: color",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "color: \"#722ed1\" → \"#fa8c16\"",
+      "fix": "Changed color: \"#722ed1\" → \"#fa8c16\"",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-19T05:21:19.266Z"
+    },
+    {
+      "id": "bug-048",
+      "timestamp": "2026-06-19T05:21:50.708Z",
+      "error_message": "Null/undefined access in ",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T05:21:50.708Z"
+    },
+    {
+      "id": "bug-029",
+      "timestamp": "2026-06-19T14:00:00",
+      "error_message": "期权获取合约列表返回1,2,3..序号而非真实代码,导致选合约/下载全部失败",
+      "file": "data_center/api/__init__.py, data_center/history/full_downloader.py",
+      "root_cause": "akshare option_sse_codes_sina 返回列是[序号,期权代码], 代码里找不到\"合约代码\"列就 fallback 到 df.columns[0]=序号。full_downloader 期权分支同样用\"合约代码\"匹配失败导致 codes 为空。",
+      "fix": "改为优先匹配 期权代码/合约代码/代码 列, 找不到则取第一个非序号列。full_downloader 期权分支重写: 覆盖 510050/510300/510500 看涨+看跌, 正确列名, 带 checkpoint。",
+      "tags": [
+        "akshare",
+        "option-codes",
+        "column-mismatch",
+        "download"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T14:00:00"
+    },
+    {
+      "id": "bug-050",
+      "timestamp": "2026-06-19T05:55:55.042Z",
+      "error_message": "CSS fix: display",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "display: \"block\", border: \"1px solid #f0f0f0\", borderRadius: 4, cursor: \"crosshair\" → \"block\", height: H, border: \"1px solid #f0f0f0\", borderRadius: 4, cursor: \"crosshair\"",
+      "fix": "Changed display: \"block\", border: \"1px solid #f0f0f0\", borderRadius: 4, cursor: \"crosshair\" → \"block\", height: H, border: \"1px solid #f0f0f0\", borderRadius: 4, cursor: \"crosshair\"",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T05:55:55.042Z"
+    },
+    {
+      "id": "bug-051",
+      "timestamp": "2026-06-19T06:17:57.971Z",
+      "error_message": "Incorrect value in code",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Had `${xAt(i).toFixed(1)},${yAt(i).toFixed(1)}`",
+      "fix": "Changed to `${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T06:17:57.971Z"
+    },
+    {
+      "id": "bug-052",
+      "timestamp": "2026-06-19T06:35:26.517Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 9→13 lines (2 removed) | Also: \"\"\"合约列表 (可按品种过滤)。\"\"\"; return {\"count\": len(df), \"symbols\": df.to_dict(\"r",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-19T06:36:51.214Z"
+    },
+    {
+      "id": "bug-030",
+      "timestamp": "2026-06-19T15:00:00",
+      "error_message": "期货下载 M2609 出现2005年数据(用户发现): 真实合约不该有生命周期外历史",
+      "file": "data_center/api/__init__.py, data_center/collectors/futures_collector.py, data_center/knowledge/contract_lifecycle.py",
+      "root_cause": "download/range 传 symbol=M+contract=M2609 时, fetcher 忽略 contract 返回主力连续M的全历史(2005起5221条), 却以 M2609 名义存入 -> M2609 出现2005数据。akshare futures_zh_daily_sina(M2609) 本身是干净的(181条), 问题在连续合约被误标为具体合约。",
+      "fix": "新建 contract_lifecycle.py: parse_expiry(交割月月末)/status(在挂/已到期/连续)/lifecycle_window(到期-3年~到期)/lifecycle_guard(裁剪窗口外行)。接入 futures_collector._store_df + download/range 端点 + options 同理。期货期权统一。/contracts/discover 和 /symbols 加 status, 新增 /contracts/status 查询。",
+      "tags": [
+        "contract-lifecycle",
+        "continuous-mislabel",
+        "data-quality",
+        "futures",
+        "options",
+        "status"
+      ],
+      "related_bugs": [
+        "bug-014"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T15:00:00"
+    },
+    {
+      "id": "bug-054",
+      "timestamp": "2026-06-19T06:54:46.381Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T06:54:46.381Z"
+    },
+    {
+      "id": "bug-055",
+      "timestamp": "2026-06-19T06:55:29.959Z",
+      "error_message": "CSS fix: marginTop, fontSize",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "marginTop: 8 → 6; fontSize: 11 → 12",
+      "fix": "Changed marginTop: 8 → 6; fontSize: 11 → 12",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T06:55:29.959Z"
+    },
+    {
+      "id": "bug-056",
+      "timestamp": "2026-06-19T07:14:51.939Z",
+      "error_message": "Null/undefined access in ",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T07:14:51.939Z"
+    },
+    {
+      "id": "bug-057",
+      "timestamp": "2026-06-19T07:15:58.078Z",
+      "error_message": "CSS fix: title",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "title: \"大小\", dataIndex: \"size_kb\", key: \"size\", render: (v: number) => `${v → \"操作\", key: \"actions\", render: (_: any, r: any) => (",
+      "fix": "Changed title: \"大小\", dataIndex: \"size_kb\", key: \"size\", render: (v: number) => `${v → \"操作\", key: \"actions\", render: (_: any, r: any) => (",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T07:15:58.078Z"
+    },
+    {
+      "id": "bug-058",
+      "timestamp": "2026-06-19T07:16:20.114Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/api/__init__.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 6→8 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T07:16:20.114Z"
+    },
+    {
+      "id": "bug-059",
+      "timestamp": "2026-06-19T07:27:45.360Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "10 lines replaced/restructured",
+      "fix": "Rewrote 16→4 lines (10 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T07:27:45.360Z"
+    },
+    {
+      "id": "bug-060",
+      "timestamp": "2026-06-19T07:28:21.616Z",
+      "error_message": "Wrong return value",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "Was returning: {\"count\": len(df), \"mappings\": df.to_dict(\"records",
+      "fix": "Now returns: {\"count\": len(df), \"mappings\": _records(df)}",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 3,
+      "last_seen": "2026-06-19T07:29:09.131Z"
+    },
+    {
+      "id": "bug-061",
+      "timestamp": "2026-06-19T07:28:53.985Z",
+      "error_message": "Incorrect value in code",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "Had \"records\"",
+      "fix": "Changed to \"by_asset_type\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T07:28:53.985Z"
+    },
+    {
+      "id": "bug-062",
+      "timestamp": "2026-06-19T07:32:12.341Z",
+      "error_message": "Function not marked async",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "Function uses await but wasn't declared async",
+      "fix": "Added async modifier",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T07:32:12.341Z"
+    },
+    {
+      "id": "bug-063",
+      "timestamp": "2026-06-19T07:41:24.284Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T07:41:24.284Z"
+    },
+    {
+      "id": "bug-064",
+      "timestamp": "2026-06-19T07:42:56.874Z",
+      "error_message": "Significant refactor of ",
+      "file": "frontend/src/pages/DataCenter.tsx",
+      "root_cause": "25 lines replaced/restructured",
+      "fix": "Rewrote 28→4 lines (25 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T07:42:56.874Z"
+    },
+    {
+      "id": "bug-031",
+      "timestamp": "2026-06-19T15:30:00",
+      "error_message": "/warehouse/products 等多个仓库端点 500: Out of range float values are not JSON compliant",
+      "file": "data_center/api/warehouse.py",
+      "root_cause": "多个端点用 df.to_dict(records) 直出, 表含 NaN, Starlette JSONResponse(allow_nan=False) 拒绝。bug-028 只修了 fundamental 一个, 系统性问题未根治。",
+      "fix": "_clean_json 提到文件顶部 + 加 _records(df) 辅助, 所有 to_dict(records) 响应统一走 _records 清洗 NaN/Inf->None。",
+      "tags": [
+        "json-nan",
+        "systemic",
+        "warehouse"
+      ],
+      "related_bugs": [
+        "bug-028"
+      ],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T15:30:00"
+    },
+    {
+      "id": "bug-066",
+      "timestamp": "2026-06-19T08:07:08.712Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/history/full_downloader.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 38→51 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T08:07:08.712Z"
     }
   ]
 }

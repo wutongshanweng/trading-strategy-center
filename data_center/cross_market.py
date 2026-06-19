@@ -5,7 +5,7 @@
 - corr_20d / corr_60d: 两品种收益率的滚动相关系数 (最近值)
 - lead_lag_corr / lag_days: 领先-滞后最优相关 (在 +-5 日内搜索)
 
-数据来源: kline D1 收盘价。期货用主力连续 (优先 is_main, 否则成交量最大合约)。
+数据来源: kline D1 收盘价。期货用主力合约 (优先 main_contracts 标记, 否则数据最多的合约)。
 结果回写 cross_market_mapping。
 """
 
@@ -23,11 +23,12 @@ from .storage.duckdb_store import DuckDBStore, get_store
 def _product_close_series(store: DuckDBStore, product_code: str) -> pd.Series:
     """取某品种代表性 D1 收盘序列 (按日期)。
 
-    期货: 选 D1 数据最多的合约作为代表 (近似主力连续)。
+    期货: 优先用 main_contracts 标记的主力合约 (换月期才准确);
+          无标记时退回 D1 数据最多的合约 (近似主力连续)。
     股票/指数: 该品种唯一 symbol。
     """
     rows = store.query(
-        """SELECT k.datetime, k.close, k.symbol_id
+        """SELECT k.datetime, k.close, k.symbol_id, sy.code AS symbol_code
            FROM kline k
            JOIN symbols sy ON k.symbol_id = sy.symbol_id
            JOIN products p ON sy.product_id = p.product_id
@@ -36,9 +37,20 @@ def _product_close_series(store: DuckDBStore, product_code: str) -> pd.Series:
     )
     if rows.empty:
         return pd.Series(dtype=float)
-    # 选数据最多的 symbol_id 作代表
-    top_sid = rows["symbol_id"].value_counts().idxmax()
-    s = rows[rows["symbol_id"] == top_sid].copy()
+    # 优先用 main_contracts 标记的主力合约; 缺失或无对应 K 线时退回数据最多的合约
+    main = store.query(
+        """SELECT m.symbol_code FROM main_contracts m
+           JOIN products p ON m.product_id = p.product_id
+           WHERE p.code = ?""",
+        [product_code.upper()],
+    )
+    main_code = main.iloc[0]["symbol_code"].upper() if not main.empty else None
+    mask = rows["symbol_code"].str.upper() == main_code if main_code else None
+    if mask is not None and mask.any():
+        s = rows[mask].copy()
+    else:
+        top_sid = rows["symbol_id"].value_counts().idxmax()
+        s = rows[rows["symbol_id"] == top_sid].copy()
     s["datetime"] = pd.to_datetime(s["datetime"])
     s = s.sort_values("datetime").set_index("datetime")["close"].astype(float)
     return s[~s.index.duplicated(keep="last")]

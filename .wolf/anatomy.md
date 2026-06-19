@@ -1,16 +1,16 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-18T14:24:19.617Z
-> Files: 536 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-19T08:17:14.744Z
+> Files: 547 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.dockerignore` — Docker ignore rules (~26 tok)
-- `.gitignore` — Git ignore rules (~73 tok)
+- `.gitignore` — Git ignore rules (~82 tok)
 - `alembic.ini` (~162 tok)
 - `api.log` (~177 tok)
 - `ARCHITECTURE.md` — 交易策略中心 — 架构设计文档 (~18087 tok)
-- `CHANGELOG.md` — Change log (~751 tok)
+- `CHANGELOG.md` — 更新日志 (~1079 tok)
 - `CLAUDE.md` — OpenWolf (~575 tok)
 - `CONTRIBUTING.md` — 交易策略中心 - 贡献指南 (~1419 tok)
 - `DELIVERY_REPORT.md` — 🎉 系统交付报告 (~1508 tok)
@@ -421,24 +421,25 @@
 
 - `__init__.py` (~216 tok)
 - `aggregator.py` — aggregate_symbol, aggregate_all (~902 tok)
-- `cross_market.py` — compute_all (~1047 tok)
+- `cross_market.py` — compute_all (~1208 tok)
+- `options_analytics.py` — compute_option_greeks (~656 tok)
 
 ## data_center/ (DuckDB 统一仓库 — 2026-06-18 新增)
 
 
 ## data_center/api/
 
-- `__init__.py` — API: 13 endpoints (~5545 tok)
-- `warehouse.py` — API: 13 endpoints (~3406 tok)
+- `__init__.py` — API: 10 endpoints (~6540 tok)
+- `warehouse.py` — API: 11 endpoints (~7761 tok)
 
 ## data_center/collectors/
 
 - `__init__.py` — 资产类别采集器 — 编排 fetch -> normalize -> DuckDB 写入。 (~114 tok)
 - `base_collector.py` — BaseCollector: col, store_kline (~668 tok)
-- `futures_collector.py` — FuturesCollector: discover_contracts, collect_contract, mark_main_contract, collect_product + 2 more (~2411 tok)
+- `futures_collector.py` — FuturesCollector: discover_contracts, collect_contract, mark_main_contract, collect_product + 2 more (~2508 tok)
 - `macro_collector.py` — MacroCollector: collect, conv, collect_all (~962 tok)
-- `options_collector.py` — OptionsCollector: collect_etf_option_daily, collect_index_option_daily, collect_greeks_snapshot (~910 tok)
-- `stocks_collector.py` — StocksCollector: list_all_symbols, collect_kline, collect_financial (~1083 tok)
+- `options_collector.py` — OptionsCollector: collect_etf_option_daily, collect_index_option_daily, collect_greeks_snapshot, col (~4082 tok)
+- `stocks_collector.py` — StocksCollector: list_all_symbols, collect_kline, collect_info, collect_financial + 1 more (~2905 tok)
 
 ## data_center/collectors/ (资产类别采集器 — 2026-06-18 新增)
 
@@ -453,7 +454,7 @@
 
 - `__init__.py` — 统一数据库 schema 与品种/合约注册表。 (~28 tok)
 - `init_schema.sql` — 交易系统统一数据库 — DuckDB Schema (~2237 tok)
-- `registry.py` — SymbolRegistry: get_or_create_product, parse_contract, get_or_create_symbol (~1320 tok)
+- `registry.py` — SymbolRegistry: get_or_create_product, parse_contract, get_or_create_symbol (~1489 tok)
 - `seed_loader.py` — load_products, load_cross_market, load_all (~744 tok)
 
 ## data_center/db/seeds/
@@ -486,15 +487,18 @@
 - `collect_jobs.py` — CollectJobs: is_running, start, status, get_jobs (~604 tok)
 - `data_store.py` — URL configuration (~1622 tok)
 - `download_manager.py` — DownloadStatus: display_name, create_task, execute_task, execute_batch + 7 more (~3198 tok)
-- `full_downloader.py` — collect_futures_product, run_full, default_test_start (~1646 tok)
+- `full_downloader.py` — reset_ckpt, collect_futures_product, run_full, default_test_start (~2155 tok)
 - `sync_scheduler.py` — class: add_symbol, remove_symbol, start, stop + 3 more (~1248 tok)
 
 ## data_center/knowledge/
 
 - `__init__.py` (~47 tok)
-- `contract_knowledge.py` — class: exchange_display (~5687 tok)
+- `contract_knowledge.py` — class: exchange_display (~6905 tok)
+- `contract_lifecycle.py` — parse_expiry, status, lifecycle_window, lifecycle_guard (~597 tok)
 - `exchanges.py` — from: get_exchange, list_exchanges (~384 tok)
 - `main_contract.py` — MainContractResolver: parse_contract_code, is_valid_contract_month, get_main_contract_month, get_main_contract_code + 2 more (~2260 tok)
+- `options_knowledge.py` — class: get_product, list_products, get_strategy, list_strategies + 2 more (~1986 tok)
+- `stock_knowledge.py` — class: get_sector, list_sectors, relations_for_sector, sectors_for_futures + 2 more (~1681 tok)
 
 ## data_center/storage/
 
@@ -508,7 +512,7 @@
 
 ## docs/
 
-- `数据采集系统升级说明.md` — 数据采集系统升级说明 (~280 tok)
+- `数据采集系统升级说明.md` — 数据采集系统升级说明 (~2320 tok)
 - `API_REFERENCE.md` — Trading Strategy Center — API 参考文档 (~866 tok)
 - `DATABASE.md` — 数据库设计文档 (~4433 tok)
 - `IMPLEMENTATION_PROGRESS.md` — Strategy Intelligence V2 - Implementation Progress (~1747 tok)
@@ -561,7 +565,7 @@
 
 - `Backtest.tsx` — MOCK_RESULTS — renders form, table — uses useForm, useEffect (~2193 tok)
 - `Dashboard.tsx` — MOCK_EQUITY — renders table, chart — uses useEffect, useState (~2593 tok)
-- `DataCenter.tsx` — API — renders table (~15407 tok)
+- `DataCenter.tsx` — API (~24615 tok)
 - `FactorResearch.tsx` — mockFactors (~7828 tok)
 - `ML.tsx` — MOCK_MODELS — renders form, table, modal — uses useState, useForm, useEffect (~2184 tok)
 - `Monitoring.tsx` — METRICS — renders table, chart — uses useState, useEffect (~3049 tok)
@@ -819,11 +823,18 @@
 
 - `__init__.py` (~0 tok)
 - `test_backtest.py` — Tests: run_returns_result, fields (~379 tok)
+- `test_commodity_option_year.py` — 商品期权按年逐日采集 — 单测 (内存库, 合成三所格式日线)。 (~700 tok)
+- `test_contract_lifecycle.py` — 合约生命周期 — 单测 (纯函数, 合成数据)。 (~565 tok)
 - `test_futures_strategies.py` — 期货策略行为正确性测试。 (~1604 tok)
+- `test_options_analytics.py` — compute_option_greeks 单测 — 合成输入, 不触网/不触库。 (~562 tok)
+- `test_options_collector_greeks.py` — OptionsCollector 商品期权 Greeks 编排 — 集成测试 (内存库, 注入合成数据)。 (~741 tok)
 - `test_options.py` — 期权层单元测试 — 定价 / Greeks / 波动率 / 策略 / 风险 / 分析。 (~2686 tok)
 - `test_quant_models_extended.py` — 扩展量化模型的单元测试。 (~2414 tok)
 - `test_resonance.py` — Tests: detect, empty, output_type, strong_buy + 7 more (~851 tok)
 - `test_signals.py` — Tests: sma_shape, rsi_bounds, macd_three_series, atr_positive + 22 more (~2208 tok)
+- `test_stocks_incremental.py` — StocksCollector.incremental_sync — 单测 (内存库, mock 网络)。 (~688 tok)
+- `test_stocks_info_financial.py` — StocksCollector 信息/财务落库 — 单测 (内存库, 合成 akshare 格式)。 (~603 tok)
+- `test_warehouse_helpers_options_kb.py` — warehouse API 辅助函数 + 期权知识库 — 单测。 (~380 tok)
 
 ## tests/integration/
 

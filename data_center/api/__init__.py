@@ -270,8 +270,9 @@ async def create_range_download(
         e = datetime.strptime(end_date, "%Y-%m-%d")
         if s > e:
             raise HTTPException(400, "开始日期不能晚于结束日期")
-        if (e - s).days > 365 * 3:
-            raise HTTPException(400, "日期范围最大3年")
+        # 日线及以上无需严格限制(A股历史可达30年); 分钟级在下方单独限 3 个月
+        if (e - s).days > 365 * 30:
+            raise HTTPException(400, "日期范围最大30年")
     except ValueError:
         raise HTTPException(400, "日期格式必须为 YYYY-MM-DD")
 
@@ -291,10 +292,32 @@ async def create_range_download(
     # 直接执行下载
     data = _source_mgr.get_kline(symbol, kline_interval, start_date, end_date,
                                  contract, market_type=asset_type)
+    # 生命周期守卫: 若指定了真实合约 (M2609), 裁剪超出其生命周期的数据
+    # (防 fetcher 忽略 contract 返回主力连续, 把 2005 年数据误存成 M2609)
+    clipped = 0
+    code_for_life = contract or symbol
+    if data and data.timestamps:
+        from ..knowledge.contract_lifecycle import lifecycle_window
+        win = lifecycle_window(code_for_life)
+        if win is not None:
+            import pandas as pd
+            earliest, exp = win
+            lo = pd.Timestamp(earliest)
+            hi = pd.Timestamp(exp) + pd.offsets.MonthEnd(1)
+            keep = [i for i, t in enumerate(data.timestamps)
+                    if lo <= pd.Timestamp(t) <= hi]
+            if len(keep) < len(data.timestamps):
+                clipped = len(data.timestamps) - len(keep)
+                data.timestamps = [data.timestamps[i] for i in keep]
+                for attr in ("open", "high", "low", "close", "volume"):
+                    seq = getattr(data, attr, None)
+                    if seq and len(seq) == len(keep) + clipped:
+                        setattr(data, attr, [seq[i] for i in keep])
     if data and data.timestamps:
         _data_store.save_kline(data, market=market)
         return {"symbol": symbol, "interval": interval, "asset_type": asset_type,
                 "bars": len(data.timestamps), "source": data.source,
+                "clipped_out_of_lifecycle": clipped,
                 "start": str(data.timestamps[0]) if data.timestamps else "",
                 "end": str(data.timestamps[-1]) if data.timestamps else "",
                 "status": "completed"}
@@ -423,9 +446,11 @@ async def add_sync_symbol(
 
 @router.get("/storage")
 async def get_storage_info():
-    """获取存储使用统计"""
+    """获取存储使用统计 (聚合 期货/股票/期权 三类)。"""
     usage = _data_store.get_storage_usage()
-    available = _data_store.list_available()
+    available = []
+    for asset in ("futures", "stock", "option"):
+        available.extend(_data_store.list_available(market=_market_for(asset)))
     return {"usage": usage, "available": available}
 
 
@@ -437,6 +462,55 @@ async def list_downloaded(asset_type: str = Query("futures", description="资产
     market = _market_for(asset_type)
     return {"asset_type": asset_type, "market": market,
             "files": _data_store.list_available(market=market)}
+
+
+@router.delete("/data-files")
+async def delete_downloaded(
+    symbol: str = Query(..., description="品种/股票/期权代码"),
+    interval: str = Query("1d", description="K线周期"),
+    asset_type: str = Query("futures", description="资产类别 futures/stock/option"),
+    contract: Optional[str] = Query(None, description="合约号 (可选)"),
+):
+    """删除一个已下载的缓存文件 (Parquet 单文件存储)。"""
+    market = _market_for(asset_type)
+    ok = _data_store.delete(symbol, interval, market=market, contract=contract)
+    if not ok:
+        raise HTTPException(404, f"文件不存在: {symbol} {interval} {contract or ''}")
+    return {"deleted": True, "symbol": symbol, "interval": interval,
+            "asset_type": asset_type, "contract": contract}
+
+
+@router.get("/data-files/export")
+async def export_downloaded(
+    symbol: str = Query(..., description="品种/股票/期权代码"),
+    interval: str = Query("1d", description="K线周期"),
+    asset_type: str = Query("futures", description="资产类别 futures/stock/option"),
+    contract: Optional[str] = Query(None, description="合约号 (可选)"),
+):
+    """导出一个已下载缓存文件为 .xlsx。"""
+    import io
+    import pandas as pd
+    from fastapi.responses import StreamingResponse
+
+    market = _market_for(asset_type)
+    data = _data_store.load_kline(symbol, interval, market=market, contract=contract)
+    if not data or not data.timestamps:
+        raise HTTPException(404, f"无数据可导出: {symbol} {interval} {contract or ''}")
+    df = pd.DataFrame({
+        "datetime": [str(t) for t in data.timestamps],
+        "open": data.open, "high": data.high, "low": data.low,
+        "close": data.close, "volume": data.volume,
+    })
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name=f"{symbol}_{interval}"[:31])
+    buf.seek(0)
+    fname = f"{contract or symbol}_{interval}.xlsx"
+    return StreamingResponse(
+        buf,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f'attachment; filename="{fname}"'},
+    )
 
 
 @router.get("/preview")
@@ -520,7 +594,10 @@ async def list_option_codes(
     df = opt.get_etf_option_codes(option_type=option_type, underlying=underlying)
     if df is None or df.empty:
         return {"underlying": underlying, "count": 0, "codes": []}
-    col = "合约代码" if "合约代码" in df.columns else df.columns[0]
+    # akshare option_sse_codes_sina 列为 ['序号','期权代码']; 取代码列, 不要序号
+    col = next((c for c in ("期权代码", "合约代码", "代码") if c in df.columns), None)
+    if col is None:
+        col = next((c for c in df.columns if c != "序号"), df.columns[-1])
     codes = [str(x) for x in df[col].tolist()]
     return {"underlying": underlying, "count": len(codes), "codes": codes}
 

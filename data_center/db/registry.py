@@ -18,8 +18,10 @@ from ..storage.duckdb_store import DuckDBStore, get_store
 
 # 期货合约: 品种字母 + 4位年月 (RB2509) 或 3位 (老郑商所 RB509)
 _FUT_RE = re.compile(r"^([A-Za-z]{1,3})(\d{3,4})$")
-# 期权合约: 标的+月份-C/P-行权价 (IO2509-C-3700, C_RB2509-C-3400)
+# 期权合约 - 连字符格式 (DCE/股指): 标的+月份-C/P-行权价 (IO2509-C-3700, M2608-C-2500)
 _OPT_RE = re.compile(r"^([A-Za-z_]+?\d{3,4})-([CP])-(\d+(?:\.\d+)?)$", re.IGNORECASE)
+# 期权合约 - 无连字符格式 (CZCE 3位年月 SR609C4600 / SHFE 4位年月 CU2607C76000)
+_OPT_RE2 = re.compile(r"^([A-Za-z]{1,3})(\d{3,4})([CP])(\d+(?:\.\d+)?)$", re.IGNORECASE)
 
 
 class SymbolRegistry:
@@ -59,12 +61,22 @@ class SymbolRegistry:
     # ---- 合约层 ------------------------------------------------------------
 
     def parse_contract(self, code: str) -> dict:
-        """解析合约代码, 返回 year/month/option_type/strike (期货/期权/股票通用)。"""
+        """解析合约代码, 返回 year/month/option_type/strike (期货/期权/股票通用)。
+        期权支持两种格式: 连字符 (M2608-C-2500) 与无连字符 (SR609C4600 / CU2607C76000)。"""
         code = code.strip()
         m = _OPT_RE.match(code)
         if m:
             underlying, cp, strike = m.groups()
             ym = re.search(r"(\d{3,4})$", underlying).group(1)
+            year, month = _split_yearmonth(ym)
+            return {
+                "option_type": "call" if cp.upper() == "C" else "put",
+                "strike_price": float(strike),
+                "contract_year": year, "contract_month": month,
+            }
+        m = _OPT_RE2.match(code)
+        if m:
+            _, ym, cp, strike = m.groups()
             year, month = _split_yearmonth(ym)
             return {
                 "option_type": "call" if cp.upper() == "C" else "put",
