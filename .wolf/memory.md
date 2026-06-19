@@ -361,3 +361,18 @@
 | 16:16 | Edited .gitignore | 5→7 lines | ~26 |
 | 16:16 | Edited CHANGELOG.md | expanded (+26 lines) | ~355 |
 | 16:17 | Edited docs/数据采集系统升级说明.md | 4→5 lines | ~32 |
+| 16:22 | Session end: 109 writes across 24 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 41 reads | ~120214 tok |
+| 16:24 | Session end: 109 writes across 24 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 41 reads | ~120214 tok |
+| 16:30 | Session end: 109 writes across 24 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 45 reads | ~125901 tok |
+| 16:31 | Edited data_center/storage/duckdb_store.py | modified upsert_df() | ~347 |
+| 16:33 | Created data_center/core/retry.py | — | ~431 |
+| 16:34 | Edited data_center/collectors/futures_collector.py | 20→20 lines | ~234 |
+| 16:34 | Edited data_center/collectors/futures_collector.py | added 1 import(s) | ~51 |
+| 16:35 | Edited data_center/fetchers/baostock_fetcher.py | modified _query() | ~421 |
+| 16:36 | Edited data_center/fetchers/baostock_fetcher.py | added 1 import(s) | ~44 |
+| 16:37 | Edited data_center/fetchers/options_fetcher.py | added 1 import(s) | ~280 |
+| 16:39 | Edited data_center/aggregator.py | modified _trading_date() | ~366 |
+| 16:40 | Edited data_center/aggregator.py | _resample() → _resample_daily() | ~49 |
+| 16:40 | Created tests/test_data_layer_hardening.py | — | ~1126 |
+| 16:54 | Session end: 119 writes across 30 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 47 reads | ~132372 tok |
+| 16:57 | 数据层加固 H1/H2/H4: upsert事务原子化(防重拉删空)+同步fetcher网络退避重试(core/retry,期货/股票/商品期权)+intraday聚合按交易日分组防夜盘错位 | duckdb_store.py,core/retry.py,futures_collector.py,baostock_fetcher.py,options_fetcher.py,aggregator.py | 6单测,1020回归通过 | ~25k |

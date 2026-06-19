@@ -18,6 +18,7 @@ import pandas as pd
 from loguru import logger
 
 from ..core.base_fetcher import KlineInterval
+from ..core.retry import retry_sync
 from ..fetchers.akshare_fetcher import AKShareFetcher
 from .base_collector import BaseCollector
 
@@ -95,7 +96,7 @@ class FuturesCollector(BaseCollector):
 
         # D1
         try:
-            df = ak.futures_zh_daily_sina(symbol=contract)
+            df = retry_sync(ak.futures_zh_daily_sina, symbol=contract)
             d1 = _trim(self._ak_fetcher._clean_futures_df(df))
             written["D1"] = self._store_df(d1, contract, product_code, "D1", exch)
         except Exception as e:
@@ -105,7 +106,7 @@ class FuturesCollector(BaseCollector):
         # M5 (近期)
         if with_minute:
             try:
-                dfm = ak.futures_zh_minute_sina(symbol=contract, period="5")
+                dfm = retry_sync(ak.futures_zh_minute_sina, symbol=contract, period="5")
                 m5 = _trim(self._ak_fetcher._clean_futures_df(dfm))
                 written["M5"] = self._store_df(m5, contract, product_code, "M5", exch)
             except Exception as e:

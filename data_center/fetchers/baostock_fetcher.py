@@ -19,6 +19,7 @@ from ..core.base_fetcher import (
     BaseFetcher, KlineData, KlineInterval, RealtimeQuote,
     DataSourceStatus,
 )
+from ..core.retry import retry_sync
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +83,8 @@ class BaoStockFetcher(BaseFetcher):
         empty = KlineData(symbol=symbol, interval=interval.value, open=[], high=[],
                           low=[], close=[], volume=[], timestamps=[], source=self.name,
                           contract=contract)
-        try:
+
+        def _query():
             with _bs_lock:
                 rs = bs.query_history_k_data_plus(
                     code, fields, start_date=start, end_date=end,
@@ -91,9 +93,13 @@ class BaoStockFetcher(BaseFetcher):
                 rows = []
                 while rs.error_code == "0" and rs.next():
                     rows.append(rs.get_row_data())
+            return rows, rs.fields
+
+        try:
+            rows, rs_fields = retry_sync(_query)
             if not rows:
                 return empty
-            df = pd.DataFrame(rows, columns=rs.fields)
+            df = pd.DataFrame(rows, columns=rs_fields)
             tcol = "date" if "date" in df.columns else "time"
             ts = pd.to_datetime(df[tcol].str.slice(0, 14) if tcol == "time" else df[tcol])
             num = lambda c: pd.to_numeric(df[c], errors="coerce").fillna(0).tolist()

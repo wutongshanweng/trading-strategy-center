@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-19T08:17:14.744Z
-> Files: 547 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-19T08:40:51.823Z
+> Files: 549 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -420,7 +420,7 @@
 ## data_center/
 
 - `__init__.py` (~216 tok)
-- `aggregator.py` — aggregate_symbol, aggregate_all (~902 tok)
+- `aggregator.py` — aggregate_symbol, aggregate_all (~1186 tok)
 - `cross_market.py` — compute_all (~1208 tok)
 - `options_analytics.py` — compute_option_greeks (~656 tok)
 
@@ -436,7 +436,7 @@
 
 - `__init__.py` — 资产类别采集器 — 编排 fetch -> normalize -> DuckDB 写入。 (~114 tok)
 - `base_collector.py` — BaseCollector: col, store_kline (~668 tok)
-- `futures_collector.py` — FuturesCollector: discover_contracts, collect_contract, mark_main_contract, collect_product + 2 more (~2508 tok)
+- `futures_collector.py` — FuturesCollector: discover_contracts, collect_contract, mark_main_contract, collect_product + 2 more (~2525 tok)
 - `macro_collector.py` — MacroCollector: collect, conv, collect_all (~962 tok)
 - `options_collector.py` — OptionsCollector: collect_etf_option_daily, collect_index_option_daily, collect_greeks_snapshot, col (~4082 tok)
 - `stocks_collector.py` — StocksCollector: list_all_symbols, collect_kline, collect_info, collect_financial + 1 more (~2905 tok)
@@ -449,6 +449,7 @@
 - `__init__.py` (~24 tok)
 - `base_fetcher.py` — KlineInterval: name, display_name, info, get_kline + 3 more (~1337 tok)
 - `data_source.py` — DataSourceManager: register, unregister, list_sources, get_source + 7 more (~3107 tok)
+- `retry.py` — retry_sync (~431 tok)
 
 ## data_center/db/
 
@@ -468,12 +469,12 @@
 - `__init__.py` (~102 tok)
 - `akshare_fetcher.py` — AKShareFetcher: get_futures_daily, get_futures_hist_em, get_kline, get_futures_minute + 4 more (~3034 tok)
 - `alpha_vantage_fetcher.py` — AlphaVantageFetcher: get_stock_daily, get_forex_rate, get_forex_daily, get_crypto_daily + 4 more (~1881 tok)
-- `baostock_fetcher.py` — BaoStockFetcher: get_kline, get_realtime, get_trade_dates, validate (~1415 tok)
+- `baostock_fetcher.py` — BaoStockFetcher: get_kline, get_realtime, get_trade_dates, validate (~1456 tok)
 - `ctp_fetcher.py` — CTPFetcher: get_kline, get_realtime, ticks_to_bars, validate (~836 tok)
 - `eia_cftc_fetcher.py` — EIAFetcher: get_crude_oil_inventories, get_gasoline_inventories, get_natural_gas_storage, get_kline + 6 more (~1822 tok)
 - `fmp_fetcher.py` — FMPFetcher: get_company_profile, get_income_statement, get_balance_sheet, get_cash_flow + 5 more (~1331 tok)
 - `fred_fetcher.py` — FREDFetcher: get_series, get_series_df, get_multiple_series, get_gdp + 8 more (~1496 tok)
-- `options_fetcher.py` — ChinaOptionsFetcher: get_etf_option_daily, get_etf_option_realtime, get_etf_option_codes, get_index_ (~3871 tok)
+- `options_fetcher.py` — ChinaOptionsFetcher: get_etf_option_daily, get_etf_option_realtime, get_etf_option_codes, get_index_ (~3868 tok)
 - `tdx_fetcher.py` — TDXFetcher: get_kline, get_realtime, get_batch_quotes (~4860 tok)
 - `tiingo_fetcher.py` — TiingoFetcher: get_stock_daily, get_forex_prices, get_crypto_prices, get_ticker_metadata + 3 more (~1435 tok)
 - `tqsdk_fetcher.py` — TqSdkFetcher: get_kline, get_realtime, close, validate + 1 more (~1837 tok)
@@ -503,7 +504,7 @@
 ## data_center/storage/
 
 - `__init__.py` — DuckDB 统一数据仓库存储层。 (~33 tok)
-- `duckdb_store.py` — DuckDBStore: execute, upsert_df, query, close + 1 more (~833 tok)
+- `duckdb_store.py` — DuckDBStore: execute, upsert_df, query, close + 1 more (~942 tok)
 
 ## data_center/verification/
 
@@ -825,6 +826,7 @@
 - `test_backtest.py` — Tests: run_returns_result, fields (~379 tok)
 - `test_commodity_option_year.py` — 商品期权按年逐日采集 — 单测 (内存库, 合成三所格式日线)。 (~700 tok)
 - `test_contract_lifecycle.py` — 合约生命周期 — 单测 (纯函数, 合成数据)。 (~565 tok)
+- `test_data_layer_hardening.py` — 数据层加固 — H1 upsert原子性 / H4 夜盘聚合 单测。 (~1126 tok)
 - `test_futures_strategies.py` — 期货策略行为正确性测试。 (~1604 tok)
 - `test_options_analytics.py` — compute_option_greeks 单测 — 合成输入, 不触网/不触库。 (~562 tok)
 - `test_options_collector_greeks.py` — OptionsCollector 商品期权 Greeks 编排 — 集成测试 (内存库, 注入合成数据)。 (~741 tok)

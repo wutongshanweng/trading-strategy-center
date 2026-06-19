@@ -51,7 +51,11 @@ class DuckDBStore:
             self._conn.execute(sql, params or [])
 
     def upsert_df(self, table: str, df: pd.DataFrame, key_cols: list[str]) -> int:
-        """按主键 upsert 一个 DataFrame。返回写入行数。"""
+        """按主键 upsert 一个 DataFrame。返回写入行数。
+
+        DELETE+INSERT 用事务包裹: 任一步失败则整体回滚, 避免"删了旧行但新行没进"
+        导致的数据丢失 (进程崩溃/OOM/被 kill 时)。
+        """
         if df is None or df.empty:
             return 0
         with self._write_lock:
@@ -62,13 +66,20 @@ class DuckDBStore:
             key_match = " AND ".join(
                 f"t.{k} = s.{k}" for k in key_cols
             )
-            self._conn.execute(
-                f"DELETE FROM {table} t USING _staging_df s WHERE {key_match}"
-            )
-            self._conn.execute(
-                f"INSERT INTO {table} ({col_list}) SELECT {col_list} FROM _staging_df"
-            )
-            self._conn.unregister("_staging_df")
+            try:
+                self._conn.execute("BEGIN TRANSACTION")
+                self._conn.execute(
+                    f"DELETE FROM {table} t USING _staging_df s WHERE {key_match}"
+                )
+                self._conn.execute(
+                    f"INSERT INTO {table} ({col_list}) SELECT {col_list} FROM _staging_df"
+                )
+                self._conn.execute("COMMIT")
+            except Exception:
+                self._conn.execute("ROLLBACK")  # 回滚, 旧数据不丢
+                raise
+            finally:
+                self._conn.unregister("_staging_df")
         return len(df)
 
     # ---- 查询 --------------------------------------------------------------

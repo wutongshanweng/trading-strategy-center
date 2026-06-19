@@ -1085,6 +1085,22 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-19T08:07:08.712Z"
+    },
+    {
+      "id": "bug-067",
+      "timestamp": "2026-06-19T08:39:01.121Z",
+      "error_message": "Wrong return value",
+      "file": "data_center/aggregator.py",
+      "root_cause": "Was returning: out.reset_index()",
+      "fix": "Now returns: pd.Series(base + pd.to_timedelta(night.astype(int)",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T08:39:01.121Z"
     }
   ]
 }

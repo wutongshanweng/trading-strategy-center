@@ -30,7 +30,33 @@ _OHLC = {
 }
 
 
+def _trading_date(idx: pd.DatetimeIndex) -> pd.Series:
+    """交易日归属: 夜盘 (>=20:00) 归次日, 否则当日。
+    用于 intraday 聚合时按交易日分组, 避免夜盘跨自然日错位。"""
+    base = idx.normalize()
+    night = idx.hour >= 20
+    return pd.Series(base + pd.to_timedelta(night.astype(int), unit="D"), index=idx)
+
+
 def _resample(df: pd.DataFrame, rule: str) -> pd.DataFrame:
+    """日内重采样 — 按交易日分组, 桶从各交易日数据起点 (origin='start') 锚定,
+    保证聚合 bar 不跨交易日、不被自然日 00:00 边界劈裂 (修复夜盘错位)。"""
+    df = df.set_index("datetime").sort_index()
+    agg = {k: v for k, v in _OHLC.items() if k in df.columns}
+    tdate = _trading_date(df.index)
+    parts = []
+    for _, grp in df.groupby(tdate.values):
+        if grp.empty:
+            continue
+        out = grp.resample(rule, label="left", closed="left", origin="start").agg(agg)
+        parts.append(out.dropna(subset=["close"]))
+    if not parts:
+        return df.head(0).reset_index()
+    return pd.concat(parts).sort_index().reset_index()
+
+
+def _resample_daily(df: pd.DataFrame, rule: str) -> pd.DataFrame:
+    """日线->周/月线重采样 (D1 已无日内问题, 直接按自然周/月)。"""
     df = df.set_index("datetime").sort_index()
     agg = {k: v for k, v in _OHLC.items() if k in df.columns}
     out = df.resample(rule, label="left", closed="left").agg(agg).dropna(subset=["close"])
@@ -61,7 +87,7 @@ def aggregate_symbol(symbol_id: int, store: DuckDBStore | None = None) -> Dict[s
     )
     if not d1.empty:
         for tf, rule in _DAILY_RULES.items():
-            out = _resample(d1, rule)
+            out = _resample_daily(d1, rule)
             written[tf] = _write(store, out, symbol_id, tf)
 
     return written

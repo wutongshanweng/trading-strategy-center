@@ -116,19 +116,19 @@ class ChinaOptionsFetcher(BaseFetcher):
     # ─── 商品期权 ──────────────────────────────────────
     def get_commodity_option_daily(self, exchange: str = "大商所",
                                    symbol: str = "豆粕期权", trade_date: str = "") -> pd.DataFrame:
-        """商品期权某交易日全合约 (含隐含波动率)。exchange: 大商所/郑商所/上期所。"""
+        """商品期权某交易日全合约 (含隐含波动率)。exchange: 大商所/郑商所/上期所。
+        网络瞬时中断会退避重试; 仍失败则返回空 df (调用方按空处理)。"""
+        from ..core.retry import retry_sync
         ak = self._get_ak()
         try:
             if not trade_date:
                 trade_date = datetime.now().strftime("%Y%m%d")
             ex = self.COMMODITY_EXCHANGES.get(exchange, exchange)
-            if ex == "dce":
-                return ak.option_hist_dce(symbol=symbol, trade_date=trade_date)
-            if ex == "czce":
-                return ak.option_hist_czce(symbol=symbol, trade_date=trade_date)
-            if ex == "shfe":
-                return ak.option_hist_shfe(symbol=symbol, trade_date=trade_date)
-            return pd.DataFrame()
+            fn = {"dce": ak.option_hist_dce, "czce": ak.option_hist_czce,
+                  "shfe": ak.option_hist_shfe}.get(ex)
+            if fn is None:
+                return pd.DataFrame()
+            return retry_sync(fn, symbol=symbol, trade_date=trade_date)
         except Exception as e:
             logger.warning(f"Commodity option daily failed [{exchange}/{symbol}]: {e}")
             return pd.DataFrame()
