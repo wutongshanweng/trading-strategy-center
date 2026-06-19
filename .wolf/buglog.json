@@ -1149,6 +1149,135 @@
       "related_bugs": [],
       "occurrences": 2,
       "last_seen": "2026-06-19T10:59:07.983Z"
+    },
+    {
+      "id": "bug-071",
+      "timestamp": "2026-06-19T12:13:33.007Z",
+      "error_message": "Wrong reference: list_factors should be list_all",
+      "file": "core/alpha/factor_cli.py",
+      "root_cause": "Used \"list_factors\" instead of \"list_all\"",
+      "fix": "Changed list_factors → list_all",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T12:13:33.007Z"
+    },
+    {
+      "id": "bug-072",
+      "timestamp": "2026-06-19T12:23:50.856Z",
+      "error_message": "Significant refactor of ",
+      "file": "core/alpha/factor_cli.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 24→57 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T12:23:50.856Z"
+    },
+    {
+      "id": "bug-073",
+      "timestamp": "2026-06-19T12:25:27.330Z",
+      "error_message": "Wrong return value",
+      "file": "core/alpha/factor_cli.py",
+      "root_cause": "Was returning: _load_via_api(symbol, limit) or _load_via_db(symbo",
+      "fix": "Now returns: df",
+      "tags": [
+        "auto-detected",
+        "return-value",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T12:25:27.330Z"
+    },
+    {
+      "id": "bug-074",
+      "timestamp": "2026-06-19T12:55:00.923Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "frontend/src/pages/FactorResearch.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T12:55:00.923Z"
+    },
+    {
+      "id": "bug-075",
+      "timestamp": "2026-06-19T12:56:37.462Z",
+      "error_message": "Null/undefined access in ",
+      "file": "frontend/src/pages/FactorResearch.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check) | Also: <Select value={selectedSymbol} onChange={setSelectedSymbol}; showSearch style={{ width: 200 }}",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-19T12:56:55.837Z"
+    },
+    {
+      "id": "bug-076",
+      "timestamp": "2026-06-19T13:17:39.472Z",
+      "error_message": "Significant refactor of ",
+      "file": "core/alpha/factor_cli.py",
+      "root_cause": "4 lines replaced/restructured",
+      "fix": "Rewrote 9→14 lines (4 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T13:17:39.472Z"
+    },
+    {
+      "id": "bug-077",
+      "timestamp": "2026-06-19T13:25:55.446Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "core/alpha/factor_cli.py",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T13:25:55.446Z"
+    },
+    {
+      "id": "bug-032",
+      "timestamp": "2026-06-19T21:30:00",
+      "error_message": "factor_cli 测试全量跑失败(单独跑过): 无可用因子/empty DataFrame",
+      "file": "core/alpha/factor_cli.py",
+      "root_cause": "test_alpha101_base.TestFactorRegistry.setup_method reset 全局 FactorRegistry 后注册 dummy 测试因子, 跑完 registry 非空但缺 alpha001-101。CLI 的 ensure_initialized 只在 registry 空时重建, 被 dummy 骗过, 真因子不在 -> _alpha101_factors 返回空。",
+      "fix": "_alpha101_factors 无条件遍历 alpha101 包内 AlphaFactor 子类补齐缺失因子(只补不在的, 忽略重复警告), 不信任全局 registry 状态。CLI 对全局单例污染免疫。",
+      "tags": [
+        "test-isolation",
+        "global-singleton",
+        "factor-registry",
+        "cli"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-19T21:30:00"
     }
   ]
 }

@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-19T11:45:36.286Z
-> Files: 556 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-19T13:25:55.429Z
+> Files: 559 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -155,6 +155,7 @@
 ## core/alpha/
 
 - `__init__.py` (~58 tok)
+- `factor_cli.py` — cmd_report, cmd_combine, cmd_mine, cmd_health (~3335 tok)
 - `factor_combiner.py` — FactorCombiner: set_factors, equal_weight, ic_weight, regime_weight + 1 more (~1038 tok)
 - `factor_evaluator.py` — class: set_forward_returns, calculate_ic, calculate_ir, calculate_turnover + 1 more (~1000 tok)
 - `factor_library.py` — class: register, get_factor, list_factors, compute_all + 2 more (~738 tok)
@@ -523,6 +524,7 @@
 - `DATABASE.md` — 数据库设计文档 (~4433 tok)
 - `IMPLEMENTATION_PROGRESS.md` — Strategy Intelligence V2 - Implementation Progress (~1747 tok)
 - `INTELLIGENCE_UPGRADE.md` — Intelligence Upgrade Documentation (~3125 tok)
+- `USAGE_FACTOR.md` — 因子系统使用指南 (USAGE) (~1130 tok)
 
 ## docs/superpowers/plans/
 
@@ -572,7 +574,7 @@
 - `Backtest.tsx` — MOCK_RESULTS — renders form, table — uses useForm, useEffect (~2193 tok)
 - `Dashboard.tsx` — MOCK_EQUITY — renders table, chart — uses useEffect, useState (~2593 tok)
 - `DataCenter.tsx` — API (~24615 tok)
-- `FactorResearch.tsx` — mockFactors (~11222 tok)
+- `FactorResearch.tsx` — mockFactors (~11575 tok)
 - `ML.tsx` — MOCK_MODELS — renders form, table, modal — uses useState, useForm, useEffect (~2184 tok)
 - `Monitoring.tsx` — METRICS — renders table, chart — uses useState, useEffect (~3049 tok)
 - `Portfolio.tsx` — MOCK_PORTFOLIO — renders form, table, chart, modal — uses useState, useForm, useEffect (~2601 tok)
@@ -861,6 +863,7 @@
 - `test_alpha061_101.py` — Tests: alpha_factor, alpha_factor_description, alpha_factor_compute_with_lookback, alpha_factor_not_all_nan + 1 more (~739 tok)
 - `test_alpha101_base.py` — Tests: is_abstract, subclass_interface, validate_with_complete_data, validate_with_missing_columns + 6 more (~1521 tok)
 - `test_alpha101.py` — Tests: is_abstract, subclass_interface, is_alpha_base, properties + 8 more (~1053 tok)
+- `test_factor_cli.py` — factor_cli 统一入口 — 单元测试 (CSV 路径, 不依赖仓库/网络)。 (~819 tok)
 - `test_factor_mining.py` — 因子挖掘 — 单元测试 (Spec §7.1)。 (~1087 tok)
 - `test_factor_phase2.py` — 因子管理 Phase2 — 算子集/健康检测/行业中性化/报告 单元测试。 (~1395 tok)
 - `test_warehouse.py` — TestDuckDBStore: store, test_schema_tables_created, test_upsert_dedup, test_upsert_empty_df + 8 more (~1540 tok)

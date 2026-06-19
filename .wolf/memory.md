@@ -400,3 +400,23 @@
 | 19:45 | Edited requirements-dev.txt | 4→7 lines | ~28 |
 | 19:49 | Session end: 134 writes across 41 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 56 reads | ~172703 tok |
 | 19:53 | 补齐客户反馈3缺口: GeneticFactorMiner+save_factors/load_factors+MinedFactor; test_factor_mining.py新建+test_factor_management.py补Phase2; deap可选回退(backend探测); mine端点切新引擎; requirements-dev加deap | genetic_programming.py,mining/__init__.py,factor_routes.py,requirements-dev.txt,test_factor_mining.py,test_factor_management.py | 32新测+1055回归通过 | ~25k |
+| 19:54 | Session end: 134 writes across 41 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 56 reads | ~172703 tok |
+| 20:07 | Created core/alpha/factor_cli.py | — | ~2740 |
+| 20:13 | Edited core/alpha/factor_cli.py | list_factors() → list_all() | ~25 |
+| 20:17 | Edited core/alpha/factor_cli.py | 6→5 lines | ~24 |
+| 20:23 | Edited core/alpha/factor_cli.py | modified _load_via_api() | ~656 |
+| 20:25 | Edited core/alpha/factor_cli.py | 3→6 lines | ~59 |
+| 20:29 | Edited core/alpha/factor_cli.py | 10→11 lines | ~100 |
+| 20:49 | Created docs/USAGE_FACTOR.md | — | ~1205 |
+| 20:55 | Edited frontend/src/pages/FactorResearch.tsx | added error handling | ~246 |
+| 20:56 | Edited frontend/src/pages/FactorResearch.tsx | added optional chaining | ~168 |
+| 20:56 | Edited frontend/src/pages/FactorResearch.tsx | added optional chaining | ~155 |
+| 20:58 | Created tests/unit/test_factor_cli.py | — | ~728 |
+| 20:59 | Session end: 145 writes across 44 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 58 reads | ~182857 tok |
+| 21:09 | Edited core/alpha/factor_cli.py | 5→9 lines | ~107 |
+| 21:09 | Edited tests/unit/test_factor_cli.py | modified _ensure_factor_registry() | ~101 |
+| 21:17 | Edited core/alpha/factor_cli.py | modified range() | ~197 |
+| 21:17 | Edited core/alpha/factor_cli.py | modified values() | ~179 |
+| 21:25 | Edited core/alpha/factor_cli.py | added error handling | ~282 |
+| 21:50 | Session end: 150 writes across 44 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 61 reads | ~186204 tok |
+| 22:45 | 因子研究用户入口: factor_cli.py统一CLI(6命令report/combine/mine/health/layered/scan,全资产,优先HTTP API避DuckDB锁)+USAGE真实指南+前端标的下拉从仓库动态加载+修CLI测试全局registry污染(无条件补齐alpha101类) | factor_cli.py,USAGE_FACTOR.md,FactorResearch.tsx,test_factor_cli.py | 8CLI单测+1063回归通过 | ~50k |

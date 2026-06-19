@@ -127,6 +127,28 @@ export default function FactorResearch() {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportData, setReportData] = useState<any>(null);
 
+  // 标的列表 (从仓库加载, 期货/股票/期权全资产)
+  const [symbolOptions, setSymbolOptions] = useState<{ code: string; status?: string }[]>([
+    { code: "600019.SH" }, { code: "601899.SH" }, { code: "600585.SH" },
+  ]);
+
+  // 挂载时从仓库加载真实标的 (有数据的合约/股票/期权)
+  useEffect(() => {
+    (async () => {
+      try {
+        const resp = await fetch("http://localhost:8000/api/v1/warehouse/symbols?limit=300");
+        const d = await resp.json();
+        const syms = (d.symbols || [])
+          .filter((s: any) => s.status !== "连续")
+          .map((s: any) => ({ code: s.code, status: s.status }));
+        if (syms.length) {
+          setSymbolOptions(syms);
+          setSelectedSymbol(syms[0].code);
+        }
+      } catch { /* 后端未启动则保留默认 */ }
+    })();
+  }, []);
+
   const avgIC = (
     mockFactors.reduce((sum, f) => sum + f.ic, 0) / mockFactors.length
   ).toFixed(4);
@@ -1019,11 +1041,15 @@ export default function FactorResearch() {
               <Card size="small">
                 <Space wrap>
                   <Text strong>标的:</Text>
-                  <Select value={selectedSymbol} onChange={setSelectedSymbol} style={{ width: 160 }}>
-                    <Option value="600019.SH">600019.SH 宝钢</Option>
-                    <Option value="601899.SH">601899.SH 紫金</Option>
-                    <Option value="600585.SH">600585.SH 海螺</Option>
-                    <Option value="000001.SZ">000001.SZ 平安</Option>
+                  <Select value={selectedSymbol} onChange={setSelectedSymbol}
+                    showSearch style={{ width: 200 }}
+                    placeholder="期货/股票/期权 (仓库)"
+                    filterOption={(i, o) => String(o?.value ?? "").toLowerCase().includes(i.toLowerCase())}>
+                    {symbolOptions.map((s) => (
+                      <Option key={s.code} value={s.code}>
+                        {s.code}{s.status ? ` (${s.status})` : ""}
+                      </Option>
+                    ))}
                   </Select>
                   <Button type="primary" icon={<ExperimentOutlined />}
                     loading={mineLoading} onClick={handleMine}>
@@ -1073,10 +1099,14 @@ export default function FactorResearch() {
                     ))}
                   </Select>
                   <Text strong>标的:</Text>
-                  <Select value={selectedSymbol} onChange={setSelectedSymbol} style={{ width: 160 }}>
-                    <Option value="600019.SH">600019.SH</Option>
-                    <Option value="601899.SH">601899.SH</Option>
-                    <Option value="000001.SZ">000001.SZ</Option>
+                  <Select value={selectedSymbol} onChange={setSelectedSymbol}
+                    showSearch style={{ width: 200 }}
+                    filterOption={(i, o) => String(o?.value ?? "").toLowerCase().includes(i.toLowerCase())}>
+                    {symbolOptions.map((s) => (
+                      <Option key={s.code} value={s.code}>
+                        {s.code}{s.status ? ` (${s.status})` : ""}
+                      </Option>
+                    ))}
                   </Select>
                   <Button type="primary" icon={<LineChartOutlined />}
                     loading={healthLoading} onClick={handleHealthCheck}>
@@ -1126,10 +1156,14 @@ export default function FactorResearch() {
               <Card size="small">
                 <Space wrap>
                   <Text strong>标的:</Text>
-                  <Select value={selectedSymbol} onChange={setSelectedSymbol} style={{ width: 160 }}>
-                    <Option value="600019.SH">600019.SH</Option>
-                    <Option value="601899.SH">601899.SH</Option>
-                    <Option value="000001.SZ">000001.SZ</Option>
+                  <Select value={selectedSymbol} onChange={setSelectedSymbol}
+                    showSearch style={{ width: 200 }}
+                    filterOption={(i, o) => String(o?.value ?? "").toLowerCase().includes(i.toLowerCase())}>
+                    {symbolOptions.map((s) => (
+                      <Option key={s.code} value={s.code}>
+                        {s.code}{s.status ? ` (${s.status})` : ""}
+                      </Option>
+                    ))}
                   </Select>
                   <Text strong>因子集:</Text>
                   <Select mode="multiple" value={selectedFactors} onChange={setSelectedFactors}
