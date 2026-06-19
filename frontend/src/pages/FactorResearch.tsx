@@ -119,6 +119,14 @@ export default function FactorResearch() {
   const [combineLoading, setCombineLoading] = useState(false);
   const [combineData, setCombineData] = useState<any>(null);
 
+  // Phase2: 挖掘/健康/报告 状态
+  const [mineLoading, setMineLoading] = useState(false);
+  const [mineData, setMineData] = useState<any>(null);
+  const [healthLoading, setHealthLoading] = useState(false);
+  const [healthData, setHealthData] = useState<any>(null);
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportData, setReportData] = useState<any>(null);
+
   const avgIC = (
     mockFactors.reduce((sum, f) => sum + f.ic, 0) / mockFactors.length
   ).toFixed(4);
@@ -178,6 +186,54 @@ export default function FactorResearch() {
       message.error(`因子组合失败: ${error.message}`);
     } finally {
       setCombineLoading(false);
+    }
+  };
+
+  // Phase2: 遗传因子挖掘
+  const handleMine = async () => {
+    setMineLoading(true);
+    try {
+      const result = await factorApi.mine({
+        symbol: selectedSymbol, n_factors: 8, population_size: 30, generations: 8,
+      });
+      setMineData(result);
+      message.success(`挖掘完成: ${result.count} 个因子 (源: ${result.data_source})`);
+    } catch (error: any) {
+      message.error(`因子挖掘失败: ${error.response?.data?.detail || error.message}`);
+    } finally {
+      setMineLoading(false);
+    }
+  };
+
+  // Phase2: 因子健康检测
+  const handleHealthCheck = async () => {
+    setHealthLoading(true);
+    try {
+      const result = await factorApi.healthCheck({
+        factor_id: selectedFactor, symbol: selectedSymbol,
+      });
+      setHealthData(result);
+      message.success(`健康检测完成: ${result.health} (源: ${result.data_source})`);
+    } catch (error: any) {
+      message.error(`健康检测失败: ${error.response?.data?.detail || error.message}`);
+    } finally {
+      setHealthLoading(false);
+    }
+  };
+
+  // Phase2: 全因子研究报告
+  const handleReport = async () => {
+    setReportLoading(true);
+    try {
+      const result = await factorApi.report({
+        symbols: [selectedSymbol], factor_ids: selectedFactors, top_n: 20,
+      });
+      setReportData(result.report);
+      message.success(`报告生成完成 (源: ${result.data_source})`);
+    } catch (error: any) {
+      message.error(`报告生成失败: ${error.response?.data?.detail || error.message}`);
+    } finally {
+      setReportLoading(false);
     }
   };
 
@@ -954,6 +1010,193 @@ export default function FactorResearch() {
                   type="info"
                   showIcon
                 />
+              )}
+            </Space>
+          </TabPane>
+
+          <TabPane tab="因子挖掘" key="mining">
+            <Space direction="vertical" style={{ width: "100%" }} size="large">
+              <Card size="small">
+                <Space wrap>
+                  <Text strong>标的:</Text>
+                  <Select value={selectedSymbol} onChange={setSelectedSymbol} style={{ width: 160 }}>
+                    <Option value="600019.SH">600019.SH 宝钢</Option>
+                    <Option value="601899.SH">601899.SH 紫金</Option>
+                    <Option value="600585.SH">600585.SH 海螺</Option>
+                    <Option value="000001.SZ">000001.SZ 平安</Option>
+                  </Select>
+                  <Button type="primary" icon={<ExperimentOutlined />}
+                    loading={mineLoading} onClick={handleMine}>
+                    遗传挖掘
+                  </Button>
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    用算子随机组合 → IC/适应度评估 → 多代演化筛选最优因子
+                  </Text>
+                </Space>
+              </Card>
+              {mineLoading ? (
+                <div style={{ textAlign: "center", padding: 50 }}>
+                  <Spin size="large" tip="遗传演化中 (可能需数十秒)..." />
+                </div>
+              ) : mineData ? (
+                <Card title={`挖掘结果 (${mineData.count} 个 · 数据源: ${mineData.data_source})`} size="small">
+                  <Table size="small" rowKey="name" pagination={false}
+                    dataSource={mineData.factors}
+                    columns={[
+                      { title: "因子", dataIndex: "name", width: 100,
+                        render: (v: string) => <Text strong>{v}</Text> },
+                      { title: "表达式", dataIndex: "expression", ellipsis: true },
+                      { title: "适应度", dataIndex: "fitness", width: 100,
+                        sorter: (a: any, b: any) => a.fitness - b.fitness,
+                        render: (v: number) => v.toFixed(4) },
+                      { title: "IC", dataIndex: "ic", width: 100,
+                        render: (v: number) => (
+                          <Tag color={Math.abs(v) > 0.03 ? "green" : "default"}>{v.toFixed(4)}</Tag>
+                        ) },
+                    ]} />
+                </Card>
+              ) : (
+                <Alert message='选标的后点"遗传挖掘"，从基础算子自动发现新因子' type="info" showIcon />
+              )}
+            </Space>
+          </TabPane>
+
+          <TabPane tab="健康监控" key="health">
+            <Space direction="vertical" style={{ width: "100%" }} size="large">
+              <Card size="small">
+                <Space wrap>
+                  <Text strong>因子:</Text>
+                  <Select value={selectedFactor} onChange={setSelectedFactor}
+                    showSearch style={{ width: 150 }}>
+                    {mockFactors.slice(0, 30).map((f) => (
+                      <Option key={f.id} value={f.id}>{f.name}</Option>
+                    ))}
+                  </Select>
+                  <Text strong>标的:</Text>
+                  <Select value={selectedSymbol} onChange={setSelectedSymbol} style={{ width: 160 }}>
+                    <Option value="600019.SH">600019.SH</Option>
+                    <Option value="601899.SH">601899.SH</Option>
+                    <Option value="000001.SZ">000001.SZ</Option>
+                  </Select>
+                  <Button type="primary" icon={<LineChartOutlined />}
+                    loading={healthLoading} onClick={handleHealthCheck}>
+                    健康检测
+                  </Button>
+                </Space>
+              </Card>
+              {healthData ? (
+                <Card size="small">
+                  <Row gutter={16} style={{ marginBottom: 12 }}>
+                    <Col span={6}>
+                      <Statistic title="健康状态" value={healthData.health}
+                        valueStyle={{
+                          color: healthData.health === "HEALTHY" ? "#52c41a"
+                            : healthData.health === "WARNING" ? "#faad14" : "#ff4d4f",
+                        }} />
+                    </Col>
+                    <Col span={4}><Statistic title="当前IC" value={healthData.current_ic} /></Col>
+                    <Col span={4}><Statistic title="IC趋势" value={healthData.ic_trend}
+                      valueStyle={{ color: healthData.ic_trend >= 0 ? "#52c41a" : "#ff4d4f" }} /></Col>
+                    <Col span={4}><Statistic title="ICIR" value={healthData.icir} /></Col>
+                    <Col span={6}><Statistic title="分层单调性" value={healthData.monotonicity} /></Col>
+                  </Row>
+                  <Row gutter={16}>
+                    <Col span={6}><Statistic title="短期IC均值" value={healthData.ic_mean_short} /></Col>
+                    <Col span={6}><Statistic title="长期IC均值" value={healthData.ic_mean_long} /></Col>
+                    <Col span={4}><Statistic title="数据源" value={healthData.data_source} /></Col>
+                  </Row>
+                  {healthData.reasons?.length > 0 && (
+                    <Alert style={{ marginTop: 12 }} type={
+                      healthData.alert_level === "critical" ? "error"
+                        : healthData.alert_level === "warning" ? "warning" : "info"}
+                      message="检测说明" description={
+                        <ul style={{ margin: 0, paddingLeft: 18 }}>
+                          {healthData.reasons.map((r: string, i: number) => <li key={i}>{r}</li>)}
+                        </ul>} showIcon />
+                  )}
+                </Card>
+              ) : (
+                <Alert message='选因子+标的后点"健康检测"，三态评级: HEALTHY/WARNING/DECAYED' type="info" showIcon />
+              )}
+            </Space>
+          </TabPane>
+
+          <TabPane tab="研究报告" key="report">
+            <Space direction="vertical" style={{ width: "100%" }} size="large">
+              <Card size="small">
+                <Space wrap>
+                  <Text strong>标的:</Text>
+                  <Select value={selectedSymbol} onChange={setSelectedSymbol} style={{ width: 160 }}>
+                    <Option value="600019.SH">600019.SH</Option>
+                    <Option value="601899.SH">601899.SH</Option>
+                    <Option value="000001.SZ">000001.SZ</Option>
+                  </Select>
+                  <Text strong>因子集:</Text>
+                  <Select mode="multiple" value={selectedFactors} onChange={setSelectedFactors}
+                    style={{ minWidth: 280 }} maxTagCount={6}>
+                    {mockFactors.slice(0, 30).map((f) => (
+                      <Option key={f.id} value={f.id}>{f.name}</Option>
+                    ))}
+                  </Select>
+                  <Button type="primary" icon={<BarChartOutlined />}
+                    loading={reportLoading} onClick={handleReport}
+                    disabled={selectedFactors.length < 2}>
+                    生成报告
+                  </Button>
+                </Space>
+              </Card>
+              {reportLoading ? (
+                <div style={{ textAlign: "center", padding: 50 }}>
+                  <Spin size="large" tip="全因子评估中..." />
+                </div>
+              ) : reportData ? (
+                <Card size="small">
+                  <Row gutter={16} style={{ marginBottom: 16 }}>
+                    <Col span={4}><Statistic title="总因子" value={reportData.total_factors} /></Col>
+                    <Col span={4}><Statistic title="健康" value={reportData.healthy_count}
+                      valueStyle={{ color: "#52c41a" }} /></Col>
+                    <Col span={4}><Statistic title="警告" value={reportData.warning_count}
+                      valueStyle={{ color: "#faad14" }} /></Col>
+                    <Col span={4}><Statistic title="失效" value={reportData.decayed_count}
+                      valueStyle={{ color: "#ff4d4f" }} /></Col>
+                    <Col span={4}><Statistic title="组合IC" value={reportData.recommended_ic} /></Col>
+                    <Col span={4}><Statistic title="组合ICIR" value={reportData.recommended_icir} /></Col>
+                  </Row>
+                  {reportData.recommended?.length > 0 && (
+                    <Alert style={{ marginBottom: 12 }} type="success" showIcon
+                      message="推荐组合 (高IC + 低相关)"
+                      description={reportData.recommended.map((n: string) => (
+                        <Tag color="green" key={n}>{n}</Tag>
+                      ))} />
+                  )}
+                  <Table size="small" rowKey="name" pagination={{ pageSize: 10 }}
+                    dataSource={reportData.top_factors}
+                    columns={[
+                      { title: "#", dataIndex: "rank", width: 50 },
+                      { title: "因子", dataIndex: "name",
+                        render: (v: string, r: any) => (
+                          <Text strong>{v}{r.is_recommended ? " ★" : ""}</Text>
+                        ) },
+                      { title: "IC", dataIndex: "ic_mean", width: 90 },
+                      { title: "ICIR", dataIndex: "icir", width: 90 },
+                      { title: "多空Sharpe", dataIndex: "sharpe_q5q1", width: 110 },
+                      { title: "换手", dataIndex: "turnover", width: 90 },
+                      { title: "健康", dataIndex: "health", width: 90,
+                        render: (v: string) => (
+                          <Tag color={v === "HEALTHY" ? "green" : v === "WARNING" ? "orange" : "red"}>{v}</Tag>
+                        ) },
+                    ]} />
+                  {reportData.high_correlation_pairs?.length > 0 && (
+                    <div style={{ marginTop: 12 }}>
+                      <Text type="secondary">高相关冗余对 (|corr|≥0.85): </Text>
+                      {reportData.high_correlation_pairs.map((p: any, i: number) => (
+                        <Tag key={i}>{p[0]}~{p[1]}: {p[2]}</Tag>
+                      ))}
+                    </div>
+                  )}
+                </Card>
+              ) : (
+                <Alert message='选标的+因子集后点"生成报告"，一键评估→排名→推荐组合' type="info" showIcon />
               )}
             </Space>
           </TabPane>

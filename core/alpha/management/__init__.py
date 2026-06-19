@@ -293,3 +293,19 @@ class FactorRetirement:
         self.store.deactivate_factor(factor_name)
         self.store.log_retirement(factor_name, reason)
         logger.info(f"Retired factor '{factor_name}': {reason}")
+
+
+# ---------------------------------------------------------------------------
+# Phase 2 扩展: 因子衰减检测 / 行业中性化 / 研究报告 (子模块, 见各文件)
+# ---------------------------------------------------------------------------
+from .factor_decay import (  # noqa: E402
+    FactorDecayDetector,
+    FactorHealth,
+    FactorHealthReport,
+)
+from .industry_neutral import IndustryNeutralizer  # noqa: E402
+from .report_generator import (  # noqa: E402
+    FactorReportGenerator,
+    FactorResearchReport,
+    FactorRanking,
+)

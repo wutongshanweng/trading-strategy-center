@@ -352,3 +352,145 @@ async def list_factors(
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取因子列表失败: {str(e)}")
+
+
+# ════════════════════════════════════════════════════════════════
+# Phase 2: 遗传挖掘 / 健康监控 / 行业中性化 / 研究报告 (接真实仓库数据)
+# ════════════════════════════════════════════════════════════════
+
+def _warehouse_ohlcv(symbol: str, limit: int = 500) -> Optional[pd.DataFrame]:
+    """从 DuckDB 仓库取单标的 D1 OHLCV; 无数据返回 None。"""
+    try:
+        from data_center.storage.duckdb_store import get_store
+        store = get_store()
+        sid = store.query("SELECT symbol_id FROM symbols WHERE code = ?", [symbol.upper()])
+        if sid.empty:
+            return None
+        symbol_id = int(sid.iloc[0]["symbol_id"])
+        df = store.query(
+            "SELECT datetime, open, high, low, close, volume FROM kline "
+            "WHERE symbol_id=? AND timeframe='D1' ORDER BY datetime DESC LIMIT ?",
+            [symbol_id, limit],
+        )
+        if df.empty:
+            return None
+        df = df.sort_values("datetime").set_index("datetime")
+        for c in ("open", "high", "low", "close", "volume"):
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+        return df.dropna(subset=["close"])
+    except Exception:
+        return None
+
+
+def _get_ohlcv(symbol: str, days: int = 500) -> tuple[pd.DataFrame, str]:
+    """优先真实仓库数据, 无则回退 mock。返回 (df, source)。"""
+    real = _warehouse_ohlcv(symbol, days)
+    if real is not None and len(real) >= 30:
+        return real, "warehouse"
+    return generate_mock_data(symbol, days), "mock"
+
+
+class MineRequest(BaseModel):
+    symbol: str = "600019.SH"
+    n_factors: int = 10
+    population_size: int = 40
+    generations: int = 10
+    days: int = 500
+
+
+@router.post("/mine")
+async def mine_factors(req: MineRequest) -> Dict[str, Any]:
+    """遗传编程因子挖掘 (复用 GeneticProgramming + FitnessFunction)。"""
+    try:
+        from core.alpha.mining import GeneticProgramming, FitnessFunction
+        df, source = _get_ohlcv(req.symbol, req.days)
+        gp = GeneticProgramming(
+            population_size=req.population_size, generations=req.generations, max_depth=3)
+        returns = df["close"].pct_change()
+        best = gp.evolve(df, FitnessFunction(), returns, top_k=req.n_factors)
+        fit = FitnessFunction()
+        out = []
+        for i, expr in enumerate(best, 1):
+            score = fit.evaluate(expr, df, returns)
+            fv = expr.compute(df).dropna()
+            rv = returns.loc[fv.index].dropna()
+            common = fv.index.intersection(rv.index)
+            ic = float(fv.loc[common].corr(rv.loc[common])) if len(common) > 5 else 0.0
+            out.append({
+                "name": f"GF_{i:03d}", "expression": expr.name,
+                "fitness": round(score, 4),
+                "ic": round(ic if not np.isnan(ic) else 0.0, 4),
+            })
+        return {"success": True, "symbol": req.symbol, "data_source": source,
+                "count": len(out), "factors": out}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"因子挖掘失败: {str(e)}")
+
+
+@router.post("/health-check")
+async def factor_health(req: ICAnalysisRequest) -> Dict[str, Any]:
+    """因子健康检测 (三态: HEALTHY/WARNING/DECAYED)。"""
+    try:
+        from core.alpha.management import FactorDecayDetector
+        df, source = _get_ohlcv(req.symbol)
+        factor = calculate_mock_factor(req.factor_id, df)
+        fwd = df["close"].pct_change().shift(-1)
+        ic_series = factor.rolling(20, min_periods=10).corr(fwd)
+        rep = FactorDecayDetector().check(req.factor_id, ic_series, factor, fwd)
+        return {"success": True, "data_source": source,
+                "factor_id": req.factor_id, "health": rep.health.value,
+                "current_ic": rep.current_ic, "ic_trend": rep.ic_trend,
+                "ic_mean_short": rep.ic_mean_short, "ic_mean_long": rep.ic_mean_long,
+                "icir": rep.icir, "monotonicity": rep.monotonicity,
+                "alert_level": rep.alert_level, "reasons": rep.reasons}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"健康检测失败: {str(e)}")
+
+
+class ReportRequest(BaseModel):
+    symbols: List[str] = ["600019.SH", "601899.SH", "600585.SH"]
+    factor_ids: List[str] = ["alpha001", "alpha002", "alpha003", "alpha004"]
+    top_n: int = 20
+
+
+@router.post("/report")
+async def factor_report(req: ReportRequest) -> Dict[str, Any]:
+    """全因子研究报告: 排名 + 冗余 + 推荐组合 (用首个标的的多因子横截面近似时序)。"""
+    try:
+        from core.alpha.management import FactorReportGenerator
+        symbol = req.symbols[0] if req.symbols else "600019.SH"
+        df, source = _get_ohlcv(symbol)
+        fwd = df["close"].pct_change().shift(-1)
+        factors = {fid: calculate_mock_factor(fid, df) for fid in req.factor_ids}
+        fdf = pd.DataFrame(factors).reindex(df.index)
+        gen = FactorReportGenerator()
+        rep = gen.generate(fdf, fwd, top_n=req.top_n)
+        return {"success": True, "data_source": source, "report": gen.to_dict(rep)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"报告生成失败: {str(e)}")
+
+
+class NeutralizeRequest(BaseModel):
+    values: Dict[str, float]          # {标的: 因子值}
+    industries: Dict[str, str]        # {标的: 行业}
+    method: str = "mean"              # mean / zscore / regression
+
+
+@router.post("/neutralize")
+async def neutralize_factor(req: NeutralizeRequest) -> Dict[str, Any]:
+    """行业中性化 — 输入因子值 + 行业标签, 返回中性化后的值及暴露对比。"""
+    try:
+        from core.alpha.management import IndustryNeutralizer
+        codes = list(req.values.keys())
+        fv = pd.Series([req.values[c] for c in codes], index=codes)
+        ind = pd.Series([req.industries.get(c, "未知") for c in codes], index=codes)
+        n = IndustryNeutralizer()
+        fn = {"mean": n.neutralize_by_mean, "zscore": n.neutralize_by_zscore,
+              "regression": n.neutralize_by_regression}.get(req.method, n.neutralize_by_mean)
+        neu = fn(fv, ind)
+        return {"success": True, "method": req.method,
+                "exposure_before": round(n.max_industry_exposure(fv, ind), 4),
+                "exposure_after": round(n.max_industry_exposure(neu, ind), 4),
+                "neutralized": {c: round(float(neu[c]), 6) for c in codes if pd.notna(neu[c])}}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"行业中性化失败: {str(e)}")

@@ -376,3 +376,20 @@
 | 16:40 | Created tests/test_data_layer_hardening.py | — | ~1126 |
 | 16:54 | Session end: 119 writes across 30 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 47 reads | ~132372 tok |
 | 16:57 | 数据层加固 H1/H2/H4: upsert事务原子化(防重拉删空)+同步fetcher网络退避重试(core/retry,期货/股票/商品期权)+intraday聚合按交易日分组防夜盘错位 | duckdb_store.py,core/retry.py,futures_collector.py,baostock_fetcher.py,options_fetcher.py,aggregator.py | 6单测,1020回归通过 | ~25k |
+| 17:00 | Session end: 119 writes across 30 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 47 reads | ~132372 tok |
+| 17:54 | Session end: 119 writes across 30 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 47 reads | ~132372 tok |
+| 18:26 | Created core/alpha/mining/operator_set.py | — | ~1310 |
+| 18:29 | Created core/alpha/management/factor_decay.py | — | ~1529 |
+| 18:29 | Created core/alpha/management/industry_neutral.py | — | ~850 |
+| 18:31 | Created core/alpha/management/report_generator.py | — | ~2746 |
+| 18:35 | Created tests/unit/test_factor_phase2.py | — | ~1395 |
+| 18:38 | Edited api/routes/factor_routes.py | modified _warehouse_ohlcv() | ~1804 |
+| 18:50 | Session end: 125 writes across 36 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 53 reads | ~154791 tok |
+| 18:53 | Edited frontend/src/services/factorApi.ts | modified icAnalysis() | ~595 |
+| 18:54 | Edited frontend/src/pages/FactorResearch.tsx | CSS: Phase2 | ~147 |
+| 18:54 | Edited frontend/src/pages/FactorResearch.tsx | added optional chaining | ~554 |
+| 18:59 | Edited frontend/src/pages/FactorResearch.tsx | added optional chaining | ~2888 |
+| 19:09 | Session end: 129 writes across 38 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 55 reads | ~167708 tok |
+| 19:10 | Session end: 129 writes across 38 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 55 reads | ~167708 tok |
+| 19:12 | Edited CHANGELOG.md | expanded (+14 lines) | ~210 |
+| 19:13 | 因子研究Phase2: 算子集operator_set(21算子)+因子健康检测三态+行业中性化四法+全因子报告(排名/冗余/推荐组合)+4个factor API接真实仓库+前端3tab(挖掘/监控/报告)。复用既有GP引擎/FactorAnalyzer不重复 | operator_set.py,factor_decay.py,industry_neutral.py,report_generator.py,factor_routes.py,FactorResearch.tsx,factorApi.ts | 16新单测+1036回归通过 | ~80k |

@@ -7,6 +7,20 @@
 
 ## [Unreleased]
 
+### 2026-06-19 — 因子研究 Phase 2
+
+#### 新增 (Added)
+- **函数式算子集** (`core/alpha/mining/operator_set.py`): 21 个带参算子 (ts_rank/argmax/corr/rank_decay/scale 等) + 统一注册表入口。
+- **因子健康检测** (`core/alpha/management/factor_decay.py`): 三态评级 HEALTHY/WARNING/DECAYED，基于 IC 趋势斜率 + 短中长期对比 + 分层单调性。
+- **行业中性化** (`core/alpha/management/industry_neutral.py`): 均值/Z-score/回归/市场四法 + 行业暴露度量。
+- **全因子研究报告** (`core/alpha/management/report_generator.py`): 排名 + 冗余检测 + 低相关推荐组合 + HTML/JSON/控制台输出。
+- **因子 API** `/api/factor/{mine,health-check,report,neutralize}`: 复用既有遗传引擎 GeneticProgramming/FactorAnalyzer，全部接 DuckDB 真实仓库数据 (无数据回退 mock)。
+- **前端因子研究页**新增三个 tab: 因子挖掘 / 健康监控 / 研究报告。
+
+#### 说明
+- 遗传挖掘引擎 (GeneticProgramming/FitnessFunction/FactorSynthesizer) 与 IC/分层分析 (FactorAnalyzer) 本仓库已有，本期为扩充+适配，未重复实现。
+
+
 ### 2026-06-19 — 数据中心深度升级
 
 #### 新增 (Added)

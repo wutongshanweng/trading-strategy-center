@@ -385,3 +385,16 @@ class FactorSynthesizer:
         if method == "sum":
             return combined.sum(axis=1)
         return combined.mean(axis=1)
+
+
+# ---------------------------------------------------------------------------
+# Phase 2 扩展: 函数式算子集 (见 operator_set.py)
+# ---------------------------------------------------------------------------
+from .operator_set import (  # noqa: E402
+    get_operator,
+    get_operators,
+    apply_operator,
+    TS_OPERATORS,
+    MATH_OPERATORS,
+    BINARY_OPERATORS,
+)
