@@ -2,6 +2,14 @@
 Temporal Fusion Transformer (TFT)
 现代时序预测模型 - 多视野预测 + 可解释性
 """
+import warnings
+
+warnings.warn(
+    "DEPRECATED: This model is a placeholder implementation. "
+    "Use ml.models.sklearn_wrapper.SklearnModel instead.",
+    DeprecationWarning, stacklevel=2,
+)
+
 import numpy as np
 import pandas as pd
 from typing import Optional, Tuple, Dict

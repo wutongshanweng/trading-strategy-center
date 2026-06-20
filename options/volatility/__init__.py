@@ -13,6 +13,7 @@ from options.volatility.svi_surface import (
     svi_iv,
 )
 from options.volatility.iv_rank import iv_rank, iv_percentile
+from options.volatility.surface import VolSurface, build_surface_from_data
 
 __all__ = [
     "implied_vol_brent",
@@ -27,4 +28,6 @@ __all__ = [
     "svi_iv",
     "iv_rank",
     "iv_percentile",
+    "VolSurface",
+    "build_surface_from_data",
 ]

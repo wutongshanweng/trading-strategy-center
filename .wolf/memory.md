@@ -469,3 +469,44 @@
 | 09:40 | factor_cli cmd_report 末尾打印交易建议 | core/alpha/factor_cli.py | CLI验证 | ~120 |
 | 09:40 | FactorResearch 因子名Tooltip + 交易建议卡片 | frontend/src/pages/ | tsc通过 | ~300 |
 | 09:43 | Session end: 31 writes across 10 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore, feedback-communication-language.md) | 19 reads | ~48661 tok |
+| 09:45 | Session end: 31 writes across 10 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore, feedback-communication-language.md) | 19 reads | ~48661 tok |
+| 10:35 | Created ml/features/pipeline.py | — | ~1000 |
+| 10:35 | Edited ml/features/pipeline.py | modified computed() | ~657 |
+| 10:36 | Created ml/features/technical_features.py | — | ~1620 |
+| 10:37 | Created ml/features/cross_sectional_features.py | — | ~650 |
+| 10:37 | Created ml/features/__init__.py | — | ~95 |
+| 10:39 | Created ml/models/sklearn_wrapper.py | — | ~1145 |
+| 10:39 | Created ml/registry.py | — | ~1488 |
+| 10:39 | Created ml/hyperopt.py | — | ~1444 |
+| 10:40 | Created ml/ensemble.py | — | ~651 |
+| 10:40 | Edited ml/models/nbeats_model.py | expanded (+8 lines) | ~114 |
+| 10:41 | Edited ml/models/tft_model.py | expanded (+8 lines) | ~109 |
+| 10:41 | Created ml/signal_adapter.py | — | ~662 |
+| 10:42 | Created ml/__init__.py | — | ~205 |
+| 10:45 | Created options/volatility/surface.py | — | ~1462 |
+| 10:45 | Created options/strategies/term_arbitrage.py | — | ~1384 |
+| 10:46 | Created options/strategies/futures_combo.py | — | ~1333 |
+| 10:46 | Edited options/strategies/__init__.py | 13→17 lines | ~132 |
+| 10:46 | Edited options/volatility/__init__.py | 16→19 lines | ~128 |
+| 10:51 | Created tests/unit/test_ml_features.py | — | ~726 |
+| 10:51 | Created tests/unit/test_ml_registry.py | — | ~980 |
+| 10:51 | Created tests/unit/test_options_surface.py | — | ~955 |
+| 10:52 | Created tests/unit/test_options_strategies_extended.py | — | ~689 |
+| 10:53 | Edited tests/unit/test_options_surface.py | modified test_surface_grid() | ~84 |
+| 10:53 | Created ml/demo.py | — | ~1454 |
+| 10:54 | Edited requirements-dev.txt | expanded (+6 lines) | ~46 |
+| 10:55 | Edited ml/demo.py | 7→8 lines | ~100 |
+| 10:56 | Created api/routes/phase3_routes.py | — | ~1463 |
+| 10:57 | Edited main.py | added 1 import(s) | ~35 |
+| 10:57 | Edited main.py | 1→2 lines | ~20 |
+| 10:57 | Created frontend/src/services/phase3Api.ts | — | ~254 |
+| 10:58 | Created frontend/src/pages/Phase3.tsx | — | ~961 |
+| 10:58 | Edited frontend/src/pages/Phase3.tsx | added optional chaining | ~1939 |
+| 10:59 | Edited frontend/src/App.tsx | 1→2 lines | ~35 |
+| 10:59 | Edited frontend/src/App.tsx | 1→2 lines | ~38 |
+| 11:00 | Edited frontend/src/components/Layout.tsx | 3→4 lines | ~23 |
+| 11:00 | Edited frontend/src/components/Layout.tsx | 1→2 lines | ~39 |
+| 11:02 | Phase3 ML: ml/features/ + registry/hyperopt/ensemble/sklearn_wrapper/signal_adapter | ml/ | 21特征,导入OK | ~2200 |
+| 11:02 | Phase3 期权: surface/term_arbitrage/futures_combo | options/ | 决策树5场景过 | ~1100 |
+| 11:02 | Phase3 测试+demo | tests/unit/ + ml/demo.py | 32 passed, demo跑通 | ~900 |
+| 11:02 | Phase3 前端: Phase3页面+phase3_routes+菜单 | frontend/ + api/ | 4接口OK,tsc过 | ~700 |

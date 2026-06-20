@@ -9,10 +9,14 @@ from options.strategies import (  # noqa: F401
     volatility_long,
     volatility_short,
 )
+from options.strategies.term_arbitrage import TermArbitrageSignals  # noqa: F401
+from options.strategies.futures_combo import FuturesOptionsComboSignals  # noqa: F401
 
 __all__ = [
     "directional",
     "volatility_short",
     "volatility_long",
     "term_structure",
+    "TermArbitrageSignals",
+    "FuturesOptionsComboSignals",
 ]

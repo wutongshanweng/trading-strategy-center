@@ -21,6 +21,7 @@ const Tournament = lazy(() => import("./pages/Tournament"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Monitoring = lazy(() => import("./pages/Monitoring"));
 const FactorResearch = lazy(() => import("./pages/FactorResearch"));
+const Phase3 = lazy(() => import("./pages/Phase3"));
 
 function PageLoading() {
   return (
@@ -76,6 +77,7 @@ export default function App() {
                 <Route path="portfolio" element={<Portfolio />} />
                 <Route path="ml" element={<ML />} />
                 <Route path="factors" element={<FactorResearch />} />
+                <Route path="phase3" element={<Phase3 />} />
                 <Route path="data" element={<DataCenter />} />
                 <Route path="tournament" element={<Tournament />} />
                 <Route path="settings" element={<Settings />} />

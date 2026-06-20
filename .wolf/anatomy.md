@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T01:39:29.635Z
-> Files: 564 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T03:00:27.756Z
+> Files: 584 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -29,7 +29,7 @@
 - `IMPLEMENTATION_COMPLETE_PHASE1.md` — 🎉 用户需求全面实施完成报告 (~1770 tok)
 - `IMPLEMENTATION_COMPLETE_PHASE2.md` — 🎉 Phase 2 实施完成报告 (~1631 tok)
 - `LICENSE` — Project license (~292 tok)
-- `main.py` — lifespan (~846 tok)
+- `main.py` — lifespan (~874 tok)
 - `nginx.conf` — Nginx configuration (~605 tok)
 - `OPENWOLF_INTEGRATION.md` — OpenWolf Integration Report (~1788 tok)
 - `PROJECT_CLEANUP_REPORT.md` — 项目文件整理完成报告 (~1813 tok)
@@ -38,7 +38,7 @@
 - `QUICK_START_PHASE1.md` — 🚀 立即启动指南 - Phase 1 功能使用 (~1814 tok)
 - `QUICK_START.md` — 交易策略中心 - 快速入门指南 (~2397 tok)
 - `README.md` — Project documentation (~1365 tok)
-- `requirements-dev.txt` — 可选依赖（development环境） (~110 tok)
+- `requirements-dev.txt` — 可选依赖（development环境） (~135 tok)
 - `signal_adapter.py` — SignalAdapter: process_symbol, process_batch (~461 tok)
 - `SYSTEM_COMPLETION_REPORT.md` — 交易策略中心 - 系统升级完成报告 (~1244 tok)
 - `THEME_SWITCH_GUIDE.md` — 🎨 主题切换功能使用指南 (~1001 tok)
@@ -120,6 +120,7 @@
 - `intelligence_routes.py` — API routes for intelligence upgrade: RL, risk monitoring, monitoring. (~2371 tok)
 - `llm_routes.py` — API routes for LLM-powered market analysis and strategy generation. (~1318 tok)
 - `ml_routes.py` — API: GET, POST (3 endpoints) (~662 tok)
+- `phase3_routes.py` — API: 4 endpoints (~1463 tok)
 - `portfolio_routes.py` — API: GET, POST (3 endpoints) (~372 tok)
 - `strategy_routes.py` — API: GET, POST (3 endpoints) (~482 tok)
 - `tournament_routes.py` — API routes for Strategy Tournament — rankings, scoring, and elimination. (~817 tok)
@@ -563,7 +564,7 @@
 ## frontend/src/
 
 - `App.css` — Styles: 12 rules, 2 media queries, 2 animations (~557 tok)
-- `App.tsx` — 动态导入页面组件 (~841 tok)
+- `App.tsx` — 动态导入页面组件 (~874 tok)
 - `main.tsx` (~145 tok)
 
 ## frontend/src/api/
@@ -573,7 +574,7 @@
 ## frontend/src/components/
 
 - `DataSyncPanel.tsx` — DataSyncPanel — renders table — uses useState, useEffect (~3177 tok)
-- `Layout.tsx` — menuItems — renders chart — uses useNavigate, useState, useEffect (~1732 tok)
+- `Layout.tsx` — menuItems (~1758 tok)
 - `RealtimeSignalPanel.tsx` — generateMockSignal — uses useState, useEffect (~3281 tok)
 - `StrategyBuilder.tsx` — StrategyBuilder — renders form — uses useForm, useState (~2711 tok)
 
@@ -585,6 +586,7 @@
 - `FactorResearch.tsx` — mockFactors (~14734 tok)
 - `ML.tsx` — MOCK_MODELS — renders form, table, modal — uses useState, useForm, useEffect (~2184 tok)
 - `Monitoring.tsx` — METRICS — renders table, chart — uses useState, useEffect (~3049 tok)
+- `Phase3.tsx` — ivColor — renders table (~2779 tok)
 - `Portfolio.tsx` — MOCK_PORTFOLIO — renders form, table, chart, modal — uses useState, useForm, useEffect (~2601 tok)
 - `Settings.tsx` — Settings — renders form — uses useState, useForm (~2262 tok)
 - `Strategy.tsx` — statusMap — renders form, table, modal — uses useState, useForm, useEffect (~2352 tok)
@@ -594,6 +596,7 @@
 ## frontend/src/services/
 
 - `factorApi.ts` — API routes: POST, GET (10 endpoints) (~850 tok)
+- `phase3Api.ts` — API routes: GET, POST (4 endpoints) (~254 tok)
 
 ## frontend/src/store/
 
@@ -632,16 +635,29 @@
 
 ## ml/
 
-- `__init__.py` (~0 tok)
+- `__init__.py` — ML 模块统一导出。 (~205 tok)
+- `demo.py` — demo_ml, train_fn, demo_options (~1470 tok)
+- `ensemble.py` — ModelEnsemble: add_model, fit, predict, weights_info (~651 tok)
+- `hyperopt.py` — HyperoptSearcher: search, objective (~1444 tok)
 - `pipeline.py` — class: train, predict, get_pipeline_summary (~1333 tok)
+- `registry.py` — class: save, load, list_models, delete + 1 more (~1488 tok)
+- `signal_adapter.py` — MLSignalAdapter: to_signals, to_combined_signal (~662 tok)
 - `strategy_evolution.py` — StrategyEvolutionEngine: evolve_parameters, objective, combine_strategies, objective + 2 more (~3980 tok)
 - `train.py` — train_all_models, train_pipeline_for_symbol, retrain_if_needed (~242 tok)
+
+## ml/features/
+
+- `__init__.py` — ML 特征工程子包。 (~95 tok)
+- `cross_sectional_features.py` — CrossSectionalFeatureSet: get_features (~650 tok)
+- `pipeline.py` — class: register_fn, register, register_module, compute_all + 5 more (~1630 tok)
+- `technical_features.py` — TechnicalFeatureSet: get_features (~1620 tok)
 
 ## ml/models/
 
 - `__init__.py` (~0 tok)
-- `nbeats_model.py` — NBeatsBlock: forward, fit, predict, save + 3 more (~2407 tok)
-- `tft_model.py` — TFTModel: fit, predict, get_attention_weights, save + 3 more (~1802 tok)
+- `nbeats_model.py` — NBeatsBlock: forward, fit, predict, save + 3 more (~2463 tok)
+- `sklearn_wrapper.py` — SklearnModel: fit, predict, get_params, feature_importance (~1145 tok)
+- `tft_model.py` — TFTModel: fit, predict, get_attention_weights, save + 3 more (~1858 tok)
 
 ## monitoring/
 
@@ -710,18 +726,21 @@
 
 ## options/strategies/
 
-- `__init__.py` — 期权策略子包。 (~89 tok)
+- `__init__.py` — 期权策略子包。 (~154 tok)
 - `directional.py` — 方向性期权策略:Long Call / Long Put / Covered Call / Protective Put。 (~1555 tok)
+- `futures_combo.py` — class: combine, compute_from_signals (~1333 tok)
+- `term_arbitrage.py` — class: compute (~1384 tok)
 - `term_structure.py` — 期限结构策略:Calendar Spread(日历价差)。 (~536 tok)
 - `volatility_long.py` — 买波动率策略:Long Straddle / Long Strangle。 (~909 tok)
 - `volatility_short.py` — 卖波动率策略:Short Straddle / Short Strangle / Iron Condor / Iron Butterfly。 (~2146 tok)
 
 ## options/volatility/
 
-- `__init__.py` — 期权波动率体系:IV 反求、已实现波动率、SVI 曲面、IV Rank/Percentile。 (~200 tok)
+- `__init__.py` — 期权波动率体系:IV 反求、已实现波动率、SVI 曲面、IV Rank/Percentile。 (~235 tok)
 - `iv_rank.py` — IV Rank / IV Percentile / 波动率锥 — 期权择时核心指标。 (~450 tok)
 - `iv_solver.py` — 隐含波动率反求 — Newton-Raphson + Brent fallback。 (~646 tok)
 - `realized_vol.py` — 已实现波动率 — 5 种主流估计量。 (~568 tok)
+- `surface.py` — from: set_forward, add_slice, build, get_iv + 5 more (~1462 tok)
 - `svi_surface.py` — SVI (Stochastic Volatility Inspired) 隐含波动率曲面。 (~440 tok)
 
 ## portfolio/
@@ -874,4 +893,8 @@
 - `test_factor_cli.py` — factor_cli 统一入口 — 单元测试 (CSV 路径, 不依赖仓库/网络)。 (~819 tok)
 - `test_factor_mining.py` — 因子挖掘 — 单元测试 (Spec §7.1)。 (~1087 tok)
 - `test_factor_phase2.py` — 因子管理 Phase2 — 算子集/健康检测/行业中性化/报告 单元测试。 (~1395 tok)
+- `test_ml_features.py` — ML 特征工程测试。 (~726 tok)
+- `test_ml_registry.py` — ML 模型注册中心 / sklearn 包装 / 超参搜索 / 集成 测试。 (~980 tok)
+- `test_options_strategies_extended.py` — 期权-期货联合策略 / ML 信号适配器 扩展测试。 (~689 tok)
+- `test_options_surface.py` — 期权波动率曲面 / 期限结构套利 测试。 (~996 tok)
 - `test_warehouse.py` — TestDuckDBStore: store, test_schema_tables_created, test_upsert_dedup, test_upsert_empty_df + 8 more (~1540 tok)

@@ -36,6 +36,7 @@
 - [2026-06-15] Never commit node_modules to git - always add to .gitignore. Already fixed once, caused 19,284 tracked files bloat
 - [2026-06-15] When adding new routes, must import and register in main.py (e.g., factor_router). Server needs restart to pick up new routes
 - [2026-06-15] Windows paths in bash: use forward slashes or escape backslashes properly
+- [2026-06-20] 装 Python 包必须用 `python -m pip install`（项目跑在 C:\Program Files\Python310），裸 `pip` 默认指向 Python314 会装错解释器，且会顺带升级 3.14 的 numpy/scipy。验证安装也要用项目的 python。
 
 ## Decision Log
 

@@ -33,3 +33,9 @@ safety>=2.3
 
 # 遗传因子挖掘 (可选加速; 不安装时 GeneticFactorMiner 自动回退到内置 numpy 引擎)
 deap>=1.4.0
+
+# ML 升级 (Phase 3): 超参搜索 + 梯度提升
+# 不安装时: optuna→随机搜索回退, lightgbm→随机森林回退
+optuna>=3.0.0
+lightgbm>=4.0.0
+

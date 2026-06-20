@@ -2,14 +2,14 @@
   "version": 1,
   "created_at": "2026-06-15T14:11:51.273Z",
   "lifetime": {
-    "total_tokens_estimated": 5499160,
-    "total_reads": 2314,
-    "total_writes": 3713,
+    "total_tokens_estimated": 5547821,
+    "total_reads": 2333,
+    "total_writes": 3744,
     "total_sessions": 15,
-    "anatomy_hits": 1315,
-    "anatomy_misses": 477,
-    "repeated_reads_blocked": 3212,
-    "estimated_savings_vs_bare_cli": 33361802
+    "anatomy_hits": 1325,
+    "anatomy_misses": 486,
+    "repeated_reads_blocked": 3226,
+    "estimated_savings_vs_bare_cli": 33500499
   },
   "sessions": [
     {
@@ -33399,6 +33399,292 @@
       "id": "session-2026-06-19-0751",
       "started": "2026-06-19T23:51:31.833Z",
       "ended": "2026-06-20T01:43:38.753Z",
+      "reads": [
+        {
+          "file": "d:/完整项目/trading-strategy-center/.wolf/anatomy.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/main.py",
+          "tokens_estimated": 846,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/api.run.log",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend.run.log",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/docs/SPEC_FRONTEND_ANALYSIS.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/.wolf/cerebrum.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/core/alpha/factor_cli.py",
+          "tokens_estimated": 3335,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/core/alpha/management/report_generator.py",
+          "tokens_estimated": 2746,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/research/factor_lab/factor_analyzer.py",
+          "tokens_estimated": 2082,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
+          "tokens_estimated": 6245,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/services/factorApi.ts",
+          "tokens_estimated": 702,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 14735,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/.wolf/buglog.json",
+          "tokens_estimated": 0,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/.gitignore",
+          "tokens_estimated": 82,
+          "was_repeated": true,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/MEMORY.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/docs/SPEC_FACTOR_READABLE.md",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/core/alpha/factor_combiner.py",
+          "tokens_estimated": 1038,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/core/alpha/alpha101/base.py",
+          "tokens_estimated": 587,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/_factor_dump.json",
+          "tokens_estimated": 0,
+          "was_repeated": false,
+          "anatomy_had_description": false
+        }
+      ],
+      "writes": [
+        {
+          "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
+          "tokens_estimated": 996,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/services/factorApi.ts",
+          "tokens_estimated": 66,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/services/factorApi.ts",
+          "tokens_estimated": 120,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 95,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 184,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 1735,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 497,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
+          "tokens_estimated": 116,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
+          "tokens_estimated": 516,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/.gitignore",
+          "tokens_estimated": 33,
+          "action": "edit"
+        },
+        {
+          "file": "C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/feedback-communication-language.md",
+          "tokens_estimated": 74,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/feedback-github-token-defer.md",
+          "tokens_estimated": 108,
+          "action": "create"
+        },
+        {
+          "file": "C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/MEMORY.md",
+          "tokens_estimated": 51,
+          "action": "create"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/core/alpha/alpha101/factor_descriptions.py",
+          "tokens_estimated": 892,
+          "action": "create"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/core/alpha/alpha101/factor_descriptions.py",
+          "tokens_estimated": 1457,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/core/alpha/alpha101/factor_descriptions.py",
+          "tokens_estimated": 2151,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/core/alpha/alpha101/factor_descriptions.py",
+          "tokens_estimated": 2081,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/core/alpha/alpha101/factor_descriptions.py",
+          "tokens_estimated": 1094,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/core/alpha/factor_advisor.py",
+          "tokens_estimated": 1563,
+          "action": "create"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
+          "tokens_estimated": 467,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
+          "tokens_estimated": 93,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
+          "tokens_estimated": 154,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/core/alpha/factor_cli.py",
+          "tokens_estimated": 374,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/services/factorApi.ts",
+          "tokens_estimated": 120,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 62,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 110,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 92,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 408,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 35,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 467,
+          "action": "edit"
+        },
+        {
+          "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+          "tokens_estimated": 52,
+          "action": "edit"
+        }
+      ],
+      "totals": {
+        "input_tokens_estimated": 32398,
+        "output_tokens_estimated": 16263,
+        "reads_count": 19,
+        "writes_count": 31,
+        "repeated_reads_blocked": 14,
+        "anatomy_lookups": 10
+      }
+    },
+    {
+      "id": "session-2026-06-19-0751",
+      "started": "2026-06-19T23:51:31.833Z",
+      "ended": "2026-06-20T01:45:32.123Z",
       "reads": [
         {
           "file": "d:/完整项目/trading-strategy-center/.wolf/anatomy.md",

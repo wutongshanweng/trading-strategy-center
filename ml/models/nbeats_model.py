@@ -2,6 +2,14 @@
 N-BEATS (Neural Basis Expansion Analysis for Time Series)
 纯神经网络时序预测，无需特征工程
 """
+import warnings
+
+warnings.warn(
+    "DEPRECATED: This model is a placeholder implementation. "
+    "Use ml.models.sklearn_wrapper.SklearnModel instead.",
+    DeprecationWarning, stacklevel=2,
+)
+
 import numpy as np
 import pandas as pd
 from typing import Optional, Tuple, List
