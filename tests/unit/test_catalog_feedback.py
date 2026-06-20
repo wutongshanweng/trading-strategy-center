@@ -48,6 +48,18 @@ class TestStrategyCatalog:
         assert c.get("arb_vol_spread") is not None
         assert c.get("arb_correlation_break") is not None
 
+    def test_performance_persistence(self, tmp_path):
+        # #4: save/load 往返
+        store = str(tmp_path / "perf.json")
+        c1 = StrategyCatalog(store_path=store)
+        c1.build_from_registry()
+        c1.update_performance("trend_ma_cross", sharpe=1.7, total_trades=20, symbol="RB")
+        # 新实例从同一路径加载, 表现应恢复
+        c2 = StrategyCatalog(store_path=store)
+        c2.build_from_registry()
+        assert c2.get("trend_ma_cross").sharpe == 1.7
+        assert c2.get("trend_ma_cross").total_trades == 20
+
 
 class TestFeedbackLoop:
     def test_process_updates_catalog(self):
@@ -75,8 +87,18 @@ class TestFeedbackLoop:
             {"name": "reversal_rsi", "sharpe": -0.9, "total_trades": 3}]})
         assert c.get("reversal_rsi").is_active is True
 
-    def test_history(self):
-        loop = FeedbackLoop(catalog=_catalog())
+    def test_history(self, tmp_path):
+        loop = FeedbackLoop(catalog=_catalog(), store_path=str(tmp_path / "h.json"))
         loop.process_tournament_results({"id": "A", "strategies": []})
         loop.process_tournament_results({"id": "B", "strategies": []})
         assert len(loop.get_history()) == 2
+
+    def test_history_persistence(self, tmp_path):
+        # #3: 反馈历史持久化往返
+        store = str(tmp_path / "fb.json")
+        loop1 = FeedbackLoop(catalog=_catalog(), store_path=store)
+        loop1.process_tournament_results({"id": "X", "strategies": [
+            {"name": "trend_ma_cross", "sharpe": 1.1, "total_trades": 20}]})
+        loop2 = FeedbackLoop(catalog=_catalog(), store_path=store)
+        assert len(loop2.get_history()) == 1
+        assert loop2.get_history()[0].tournament_id == "X"

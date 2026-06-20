@@ -41,6 +41,8 @@ class AutoMLResult:
     feature_count: int
     data_points: int
     best_params: dict
+    status: str = "ok"            # ok / insufficient_data
+    message: str = ""
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -64,13 +66,24 @@ class AutoMLPipeline:
         self.feature_pipeline.register_module(TechnicalFeatureSet())
 
     def _load_data(self, symbol: str) -> Optional[pd.DataFrame]:
-        """从仓库取数 (复用 factor_cli 的取数逻辑)。"""
+        """从仓库取数 (复用 factor_cli 的公共取数接口)。"""
         try:
             from core.alpha import factor_cli
-            return factor_cli._load_from_warehouse(symbol)
+            return factor_cli.load_market_data(symbol)
         except Exception as e:  # noqa: BLE001
             logger.warning(f"仓库取数失败: {e}")
             return None
+
+    @staticmethod
+    def _insufficient(symbol: str, message: str, data_points: int = 0,
+                      feature_count: int = 0) -> "AutoMLResult":
+        """数据不足时的结果 (不 raise, 让 API 返回 200 + 友好提示)。"""
+        logger.warning(f"AutoML {symbol}: {message}")
+        return AutoMLResult(
+            symbol=symbol, best_model_name="", best_model_type="", best_score=0.0,
+            candidates_trained=0, old_model_replaced=False,
+            feature_count=feature_count, data_points=data_points, best_params={},
+            status="insufficient_data", message=message)
 
     def run(
         self,
@@ -84,7 +97,9 @@ class AutoMLPipeline:
         if data is None:
             data = self._load_data(symbol)
         if data is None or len(data) < 60:
-            raise ValueError(f"{symbol} 数据不足 (需 ≥60 条, 实际 {0 if data is None else len(data)})")
+            return self._insufficient(
+                symbol, f"数据不足 (需 ≥60 条, 实际 {0 if data is None else len(data)})",
+                data_points=0 if data is None else len(data))
 
         # 特征 + 标签 (未来 horizon 天收益)
         X = self.feature_pipeline.compute_all(data, dropna=True)
@@ -92,7 +107,9 @@ class AutoMLPipeline:
         common = X.index.intersection(y.dropna().index)
         X, y = X.loc[common], y.loc[common]
         if len(X) < 40:
-            raise ValueError(f"{symbol} 有效样本不足 ({len(X)})")
+            return self._insufficient(
+                symbol, f"有效样本不足 ({len(X)})",
+                data_points=len(X), feature_count=X.shape[1])
 
         # 时序切分 (前段训练, 后段验证)
         split = int(len(X) * (1 - self.val_fraction))

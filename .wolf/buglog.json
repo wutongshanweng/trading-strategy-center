@@ -1520,6 +1520,54 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-20T03:52:43.418Z"
+    },
+    {
+      "id": "bug-094",
+      "timestamp": "2026-06-20T13:17:11.137Z",
+      "error_message": "Wrong reference: _load_from_warehouse should be load_market_data",
+      "file": "api/routes/mlopts_routes.py",
+      "root_cause": "Used \"_load_from_warehouse\" instead of \"load_market_data\"",
+      "fix": "Changed _load_from_warehouse → load_market_data",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-20T13:17:23.499Z"
+    },
+    {
+      "id": "bug-095",
+      "timestamp": "2026-06-20T13:26:16.223Z",
+      "error_message": "Significant refactor of ",
+      "file": "ml/auto_pipeline.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 12→16 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T13:26:16.223Z"
+    },
+    {
+      "id": "bug-096",
+      "timestamp": "2026-06-20T13:32:28.771Z",
+      "error_message": "CSS fix: marginBottom",
+      "file": "frontend/src/pages/MLAnalyzer.tsx",
+      "root_cause": "marginBottom: 16 → 12",
+      "fix": "Changed marginBottom: 16 → 12",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T13:32:28.771Z"
     }
   ]
 }

@@ -21,8 +21,11 @@
 
 from __future__ import annotations
 
+import json
+import os
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
+from pathlib import Path
 from typing import Dict, List, Optional
 
 from loguru import logger
@@ -56,6 +59,7 @@ class FeedbackLoop:
         catalog=None,
         config: Optional[FeedbackConfig] = None,
         ml_pipeline=None,
+        store_path: Optional[str] = None,
     ):
         # catalog 默认用全局单例
         if catalog is None:
@@ -64,7 +68,31 @@ class FeedbackLoop:
         self.catalog = catalog
         self.config = config or FeedbackConfig()
         self.ml_pipeline = ml_pipeline
+        self.store_path = Path(
+            store_path or os.path.join("data", "feedback_log.json"))
         self.history: List[FeedbackEntry] = []
+        self._load_history()
+
+    def _load_history(self) -> None:
+        """从 JSON 恢复反馈历史。"""
+        if not self.store_path.exists():
+            return
+        try:
+            with open(self.store_path, encoding="utf-8") as f:
+                data = json.load(f)
+            self.history = [FeedbackEntry(**e) for e in data]
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"反馈历史读取失败: {e}")
+
+    def _save_history(self) -> None:
+        """持久化反馈历史到 JSON。"""
+        try:
+            self.store_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.store_path, "w", encoding="utf-8") as f:
+                json.dump([e.to_dict() for e in self.history], f,
+                          ensure_ascii=False, indent=2)
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"反馈历史持久化失败: {e}")
 
     def process_tournament_results(self, results: Dict) -> FeedbackEntry:
         """处理锦标赛结果, 回填策略目录并生成反馈记录。"""
@@ -119,6 +147,7 @@ class FeedbackLoop:
                     logger.warning(f"ML 重训 {sym} 失败: {e}")
 
         self.history.append(entry)
+        self._save_history()
         logger.info(f"反馈处理完成: top={entry.top_strategy}({entry.top_sharpe:.2f}) "
                     f"下线={len(entry.strategies_retired)} 明星={len(entry.strategies_starred)}")
         return entry

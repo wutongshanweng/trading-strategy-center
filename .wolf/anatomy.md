@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T03:55:53.512Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T13:42:38.903Z
 > Files: 601 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -121,7 +121,7 @@
 - `intelligence_routes.py` — API routes for intelligence upgrade: RL, risk monitoring, monitoring. (~2371 tok)
 - `llm_routes.py` — API routes for LLM-powered market analysis and strategy generation. (~1591 tok)
 - `ml_routes.py` — API: GET, POST (3 endpoints) (~662 tok)
-- `mlopts_routes.py` — API: 1 endpoints (~1670 tok)
+- `mlopts_routes.py` — API: 1 endpoints (~1880 tok)
 - `phase3_routes.py` — API: 4 endpoints (~1463 tok)
 - `portfolio_routes.py` — API: GET, POST (3 endpoints) (~372 tok)
 - `strategy_routes.py` — API: 5 endpoints (~790 tok)
@@ -152,7 +152,7 @@
 - `__init__.py` (~0 tok)
 - `exceptions.py` — Declares AppException (~349 tok)
 - `feedback_config.py` — 反馈闭环参数配置。 (~130 tok)
-- `feedback_loop.py` — class: to_dict, process_tournament_results, get_strategy_rankings, get_history + 1 more (~1392 tok)
+- `feedback_loop.py` — class: to_dict, process_tournament_results, get_strategy_rankings, get_history + 1 more (~1699 tok)
 
 ## core/adaptive/
 
@@ -167,7 +167,7 @@
 
 - `__init__.py` (~58 tok)
 - `factor_advisor.py` — class: summary, to_dict, advise, advise_from_report (~1563 tok)
-- `factor_cli.py` — cmd_report, cmd_combine, cmd_mine, cmd_health (~3542 tok)
+- `factor_cli.py` — load_market_data, cmd_report, cmd_combine, cmd_mine (~3614 tok)
 - `factor_combiner.py` — FactorCombiner: set_factors, equal_weight, ic_weight, regime_weight + 1 more (~1038 tok)
 - `factor_evaluator.py` — class: set_forward_returns, calculate_ic, calculate_ir, calculate_turnover + 1 more (~1000 tok)
 - `factor_library.py` — class: register, get_factor, list_factors, compute_all + 2 more (~738 tok)
@@ -592,7 +592,7 @@
 - `Feedback.tsx` — Feedback — renders table (~943 tok)
 - `LLMConfig.tsx` — LLMConfig (~1056 tok)
 - `ML.tsx` — MOCK_MODELS — renders form, table, modal — uses useState, useForm, useEffect (~2184 tok)
-- `MLAnalyzer.tsx` — DIR_COLOR (~1402 tok)
+- `MLAnalyzer.tsx` — DIR_COLOR (~1462 tok)
 - `Monitoring.tsx` — METRICS — renders table, chart — uses useState, useEffect (~3049 tok)
 - `Phase3.tsx` — ivColor — renders table (~2779 tok)
 - `Portfolio.tsx` — MOCK_PORTFOLIO — renders form, table, chart, modal — uses useState, useForm, useEffect (~2601 tok)
@@ -647,12 +647,12 @@
 ## ml/
 
 - `__init__.py` — ML 模块统一导出。 (~205 tok)
-- `auto_pipeline.py` — class: to_dict, run (~1420 tok)
+- `auto_pipeline.py` — class: to_dict, run (~1657 tok)
 - `demo.py` — demo_ml, train_fn, demo_options (~1470 tok)
 - `ensemble.py` — ModelEnsemble: add_model, fit, predict, weights_info (~651 tok)
 - `hyperopt.py` — HyperoptSearcher: search, objective (~1444 tok)
 - `model_monitor.py` — from: to_dict, check, batch_check (~1151 tok)
-- `model_selector.py` — ModelSelector: score_model, select, select_with_hyperopt, train_fn (~1017 tok)
+- `model_selector.py` — ModelSelector: score_model, select, select_with_hyperopt, train_fn (~1262 tok)
 - `pipeline.py` — class: train, predict, get_pipeline_summary (~1333 tok)
 - `registry.py` — class: save, load, list_models, delete + 1 more (~1488 tok)
 - `signal_adapter.py` — MLSignalAdapter: to_signals, to_combined_signal (~662 tok)
@@ -827,7 +827,7 @@
 
 - `__init__.py` (~0 tok)
 - `base.py` — Direction: compute (~347 tok)
-- `catalog.py` — StrategyType: to_dict, register, build_from_registry, query + 6 more (~2627 tok)
+- `catalog.py` — StrategyType: to_dict, register, build_from_registry, query + 7 more (~3229 tok)
 - `engine.py` — View: get (~573 tok)
 - `indicators.py` — SMA, EMA, RSI, MACD + 29 more (~3418 tok)
 - `price_action.py` — detect_engulfing, detect_doji, detect_hammer, detect_shooting_star + 3 more (~610 tok)
@@ -905,11 +905,11 @@
 - `test_alpha061_101.py` — Tests: alpha_factor, alpha_factor_description, alpha_factor_compute_with_lookback, alpha_factor_not_all_nan + 1 more (~739 tok)
 - `test_alpha101_base.py` — Tests: is_abstract, subclass_interface, validate_with_complete_data, validate_with_missing_columns + 6 more (~1521 tok)
 - `test_alpha101.py` — Tests: is_abstract, subclass_interface, is_alpha_base, properties + 8 more (~1053 tok)
-- `test_catalog_feedback.py` — Phase4 A篇 — 策略目录 + C篇 反馈闭环 测试。 (~901 tok)
+- `test_catalog_feedback.py` — Phase4 A篇 — 策略目录 + C篇 反馈闭环 测试。 (~1205 tok)
 - `test_factor_cli.py` — factor_cli 统一入口 — 单元测试 (CSV 路径, 不依赖仓库/网络)。 (~819 tok)
 - `test_factor_mining.py` — 因子挖掘 — 单元测试 (Spec §7.1)。 (~1087 tok)
 - `test_factor_phase2.py` — 因子管理 Phase2 — 算子集/健康检测/行业中性化/报告 单元测试。 (~1395 tok)
-- `test_ml_auto_advisor.py` — Phase4 B篇 ML自动迭代 + D篇 LLM建议器 测试。 (~906 tok)
+- `test_ml_auto_advisor.py` — Phase4 B篇 ML自动迭代 + D篇 LLM建议器 测试。 (~1181 tok)
 - `test_ml_features.py` — ML 特征工程测试。 (~726 tok)
 - `test_ml_registry.py` — ML 模型注册中心 / sklearn 包装 / 超参搜索 / 集成 测试。 (~980 tok)
 - `test_options_strategies_extended.py` — 期权-期货联合策略 / ML 信号适配器 扩展测试。 (~689 tok)

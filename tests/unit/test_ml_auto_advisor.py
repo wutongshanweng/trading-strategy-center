@@ -36,6 +36,15 @@ class TestAutoMLPipeline:
             "TEST", data=_ohlcv(), candidate_types=["ridge"], n_trials=2)
         assert any(m["name"] == "auto_TEST" for m in reg.list_models())
 
+    def test_insufficient_data_no_raise(self):
+        # #6: 数据不足应返回 status 结构而非抛异常
+        tmp = tempfile.mkdtemp()
+        pipe = AutoMLPipeline(registry=ModelRegistry(tmp), horizon=5)
+        r = pipe.run("TINY", data=_ohlcv(n=20), candidate_types=["ridge"])
+        assert r.status == "insufficient_data"
+        assert r.best_model_type == ""
+        assert "不足" in r.message
+
 
 class TestModelMonitor:
     def test_detects_decay(self):
@@ -67,6 +76,17 @@ class TestModelSelector:
         mt, model, score, params = ModelSelector().select_with_hyperopt(
             ["ridge", "rf"], X[:110], y[:110], X[110:], y[110:], n_trials=3)
         assert mt in ("ridge", "rf") and model is not None
+
+    def test_complexity_penalty_prefers_simpler(self):
+        # 建议5: 大惩罚下, IC 相近时应偏好更简单的模型 (ridge < rf)
+        from ml.models.sklearn_wrapper import SklearnModel
+        rng = np.random.default_rng(0)
+        X = rng.normal(size=(120, 4)); y = X[:, 0] * 0.5 + rng.normal(0, 0.1, 120)
+        ridge = SklearnModel("ridge").fit(X[:90], y[:90])
+        rf = SklearnModel("rf", {"n_estimators": 20}).fit(X[:90], y[:90])
+        sel = ModelSelector(complexity_penalty=1.0)  # 大惩罚
+        name, _ = sel.select({"ridge": ridge, "rf": rf}, X[90:], y[90:])
+        assert name == "ridge"
 
 
 class TestLLMStrategyAdvisor:

@@ -13,11 +13,29 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
+import time
+
 import numpy as np
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/v1/ml-options", tags=["ml-options"])
+
+# ML 预测进程内 TTL 缓存 (即时训练较慢, 同标的短时间内复用)
+_PRED_CACHE: Dict[str, tuple] = {}   # key -> (expire_ts, result)
+_PRED_TTL = 300.0                    # 5 分钟
+
+
+def _cache_get(key: str):
+    item = _PRED_CACHE.get(key)
+    if item and item[0] > time.time():
+        return item[1]
+    _PRED_CACHE.pop(key, None)
+    return None
+
+
+def _cache_put(key: str, value):
+    _PRED_CACHE[key] = (time.time() + _PRED_TTL, value)
 
 
 def _safe(v) -> float:
@@ -45,14 +63,18 @@ class AnalysisRequest(BaseModel):
 
 
 def _ml_prediction(symbol: str, horizon: int) -> Dict[str, Any]:
-    """即时训练轻量模型给方向预测; 数据不足时返回 HOLD。"""
+    """即时训练轻量模型给方向预测; 数据不足时返回 HOLD。带 TTL 缓存。"""
+    cache_key = f"{symbol}:{horizon}"
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        return {**cached, "cached": True}
     from core.alpha import factor_cli
     from ml.features.pipeline import FeaturePipeline
     from ml.features.technical_features import TechnicalFeatureSet
     from ml.models.sklearn_wrapper import SklearnModel
     from ml.model_selector import _ic
 
-    df = factor_cli._load_from_warehouse(symbol)
+    df = factor_cli.load_market_data(symbol)
     if df is None or len(df) < 80:
         return {"direction": "HOLD", "confidence": "低", "confidence_score": 0.0,
                 "predicted_return": 0.0, "model_name": "n/a", "model_health": "WARNING",
@@ -80,7 +102,7 @@ def _ml_prediction(symbol: str, horizon: int) -> Dict[str, Any]:
 
     direction = "BUY" if pred_ret > 0.002 else "SELL" if pred_ret < -0.002 else "HOLD"
     health = "HEALTHY" if val_ic > 0.03 else "WARNING" if val_ic > -0.02 else "DECAYED"
-    return {
+    result = {
         "direction": direction, "confidence": _conf_label(val_ic),
         "confidence_score": round(_safe(val_ic), 4),
         "predicted_return": round(_safe(pred_ret), 4),
@@ -88,6 +110,8 @@ def _ml_prediction(symbol: str, horizon: int) -> Dict[str, Any]:
         "feature_count": int(X.shape[1]), "trained_at": str(df.index[-1])[:10],
         "val_ic": round(_safe(val_ic), 4),
     }
+    _cache_put(cache_key, result)
+    return {**result, "cached": False}
 
 
 def _option_analysis(symbol: str, spot: float) -> Dict[str, Any]:
@@ -118,6 +142,8 @@ def _option_analysis(symbol: str, spot: float) -> Dict[str, Any]:
         "term_structure": term_struct,
         "arb_signals": [{"type": s.signal_type, "direction": s.direction,
                          "score": _safe(s.score), "reason": s.reason} for s in sigs],
+        "data_source": "synthetic",
+        "data_note": "期权曲面为合成数据 (实盘期权链在当前环境暂不可用), 仅供逻辑演示",
     }
 
 
@@ -128,7 +154,7 @@ async def ml_options_analyze(req: AnalysisRequest) -> Dict[str, Any]:
         from core.alpha import factor_cli
         from options.strategies.futures_combo import FuturesOptionsComboSignals
 
-        df = factor_cli._load_from_warehouse(req.symbol)
+        df = factor_cli.load_market_data(req.symbol)
         if df is None or df.empty:
             raise HTTPException(404, f"{req.symbol} 无仓库数据")
         spot = float(df["close"].iloc[-1])

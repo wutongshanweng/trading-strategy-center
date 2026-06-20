@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Card, Input, Button, Typography, Row, Col, Statistic, Tag, Space, Empty, message, Divider,
+  Card, Input, Button, Typography, Row, Col, Statistic, Tag, Space, Empty, message, Divider, Alert,
 } from "antd";
 import { SearchOutlined, RobotOutlined, AimOutlined } from "@ant-design/icons";
 import { mlOptsApi } from "../services/phase4Api";
@@ -82,6 +82,10 @@ export default function MLAnalyzer() {
 
           {/* 期权分析结论 */}
           <Card title={<><AimOutlined /> 期权分析结论</>} style={{ marginBottom: 16 }}>
+            {opt.data_source === "synthetic" && (
+              <Alert type="warning" showIcon style={{ marginBottom: 12 }}
+                message={opt.data_note || "期权曲面为合成数据, 仅供逻辑演示"} />
+            )}
             <Row gutter={16}>
               <Col xs={8}><Statistic title="IV Rank" value={opt.iv_rank} suffix="%" /></Col>
               <Col xs={8}><Statistic title="Skew" value={opt.skew}

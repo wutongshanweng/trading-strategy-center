@@ -91,6 +91,15 @@ def _load_from_warehouse(symbol: str, limit: int = 1000) -> Optional[pd.DataFram
     return df
 
 
+def load_market_data(symbol: str, limit: int = 1000) -> Optional[pd.DataFrame]:
+    """公共取数入口 — 取单标的 D1 OHLCV (期货/股票/期权按 code)。
+
+    供 ml / api 等外部模块复用, 内部委托 _load_from_warehouse。
+    无数据返回 None。
+    """
+    return _load_from_warehouse(symbol, limit)
+
+
 def _load_data(symbol: Optional[str], data: Optional[str]) -> pd.DataFrame:
     if symbol:
         df = _load_from_warehouse(symbol)

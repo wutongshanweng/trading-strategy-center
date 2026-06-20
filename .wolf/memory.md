@@ -553,3 +553,31 @@
 | 11:56 | Phase4 D: llm/strategy_advisor(带降级)+llm_routes接口 | core/llm/+api/ | 降级返回非空OK | ~500 |
 | 11:56 | Phase4 E: mlopts_routes + MLAnalyzer/Feedback/LLMConfig/StrategyLibrary 4页+路由菜单 | api/+frontend/ | RB2510分析OK,tsc过 | ~1500 |
 | 11:56 | Phase4 验证: 全量1112 passed,49 Phase3+4单测过 | tests/ | 无回归 | ~100 |
+| 12:07 | Session end: 100 writes across 57 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore, feedback-communication-language.md) | 52 reads | ~121525 tok |
+| 20:58 | Edited core/alpha/factor_cli.py | modified _load_from_warehouse() | ~155 |
+| 20:58 | Edited ml/auto_pipeline.py | _load_from_warehouse() → load_market_data() | ~97 |
+| 21:17 | Edited api/routes/mlopts_routes.py | _load_from_warehouse() → load_market_data() | ~23 |
+| 21:17 | Edited api/routes/mlopts_routes.py | _load_from_warehouse() → load_market_data() | ~25 |
+| 21:19 | Edited signals/catalog.py | added 3 import(s) | ~67 |
+| 21:20 | Edited signals/catalog.py | modified __init__() | ~105 |
+| 21:21 | Edited signals/catalog.py | 3→4 lines | ~37 |
+| 21:21 | Edited signals/catalog.py | modified save() | ~563 |
+| 21:22 | Edited core/feedback_loop.py | added 3 import(s) | ~80 |
+| 21:22 | Edited core/feedback_loop.py | modified __init__() | ~412 |
+| 21:23 | Edited core/feedback_loop.py | 1→2 lines | ~18 |
+| 21:25 | Edited ml/auto_pipeline.py | modified to_dict() | ~68 |
+| 21:26 | Edited ml/auto_pipeline.py | ValueError() → _insufficient() | ~211 |
+| 21:26 | Edited ml/auto_pipeline.py | modified _insufficient() | ~211 |
+| 21:27 | Edited api/routes/mlopts_routes.py | modified _cache_get() | ~176 |
+| 21:28 | Edited api/routes/mlopts_routes.py | modified _ml_prediction() | ~134 |
+| 21:28 | Edited api/routes/mlopts_routes.py | 10→12 lines | ~180 |
+| 21:29 | Edited api/routes/mlopts_routes.py | 7→9 lines | ~125 |
+| 21:30 | Edited frontend/src/pages/MLAnalyzer.tsx | 3→3 lines | ~36 |
+| 21:32 | Edited frontend/src/pages/MLAnalyzer.tsx | 3→7 lines | ~98 |
+| 21:33 | Edited ml/model_selector.py | modified _complexity() | ~372 |
+| 21:36 | Edited tests/unit/test_catalog_feedback.py | modified test_new_arbitrage_extended_registered() | ~201 |
+| 21:37 | Edited tests/unit/test_catalog_feedback.py | modified test_history() | ~218 |
+| 21:37 | Edited tests/unit/test_ml_auto_advisor.py | modified test_registers_model() | ~195 |
+| 21:39 | Edited tests/unit/test_ml_auto_advisor.py | modified test_select_with_hyperopt() | ~273 |
+| 21:42 | Edited tests/unit/test_catalog_feedback.py | modified test_history() | ~88 |
+| 22:00 | Review修复6项: factor_cli公共load_market_data(替私有), catalog/feedback JSON持久化, auto_pipeline不足返结构体不raise, mlopts合成标注+TTL缓存, model_selector启用complexity_penalty | 多文件 | 1116 passed | ~400 |

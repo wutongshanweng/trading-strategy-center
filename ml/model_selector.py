@@ -43,15 +43,36 @@ class ModelSelector:
             logger.warning(f"模型评分失败: {e}")
             return -np.inf
 
+    @staticmethod
+    def _complexity(model) -> float:
+        """模型相对复杂度 0~1 (线性最低, 树/集成最高), 用于惩罚过拟合倾向。"""
+        mt = getattr(model, "model_type", "") or type(model).__name__.lower()
+        table = {"ridge": 0.0, "svr": 0.3, "mlp": 0.6,
+                 "rf": 0.7, "xgb": 0.9, "lgbm": 0.9}
+        for k, v in table.items():
+            if k in mt.lower():
+                return v
+        return 0.5
+
     def select(
         self, models: Dict[str, object], X_val, y_val, metric: str = "ic",
     ) -> Tuple[str, float]:
-        """从多个已训练模型中选最佳, 返回 (name, score)。"""
+        """从多个已训练模型中选最佳, 返回 (name, score)。
+
+        若 complexity_penalty>0, 用 IC - penalty*complexity 作为排序依据
+        (返回的 score 仍是原始 IC, 仅排序受惩罚影响)。
+        """
         if not models:
             raise ValueError("models 不能为空")
         scored = {name: self.score_model(m, X_val, y_val) for name, m in models.items()}
-        best = max(scored, key=scored.get)
-        logger.info(f"模型选择: {scored} → {best}")
+        if self.complexity_penalty > 0:
+            adjusted = {name: scored[name] - self.complexity_penalty * self._complexity(m)
+                        for name, m in models.items()}
+            best = max(adjusted, key=adjusted.get)
+            logger.info(f"模型选择(含复杂度惩罚): 原始={scored} 调整后={adjusted} → {best}")
+        else:
+            best = max(scored, key=scored.get)
+            logger.info(f"模型选择: {scored} → {best}")
         return best, scored[best]
 
     def select_with_hyperopt(
