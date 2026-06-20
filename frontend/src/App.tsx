@@ -23,7 +23,6 @@ const Monitoring = lazy(() => import("./pages/Monitoring"));
 const FactorResearch = lazy(() => import("./pages/FactorResearch"));
 const Phase3 = lazy(() => import("./pages/Phase3"));
 const StrategyLibrary = lazy(() => import("./pages/StrategyLibrary"));
-const MLAnalyzer = lazy(() => import("./pages/MLAnalyzer"));
 const Feedback = lazy(() => import("./pages/Feedback"));
 const LLMConfig = lazy(() => import("./pages/LLMConfig"));
 
@@ -83,7 +82,6 @@ export default function App() {
                 <Route path="factors" element={<FactorResearch />} />
                 <Route path="phase3" element={<Phase3 />} />
                 <Route path="strategy-library" element={<StrategyLibrary />} />
-                <Route path="ml-analyzer" element={<MLAnalyzer />} />
                 <Route path="feedback" element={<Feedback />} />
                 <Route path="llm-config" element={<LLMConfig />} />
                 <Route path="data" element={<DataCenter />} />

@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T13:42:38.903Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T15:11:28.676Z
 > Files: 601 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -569,7 +569,7 @@
 ## frontend/src/
 
 - `App.css` — Styles: 12 rules, 2 media queries, 2 animations (~557 tok)
-- `App.tsx` — 动态导入页面组件 (~1025 tok)
+- `App.tsx` — 动态导入页面组件 (~988 tok)
 - `main.tsx` (~145 tok)
 
 ## frontend/src/api/
@@ -579,7 +579,7 @@
 ## frontend/src/components/
 
 - `DataSyncPanel.tsx` — DataSyncPanel — renders table — uses useState, useEffect (~3177 tok)
-- `Layout.tsx` — menuItems (~1851 tok)
+- `Layout.tsx` — menuItems (~1831 tok)
 - `RealtimeSignalPanel.tsx` — generateMockSignal — uses useState, useEffect (~3281 tok)
 - `StrategyBuilder.tsx` — StrategyBuilder — renders form — uses useForm, useState (~2711 tok)
 
@@ -594,7 +594,7 @@
 - `ML.tsx` — MOCK_MODELS — renders form, table, modal — uses useState, useForm, useEffect (~2184 tok)
 - `MLAnalyzer.tsx` — DIR_COLOR (~1462 tok)
 - `Monitoring.tsx` — METRICS — renders table, chart — uses useState, useEffect (~3049 tok)
-- `Phase3.tsx` — ivColor — renders table (~2779 tok)
+- `Phase3.tsx` — DIR_COLOR — renders table (~4391 tok)
 - `Portfolio.tsx` — MOCK_PORTFOLIO — renders form, table, chart, modal — uses useState, useForm, useEffect (~2601 tok)
 - `Settings.tsx` — Settings — renders form — uses useState, useForm (~2262 tok)
 - `Strategy.tsx` — statusMap — renders form, table, modal — uses useState, useForm, useEffect (~2352 tok)

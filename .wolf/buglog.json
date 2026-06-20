@@ -1568,6 +1568,54 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-20T13:32:28.771Z"
+    },
+    {
+      "id": "bug-097",
+      "timestamp": "2026-06-20T15:07:13.717Z",
+      "error_message": "Significant refactor of ",
+      "file": "frontend/src/pages/Phase3.tsx",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 9→16 lines (2 removed) | Also: <ThunderboltOutlined /> Phase 3 — ML 升级 + 期权深度; 机器学习特征工程、波动率曲面、期限结构套利、期权-期货联合策略",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-20T15:08:41.373Z"
+    },
+    {
+      "id": "bug-098",
+      "timestamp": "2026-06-20T15:07:30.256Z",
+      "error_message": "Missing error handling in unknown",
+      "file": "frontend/src/pages/Phase3.tsx",
+      "root_cause": "Code path had no error handling — exceptions would propagate uncaught",
+      "fix": "Added try/catch block",
+      "tags": [
+        "auto-detected",
+        "error-handling",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T15:07:30.256Z"
+    },
+    {
+      "id": "bug-099",
+      "timestamp": "2026-06-20T15:11:28.698Z",
+      "error_message": "Incorrect value in code",
+      "file": "frontend/src/components/Layout.tsx",
+      "root_cause": "Had \"/ml-analyzer\"",
+      "fix": "Changed to \"/strategy-library\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T15:11:28.698Z"
     }
   ]
 }

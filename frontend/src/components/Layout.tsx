@@ -33,7 +33,6 @@ const menuItems = [
   { key: "/ml", icon: <RobotOutlined />, label: "机器学习" },
   { key: "/factors", icon: <ExperimentOutlined />, label: "因子研究" },
   { key: "/phase3", icon: <ThunderboltOutlined />, label: "ML+期权" },
-  { key: "/ml-analyzer", icon: <RobotOutlined />, label: "ML+期权分析" },
   { key: "/strategy-library", icon: <AppstoreOutlined />, label: "策略军火库" },
   { key: "/feedback", icon: <SyncOutlined />, label: "反馈闭环" },
   { key: "/llm-config", icon: <ApiOutlined />, label: "LLM配置" },

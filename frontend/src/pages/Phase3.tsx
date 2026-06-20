@@ -1,12 +1,19 @@
 import { useState, useEffect } from "react";
 import {
   Card, Row, Col, Table, Tag, Typography, Button, Spin, message,
-  Statistic, Select, Slider, Space, Divider, Empty,
+  Statistic, Select, Slider, Space, Divider, Empty, Input, Alert,
 } from "antd";
-import { ExperimentOutlined, FundOutlined, ThunderboltOutlined } from "@ant-design/icons";
+import {
+  ExperimentOutlined, FundOutlined, ThunderboltOutlined,
+  RobotOutlined, AimOutlined, SearchOutlined,
+} from "@ant-design/icons";
 import { phase3Api } from "../services/phase3Api";
+import { mlOptsApi } from "../services/phase4Api";
 
 const { Title, Text } = Typography;
+
+const DIR_COLOR: Record<string, string> = { BUY: "#52c41a", SELL: "#ff4d4f", HOLD: "#888" };
+const DIR_ICON: Record<string, string> = { BUY: "🟢", SELL: "🔴", HOLD: "⚪" };
 
 // IV 值 → 颜色 (蓝→绿→黄→红 热力)
 function ivColor(v: number | null, min: number, max: number): string {
@@ -34,6 +41,23 @@ export default function Phase3() {
   const [comboIvRank, setComboIvRank] = useState(50);
   const [comboSkew, setComboSkew] = useState(0);
   const [combo, setCombo] = useState<any>(null);
+  // 一键完整分析 (合并自 ML+期权分析页)
+  const [analyzeSymbol, setAnalyzeSymbol] = useState("");
+  const [analyzeLoading, setAnalyzeLoading] = useState(false);
+  const [analyzeResult, setAnalyzeResult] = useState<any>(null);
+
+  const runAnalyze = async () => {
+    const s = analyzeSymbol.trim().toUpperCase();
+    if (!s) { message.warning("请输入合约代码"); return; }
+    setAnalyzeLoading(true); setAnalyzeResult(null);
+    try {
+      const d = await mlOptsApi.analyze(s);
+      if (d?.success) { setAnalyzeResult(d); message.success(`${s} 分析完成`); }
+      else message.error("分析返回异常");
+    } catch (e: any) {
+      message.error("分析失败: " + (e?.response?.data?.detail || e?.message || ""));
+    } finally { setAnalyzeLoading(false); }
+  };
 
   useEffect(() => {
     (async () => {
@@ -83,12 +107,93 @@ export default function Phase3() {
   return (
     <div>
       <Title level={3}>
-        <ThunderboltOutlined /> Phase 3 — ML 升级 + 期权深度
+        <ThunderboltOutlined /> ML + 期权
       </Title>
       <Text type="secondary">
-        机器学习特征工程、波动率曲面、期限结构套利、期权-期货联合策略
+        一键完整分析、机器学习特征工程、波动率曲面、期限结构套利、期权-期货联合策略
       </Text>
       <Divider />
+
+      {/* ===== 一键完整分析 (置顶) ===== */}
+      <Card
+        title={<><RobotOutlined /> ML + 期权 完整分析</>}
+        style={{ marginBottom: 16 }}
+      >
+        <Space.Compact style={{ width: "100%" }}>
+          <Input
+            size="large" allowClear prefix={<SearchOutlined />}
+            placeholder="输入合约代码, 如 RB2510 / 600019.SH"
+            value={analyzeSymbol} onChange={(e) => setAnalyzeSymbol(e.target.value)}
+            onPressEnter={runAnalyze} disabled={analyzeLoading}
+          />
+          <Button type="primary" size="large" loading={analyzeLoading} onClick={runAnalyze}>
+            🧠 分析
+          </Button>
+        </Space.Compact>
+        <Text type="secondary" style={{ marginTop: 8, display: "block" }}>
+          数据直连仓库 · ML 即时训练预测 + 期权曲面分析
+        </Text>
+
+        {analyzeResult && (
+          <div style={{ marginTop: 16 }}>
+            {/* ML 预测结论 */}
+            <Card type="inner" title={<><RobotOutlined /> ML 预测结论</>}
+              style={{ marginBottom: 12, borderLeft: `4px solid ${DIR_COLOR[analyzeResult.ml_prediction.direction] || "#888"}` }}>
+              <Row gutter={24} align="middle">
+                <Col><div style={{ fontSize: 40 }}>{DIR_ICON[analyzeResult.ml_prediction.direction] || "⚪"}</div></Col>
+                <Col flex="auto">
+                  <Title level={4} style={{ margin: 0, color: DIR_COLOR[analyzeResult.ml_prediction.direction] }}>
+                    未来5天预测 {analyzeResult.ml_prediction.direction === "BUY" ? "上涨" :
+                      analyzeResult.ml_prediction.direction === "SELL" ? "下跌" : "盘整"}
+                    {" "}{(analyzeResult.ml_prediction.predicted_return * 100).toFixed(2)}%
+                  </Title>
+                  <Text type="secondary">
+                    模型: {analyzeResult.ml_prediction.model_name} · {analyzeResult.ml_prediction.feature_count} 特征
+                    · 训练数据至 {analyzeResult.ml_prediction.trained_at || "n/a"}
+                  </Text>
+                </Col>
+                <Col>
+                  <Statistic title="置信度" value={analyzeResult.ml_prediction.confidence} />
+                  <Text>模型健康: <Tag color={analyzeResult.ml_prediction.model_health === "HEALTHY" ? "green" :
+                    analyzeResult.ml_prediction.model_health === "WARNING" ? "orange" : "red"}>
+                    {analyzeResult.ml_prediction.model_health}</Tag></Text>
+                </Col>
+              </Row>
+              {analyzeResult.ml_prediction.note && <Text type="warning">⚠️ {analyzeResult.ml_prediction.note}</Text>}
+            </Card>
+
+            {/* 期权分析结论 */}
+            <Card type="inner" title={<><AimOutlined /> 期权分析结论</>} style={{ marginBottom: 12 }}>
+              {analyzeResult.option_analysis.data_source === "synthetic" && (
+                <Alert type="warning" showIcon style={{ marginBottom: 12 }}
+                  message={analyzeResult.option_analysis.data_note || "期权曲面为合成数据, 仅供逻辑演示"} />
+              )}
+              <Row gutter={16}>
+                <Col xs={8}><Statistic title="IV Rank" value={analyzeResult.option_analysis.iv_rank} suffix="%" /></Col>
+                <Col xs={8}><Statistic title="Skew" value={analyzeResult.option_analysis.skew}
+                  valueStyle={{ color: analyzeResult.option_analysis.skew >= 0 ? "#52c41a" : "#ff4d4f" }} /></Col>
+                <Col xs={8}><Statistic title="期限结构" value={analyzeResult.option_analysis.term_structure} /></Col>
+              </Row>
+              <Divider style={{ margin: "12px 0" }} />
+              <Text strong>套利信号 ({analyzeResult.option_analysis.arb_signals.length}):</Text>
+              {analyzeResult.option_analysis.arb_signals.length ? analyzeResult.option_analysis.arb_signals.map((s: any, i: number) => (
+                <div key={i} style={{ marginTop: 6 }}>
+                  <Tag color={s.direction === "BULLISH" ? "green" : s.direction === "BEARISH" ? "red" : "default"}>{s.type}</Tag>
+                  <Text>{s.reason}</Text>
+                </div>
+              )) : <Text type="secondary"> 无</Text>}
+            </Card>
+
+            {/* 联合策略建议 */}
+            <Card type="inner" title="🎯 联合策略建议" style={{ borderLeft: "4px solid #1890ff" }}>
+              <Statistic title="推荐策略" value={analyzeResult.combo_advice.strategy_name} />
+              <p style={{ marginTop: 8 }}><Text strong>方向:</Text> {analyzeResult.combo_advice.direction}</p>
+              <p><Text type="secondary">{analyzeResult.combo_advice.reason}</Text></p>
+              {analyzeResult.combo_advice.risk_notes && <Text type="warning">⚠️ {analyzeResult.combo_advice.risk_notes}</Text>}
+            </Card>
+          </div>
+        )}
+      </Card>
 
       {/* ML 特征面板 */}
       <Card
