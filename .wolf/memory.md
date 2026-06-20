@@ -439,3 +439,33 @@
 | 08:55 | Logged bug-081 (NaN/Inf JSON serialization) | .wolf/buglog.json | done | ~60 |
 | 08:59 | Session end: 9 writes across 3 files (factor_routes.py, factorApi.ts, FactorResearch.tsx) | 13 reads | ~30742 tok |
 | 09:02 | Edited .gitignore | 5→8 lines | ~31 |
+| 09:10 | Session end: 10 writes across 4 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore) | 14 reads | ~30857 tok |
+| 09:12 | Session end: 10 writes across 4 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore) | 14 reads | ~30857 tok |
+| 09:12 | Created C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/feedback-communication-language.md | — | ~70 |
+| 09:12 | Created C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/feedback-github-token-defer.md | — | ~101 |
+| 09:13 | Created C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/MEMORY.md | — | ~47 |
+| 09:13 | Session end: 13 writes across 7 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore, feedback-communication-language.md) | 15 reads | ~31090 tok |
+| 09:18 | Created core/alpha/alpha101/factor_descriptions.py | — | ~892 |
+| 09:19 | Edited core/alpha/alpha101/factor_descriptions.py | expanded (+140 lines) | ~1457 |
+| 09:20 | Edited core/alpha/alpha101/factor_descriptions.py | expanded (+210 lines) | ~2151 |
+| 09:21 | Edited core/alpha/alpha101/factor_descriptions.py | expanded (+210 lines) | ~2081 |
+| 09:21 | Edited core/alpha/alpha101/factor_descriptions.py | modified get_description() | ~1094 |
+| 09:25 | Created core/alpha/factor_advisor.py | — | ~1563 |
+| 09:30 | Edited api/routes/factor_routes.py | modified str() | ~467 |
+| 09:30 | Edited api/routes/factor_routes.py | 7→9 lines | ~93 |
+| 09:30 | Edited api/routes/factor_routes.py | modified factor_descriptions() | ~154 |
+| 09:32 | Edited core/alpha/factor_cli.py | modified cmd_report() | ~374 |
+| 09:32 | Edited frontend/src/services/factorApi.ts | modified fullAnalysis() | ~120 |
+| 09:32 | Edited frontend/src/pages/FactorResearch.tsx | 11→13 lines | ~62 |
+| 09:33 | Edited frontend/src/pages/FactorResearch.tsx | 5→8 lines | ~110 |
+| 09:35 | Edited frontend/src/pages/FactorResearch.tsx | added optional chaining | ~92 |
+| 09:35 | Edited frontend/src/pages/FactorResearch.tsx | added 1 condition(s) | ~408 |
+| 09:36 | Edited frontend/src/pages/FactorResearch.tsx | 4→4 lines | ~35 |
+| 09:38 | Edited frontend/src/pages/FactorResearch.tsx | expanded (+39 lines) | ~467 |
+| 09:39 | Edited frontend/src/pages/FactorResearch.tsx | 3→3 lines | ~52 |
+| 09:40 | 新建 factor_descriptions.py (101因子中文描述+11分类) | core/alpha/alpha101/ | 验证101条齐全 | ~1600 |
+| 09:40 | 新建 factor_advisor.py (FactorAdvisor交易建议) | core/alpha/ | 4动作5档单测通过 | ~400 |
+| 09:40 | factor_routes 集成 advice + GET /factors/descriptions | api/routes/factor_routes.py | curl验证 | ~250 |
+| 09:40 | factor_cli cmd_report 末尾打印交易建议 | core/alpha/factor_cli.py | CLI验证 | ~120 |
+| 09:40 | FactorResearch 因子名Tooltip + 交易建议卡片 | frontend/src/pages/ | tsc通过 | ~300 |
+| 09:43 | Session end: 31 writes across 10 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore, feedback-communication-language.md) | 19 reads | ~48661 tok |

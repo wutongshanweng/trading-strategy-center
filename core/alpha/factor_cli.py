@@ -161,6 +161,21 @@ def cmd_report(args):
     if args.json:
         gen.save_json(rep, args.json); print(f"[out] JSON -> {args.json}")
 
+    # 交易建议翻译层
+    from core.alpha.factor_combiner import FactorCombiner
+    from core.alpha.factor_advisor import FactorAdvisor
+    ic_values = {f.name: f.ic_mean for f in rep.top_factors}
+    signal = FactorCombiner(factors).ic_weight(factors, ic_values)
+    advice = FactorAdvisor().advise_from_report(args.symbol or args.data or "?", rep, signal)
+    icon = {"BUY": "🟢", "SELL": "🔴", "HOLD": "⚪", "WAIT": "🟡"}.get(advice.action, "⚪")
+    print(f"\n{'='*60}")
+    print(f"  【{advice.symbol}】{icon} {advice.action_cn}  "
+          f"置信度: {advice.confidence}  |  综合信号: {advice.signal_value:+.4f}")
+    print(f"  理由: {advice.reason}")
+    if advice.risk_note:
+        print(f"  {advice.risk_note}")
+    print(f"{'='*60}")
+
 
 def cmd_combine(args):
     from core.alpha.factor_combiner import FactorCombiner

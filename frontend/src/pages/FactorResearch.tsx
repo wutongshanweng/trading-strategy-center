@@ -18,6 +18,7 @@ import {
   Input,
   Progress,
   Empty,
+  Tooltip,
 } from "antd";
 import {
   ExperimentOutlined,
@@ -25,6 +26,7 @@ import {
   BarChartOutlined,
   ReloadOutlined,
   SearchOutlined,
+  QuestionCircleOutlined,
 } from "@ant-design/icons";
 import { factorApi } from "../services/factorApi";
 
@@ -137,6 +139,9 @@ export default function FactorResearch() {
   const [analysisProgress, setAnalysisProgress] = useState("");
   const [analysisResult, setAnalysisResult] = useState<any>(null);
 
+  // 因子中文描述字典 (key=alpha001)
+  const [factorDescriptions, setFactorDescriptions] = useState<Record<string, any>>({});
+
   // 标的列表 (从仓库加载, 期货/股票/期权全资产)
   const [symbolOptions, setSymbolOptions] = useState<{ code: string; status?: string }[]>([
     { code: "600019.SH" }, { code: "601899.SH" }, { code: "600585.SH" },
@@ -156,6 +161,16 @@ export default function FactorResearch() {
           setSelectedSymbol(syms[0].code);
         }
       } catch { /* 后端未启动则保留默认 */ }
+    })();
+  }, []);
+
+  // 挂载时加载因子中文描述字典
+  useEffect(() => {
+    (async () => {
+      try {
+        const d = await factorApi.getFactorDescriptions();
+        if (d?.descriptions) setFactorDescriptions(d.descriptions);
+      } catch { /* 后端未启动则无描述, Tooltip 不显示 */ }
     })();
   }, []);
 
@@ -806,6 +821,42 @@ export default function FactorResearch() {
   };
 
   // ───────── 一键完整分析 ─────────
+  // 因子名 + 中文描述 Tooltip (desc 字典 key = alpha001)
+  const factorNameWithTip = (name: string) => {
+    const desc = factorDescriptions[name];
+    if (!desc) return <Text strong>{name}</Text>;
+    const lines = (desc.interpretation || "").split("\n");
+    return (
+      <Space>
+        <Text strong>{name}</Text>
+        <Tooltip
+          title={
+            <div style={{ maxWidth: 320 }}>
+              <div><b>{desc.chinese_name}</b></div>
+              <div style={{ fontSize: 12, marginTop: 4, color: "#ccc" }}>{desc.formula}</div>
+              <div style={{ fontSize: 12, marginTop: 6, borderTop: "1px solid #555", paddingTop: 4 }}>
+                {lines[0] && <div style={{ color: "#73d13d" }}>{lines[0]}</div>}
+                {lines[1] && <div style={{ color: "#ff7875" }}>{lines[1]}</div>}
+              </div>
+              {desc.use_case && (
+                <div style={{ fontSize: 12, marginTop: 6, color: "#aaa" }}>适用: {desc.use_case}</div>
+              )}
+            </div>
+          }
+        >
+          <QuestionCircleOutlined style={{ color: "#888", cursor: "help" }} />
+        </Tooltip>
+      </Space>
+    );
+  };
+
+  // 因子列表 columns: 在模块级 columns 基础上, 给 ID 列挂 Tooltip
+  const factorColumns = columns.map((c: any) =>
+    c.key === "id"
+      ? { ...c, width: 150, render: (id: string) => factorNameWithTip(id) }
+      : c
+  );
+
   const handleFullAnalysis = async () => {
     const sym = symbolInput.trim().toUpperCase();
     if (!sym) {
@@ -848,6 +899,45 @@ export default function FactorResearch() {
     );
     return (
       <>
+        {/* 交易建议卡片 (置顶) */}
+        {r.advice && (() => {
+          const adv = r.advice;
+          const colorMap: Record<string, string> = {
+            BUY: "#52c41a", SELL: "#ff4d4f", HOLD: "#888", WAIT: "#faad14",
+          };
+          const iconMap: Record<string, string> = {
+            BUY: "🟢", SELL: "🔴", HOLD: "⚪", WAIT: "🟡",
+          };
+          const col = colorMap[adv.action] || "#888";
+          return (
+            <Card style={{ borderLeft: `4px solid ${col}`, marginBottom: 16 }}>
+              <Row align="middle" gutter={24}>
+                <Col>
+                  <div style={{ fontSize: 40 }}>{iconMap[adv.action] || "⚪"}</div>
+                </Col>
+                <Col flex="auto">
+                  <Title level={3} style={{ margin: 0, color: col }}>{adv.action_cn}</Title>
+                  <Text type="secondary">{adv.reason}</Text>
+                  {adv.risk_note && (
+                    <div style={{ marginTop: 8 }}>
+                      <Text type="warning">{adv.risk_note}</Text>
+                    </div>
+                  )}
+                </Col>
+                <Col>
+                  <Statistic title="置信度" value={adv.confidence} />
+                  <Statistic
+                    title="综合信号"
+                    value={adv.signal_value}
+                    precision={4}
+                    valueStyle={{ color: adv.signal_value >= 0 ? "#52c41a" : "#ff4d4f" }}
+                  />
+                </Col>
+              </Row>
+            </Card>
+          );
+        })()}
+
         {/* 总览卡片 */}
         <Card title="📊 因子总览" style={{ marginBottom: 16 }}>
           <Row gutter={[16, 16]}>
@@ -892,7 +982,7 @@ export default function FactorResearch() {
             columns={[
               { title: "#", dataIndex: "rank", key: "rank", width: 50 },
               { title: "因子", dataIndex: "name", key: "name",
-                render: (t: string) => <Text strong>{t}</Text> },
+                render: (t: string) => factorNameWithTip(t) },
               { title: "IC", dataIndex: "ic", key: "ic",
                 render: (v: number) => (
                   <Text style={{ color: v > 0 ? "#52c41a" : "#ff4d4f" }}>{v?.toFixed(4)}</Text>
@@ -1048,7 +1138,7 @@ export default function FactorResearch() {
           <TabPane tab="因子列表" key="list">
             <Table
               dataSource={mockFactors}
-              columns={columns}
+              columns={factorColumns}
               rowKey="id"
               pagination={{
                 pageSize: 20,

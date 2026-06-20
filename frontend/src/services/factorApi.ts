@@ -105,4 +105,10 @@ export const factorApi = {
     const response = await axios.post(`${API_BASE_URL}/api/factor/full-analysis`, request, { timeout: 120000 });
     return response.data;
   },
+
+  // 因子中文描述字典 (101 个因子的中文名/公式/解读)
+  async getFactorDescriptions() {
+    const response = await axios.get(`${API_BASE_URL}/api/factor/factors/descriptions`);
+    return response.data;
+  },
 };

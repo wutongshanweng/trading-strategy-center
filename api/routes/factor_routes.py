@@ -525,6 +525,14 @@ async def full_analysis(req: FullAnalysisRequest) -> Dict[str, Any]:
         positive = sum(1 for f in top if f.ic_mean > 0)
         ic_mean = round(_safe(np.mean([f.ic_mean for f in top])), 4) if top else 0.0
 
+        # 综合信号 (IC 加权) + 交易建议
+        from core.alpha.factor_combiner import FactorCombiner
+        from core.alpha.factor_advisor import FactorAdvisor
+        ic_values = {f.name: f.ic_mean for f in top}
+        combined_signal = FactorCombiner(factors).ic_weight(factors, ic_values)
+        advice = FactorAdvisor().advise_from_report(req.symbol, rep, combined_signal)
+        sig_tail = {str(k): _safe(v) for k, v in combined_signal.tail(10).items()}
+
         return {
             "success": True,
             "symbol": req.symbol,
@@ -551,11 +559,22 @@ async def full_analysis(req: FullAnalysisRequest) -> Dict[str, Any]:
             "recommended_ic": _safe(rep.recommended_ic),
             "recommended_icir": _safe(rep.recommended_icir),
             "layered": layered,
+            "advice": advice.to_dict(),
+            "combined_signal": sig_tail,
         }
     except HTTPException:
         raise
     except Exception as e:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=f"完整分析失败: {str(e)}")
+
+
+@router.get("/factors/descriptions")
+async def factor_descriptions() -> Dict[str, Any]:
+    """返回 101 个因子的中文描述字典 (中文名/公式/值高低含义/适用场景)。"""
+    from core.alpha.alpha101.factor_descriptions import (
+        ALPHA101_DESCRIPTIONS, CATEGORIES)
+    return {"success": True, "count": len(ALPHA101_DESCRIPTIONS),
+            "descriptions": ALPHA101_DESCRIPTIONS, "categories": CATEGORIES}
 
 
 class NeutralizeRequest(BaseModel):

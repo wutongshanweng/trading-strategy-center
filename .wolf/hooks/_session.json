@@ -48,8 +48,8 @@
       "first_read": "2026-06-20T00:47:20.241Z"
     },
     "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py": {
-      "count": 1,
-      "tokens": 5042,
+      "count": 4,
+      "tokens": 6245,
       "first_read": "2026-06-20T00:47:26.112Z"
     },
     "d:/完整项目/trading-strategy-center/frontend/src/services/factorApi.ts": {
@@ -58,8 +58,8 @@
       "first_read": "2026-06-20T00:47:31.987Z"
     },
     "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx": {
-      "count": 4,
-      "tokens": 11664,
+      "count": 9,
+      "tokens": 14735,
       "first_read": "2026-06-20T00:47:36.338Z"
     },
     "d:/完整项目/trading-strategy-center/.wolf/buglog.json": {
@@ -71,6 +71,31 @@
       "count": 2,
       "tokens": 82,
       "first_read": "2026-06-20T01:01:55.079Z"
+    },
+    "C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/MEMORY.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-06-20T01:12:57.158Z"
+    },
+    "d:/完整项目/trading-strategy-center/docs/SPEC_FACTOR_READABLE.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-06-20T01:14:45.758Z"
+    },
+    "d:/完整项目/trading-strategy-center/core/alpha/factor_combiner.py": {
+      "count": 1,
+      "tokens": 1038,
+      "first_read": "2026-06-20T01:15:12.340Z"
+    },
+    "d:/完整项目/trading-strategy-center/core/alpha/alpha101/base.py": {
+      "count": 1,
+      "tokens": 587,
+      "first_read": "2026-06-20T01:15:23.859Z"
+    },
+    "d:/完整项目/trading-strategy-center/_factor_dump.json": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-06-20T01:16:54.988Z"
     }
   },
   "files_written": [
@@ -133,17 +158,149 @@
       "action": "edit",
       "tokens": 33,
       "at": "2026-06-20T01:02:09.223Z"
+    },
+    {
+      "file": "C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/feedback-communication-language.md",
+      "action": "create",
+      "tokens": 74,
+      "at": "2026-06-20T01:12:41.988Z"
+    },
+    {
+      "file": "C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/feedback-github-token-defer.md",
+      "action": "create",
+      "tokens": 108,
+      "at": "2026-06-20T01:12:51.920Z"
+    },
+    {
+      "file": "C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/MEMORY.md",
+      "action": "create",
+      "tokens": 51,
+      "at": "2026-06-20T01:13:06.012Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/core/alpha/alpha101/factor_descriptions.py",
+      "action": "create",
+      "tokens": 892,
+      "at": "2026-06-20T01:18:26.125Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/core/alpha/alpha101/factor_descriptions.py",
+      "action": "edit",
+      "tokens": 1457,
+      "at": "2026-06-20T01:19:20.073Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/core/alpha/alpha101/factor_descriptions.py",
+      "action": "edit",
+      "tokens": 2151,
+      "at": "2026-06-20T01:20:22.355Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/core/alpha/alpha101/factor_descriptions.py",
+      "action": "edit",
+      "tokens": 2081,
+      "at": "2026-06-20T01:21:14.802Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/core/alpha/alpha101/factor_descriptions.py",
+      "action": "edit",
+      "tokens": 1094,
+      "at": "2026-06-20T01:21:46.289Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/core/alpha/factor_advisor.py",
+      "action": "create",
+      "tokens": 1563,
+      "at": "2026-06-20T01:25:17.301Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
+      "action": "edit",
+      "tokens": 467,
+      "at": "2026-06-20T01:30:04.828Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
+      "action": "edit",
+      "tokens": 93,
+      "at": "2026-06-20T01:30:31.544Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
+      "action": "edit",
+      "tokens": 154,
+      "at": "2026-06-20T01:30:48.383Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/core/alpha/factor_cli.py",
+      "action": "edit",
+      "tokens": 374,
+      "at": "2026-06-20T01:32:34.463Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/services/factorApi.ts",
+      "action": "edit",
+      "tokens": 120,
+      "at": "2026-06-20T01:32:46.915Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+      "action": "edit",
+      "tokens": 62,
+      "at": "2026-06-20T01:32:57.313Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+      "action": "edit",
+      "tokens": 110,
+      "at": "2026-06-20T01:33:54.815Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+      "action": "edit",
+      "tokens": 92,
+      "at": "2026-06-20T01:35:08.121Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+      "action": "edit",
+      "tokens": 408,
+      "at": "2026-06-20T01:35:24.590Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+      "action": "edit",
+      "tokens": 35,
+      "at": "2026-06-20T01:36:24.665Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+      "action": "edit",
+      "tokens": 467,
+      "at": "2026-06-20T01:38:05.105Z"
+    },
+    {
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
+      "action": "edit",
+      "tokens": 52,
+      "at": "2026-06-20T01:39:29.657Z"
     }
   ],
   "edit_counts": {
-    "api/routes/factor_routes.py": 3,
-    "frontend/src/services/factorApi.ts": 2,
-    "frontend/src/pages/FactorResearch.tsx": 4,
-    ".gitignore": 1
+    "api/routes/factor_routes.py": 6,
+    "frontend/src/services/factorApi.ts": 3,
+    "frontend/src/pages/FactorResearch.tsx": 11,
+    ".gitignore": 1,
+    "C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/feedback-communication-language.md": 1,
+    "C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/feedback-github-token-defer.md": 1,
+    "C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/MEMORY.md": 1,
+    "core/alpha/alpha101/factor_descriptions.py": 5,
+    "core/alpha/factor_advisor.py": 1,
+    "core/alpha/factor_cli.py": 1
   },
-  "anatomy_hits": 8,
-  "anatomy_misses": 6,
-  "repeated_reads_warned": 6,
+  "anatomy_hits": 10,
+  "anatomy_misses": 9,
+  "repeated_reads_warned": 14,
   "cerebrum_warnings": 0,
-  "stop_count": 3
+  "stop_count": 7
 }

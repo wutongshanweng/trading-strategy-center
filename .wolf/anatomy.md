@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T01:02:09.209Z
-> Files: 559 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T01:39:29.635Z
+> Files: 564 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -77,6 +77,12 @@
 - `CLAUDE.md` — Global Guidelines (~601 tok)
 - `settings.json` (~1284 tok)
 
+## C:/Users/Administrator/.claude/projects/d-------trading-strategy-center/memory/
+
+- `feedback-communication-language.md` (~84 tok)
+- `feedback-github-token-defer.md` (~114 tok)
+- `MEMORY.md` — Memory Index (~44 tok)
+
 ## C:/Users/Administrator/.claude/rules/
 
 - `openwolf.md` (~318 tok)
@@ -109,7 +115,7 @@
 - `backtest_routes.py` — API: POST, GET (2 endpoints) (~583 tok)
 - `data_routes.py` — API: GET (3 endpoints) (~593 tok)
 - `db_routes.py` — API: GET, POST (9 endpoints) (~5290 tok)
-- `factor_routes.py` — API: 4 endpoints (~6092 tok)
+- `factor_routes.py` — API: 4 endpoints (~6354 tok)
 - `health_routes.py` — API: GET (1 endpoints) (~76 tok)
 - `intelligence_routes.py` — API routes for intelligence upgrade: RL, risk monitoring, monitoring. (~2371 tok)
 - `llm_routes.py` — API routes for LLM-powered market analysis and strategy generation. (~1318 tok)
@@ -155,7 +161,8 @@
 ## core/alpha/
 
 - `__init__.py` (~58 tok)
-- `factor_cli.py` — cmd_report, cmd_combine, cmd_mine, cmd_health (~3335 tok)
+- `factor_advisor.py` — class: summary, to_dict, advise, advise_from_report (~1563 tok)
+- `factor_cli.py` — cmd_report, cmd_combine, cmd_mine, cmd_health (~3542 tok)
 - `factor_combiner.py` — FactorCombiner: set_factors, equal_weight, ic_weight, regime_weight + 1 more (~1038 tok)
 - `factor_evaluator.py` — class: set_forward_returns, calculate_ic, calculate_ir, calculate_turnover + 1 more (~1000 tok)
 - `factor_library.py` — class: register, get_factor, list_factors, compute_all + 2 more (~738 tok)
@@ -265,6 +272,7 @@
 - `alpha100.py` — Real WorldQuant Alpha101 formula — Alpha100: Return-volume momentum composite (~294 tok)
 - `alpha101.py` — Real WorldQuant Alpha101 formula — Alpha101: ((close - open) / ((high - low) + 0.001)) (~288 tok)
 - `base.py` — Required columns for alpha factor computation (~587 tok)
+- `factor_descriptions.py` (~7390 tok)
 - `factor_pipeline.py` — FactorPipeline: compute_factors (~311 tok)
 - `factor_registry.py` — FactorRegistry: ensure_initialized, reset, register, get + 2 more (~960 tok)
 - `operators.py` — WorldQuant Alpha101 operators — building blocks for complex factor expressions. (~1259 tok)
@@ -574,7 +582,7 @@
 - `Backtest.tsx` — MOCK_RESULTS — renders form, table — uses useForm, useEffect (~2193 tok)
 - `Dashboard.tsx` — MOCK_EQUITY — renders table, chart — uses useEffect, useState (~2593 tok)
 - `DataCenter.tsx` — API (~24615 tok)
-- `FactorResearch.tsx` — mockFactors (~13790 tok)
+- `FactorResearch.tsx` — mockFactors (~14734 tok)
 - `ML.tsx` — MOCK_MODELS — renders form, table, modal — uses useState, useForm, useEffect (~2184 tok)
 - `Monitoring.tsx` — METRICS — renders table, chart — uses useState, useEffect (~3049 tok)
 - `Portfolio.tsx` — MOCK_PORTFOLIO — renders form, table, chart, modal — uses useState, useForm, useEffect (~2601 tok)
@@ -585,7 +593,7 @@
 
 ## frontend/src/services/
 
-- `factorApi.ts` — API routes: POST, GET (9 endpoints) (~796 tok)
+- `factorApi.ts` — API routes: POST, GET (10 endpoints) (~850 tok)
 
 ## frontend/src/store/
 
