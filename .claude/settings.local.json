@@ -1,5 +1,6 @@
 {
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash(grep -n \"^#\\\\{1,2\\\\} \" \"策略交付.md\")",
       "Bash(python -c \"import scipy, numpy, pandas; print\\('scipy', scipy.__version__\\); print\\('numpy', numpy.__version__\\); print\\('pandas', pandas.__version__\\)\")",

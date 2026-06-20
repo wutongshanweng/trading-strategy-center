@@ -510,3 +510,46 @@
 | 11:02 | Phase3 期权: surface/term_arbitrage/futures_combo | options/ | 决策树5场景过 | ~1100 |
 | 11:02 | Phase3 测试+demo | tests/unit/ + ml/demo.py | 32 passed, demo跑通 | ~900 |
 | 11:02 | Phase3 前端: Phase3页面+phase3_routes+菜单 | frontend/ + api/ | 4接口OK,tsc过 | ~700 |
+| 11:05 | Session end: 67 writes across 36 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore, feedback-communication-language.md) | 31 reads | ~80312 tok |
+| 11:21 | Session end: 67 writes across 36 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore, feedback-communication-language.md) | 33 reads | ~81551 tok |
+| 11:23 | Edited .claude/settings.local.json | 3→4 lines | ~22 |
+| 11:24 | Session end: 68 writes across 37 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore, feedback-communication-language.md) | 33 reads | ~81573 tok |
+| 11:24 | Session end: 68 writes across 37 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore, feedback-communication-language.md) | 33 reads | ~81573 tok |
+| 11:31 | Created signals/catalog.py | — | ~1443 |
+| 11:32 | Edited signals/catalog.py | modified _infer_type() | ~1234 |
+| 11:33 | Created signals/strategies/arbitrage_extended.py | — | ~1108 |
+| 11:34 | Edited signals/strategies/arbitrage_extended.py | 6→5 lines | ~33 |
+| 11:35 | Edited api/routes/strategy_routes.py | modified list_all_strategies() | ~335 |
+| 11:35 | Created frontend/src/services/strategyApi.ts | — | ~128 |
+| 11:36 | Created frontend/src/pages/StrategyLibrary.tsx | — | ~1374 |
+| 11:37 | Created ml/model_selector.py | — | ~1017 |
+| 11:38 | Created ml/model_monitor.py | — | ~1151 |
+| 11:38 | Created ml/auto_pipeline.py | — | ~1420 |
+| 11:40 | Created core/feedback_config.py | — | ~130 |
+| 11:41 | Created core/feedback_loop.py | — | ~1392 |
+| 11:41 | Created api/routes/feedback_routes.py | — | ~311 |
+| 11:43 | Created core/llm/strategy_advisor.py | — | ~1366 |
+| 11:44 | Edited api/routes/llm_routes.py | modified list_providers() | ~350 |
+| 11:45 | Edited core/llm/strategy_advisor.py | modified ask() | ~223 |
+| 11:46 | Edited core/llm/strategy_advisor.py | modified _is_error() | ~281 |
+| 11:46 | Edited core/llm/strategy_advisor.py | inline fix | ~10 |
+| 11:48 | Created api/routes/mlopts_routes.py | — | ~1670 |
+| 11:49 | Edited main.py | added 2 import(s) | ~71 |
+| 11:49 | Edited main.py | 2→4 lines | ~40 |
+| 11:49 | Created frontend/src/services/phase4Api.ts | — | ~383 |
+| 11:50 | Created frontend/src/pages/MLAnalyzer.tsx | — | ~1402 |
+| 11:51 | Created frontend/src/pages/Feedback.tsx | — | ~943 |
+| 11:51 | Created frontend/src/pages/LLMConfig.tsx | — | ~1056 |
+| 11:51 | Edited frontend/src/App.tsx | 2→6 lines | ~106 |
+| 11:52 | Edited frontend/src/App.tsx | 2→6 lines | ~118 |
+| 11:52 | Edited frontend/src/components/Layout.tsx | 4→8 lines | ~42 |
+| 11:52 | Edited frontend/src/components/Layout.tsx | 2→6 lines | ~118 |
+| 11:53 | Created tests/unit/test_catalog_feedback.py | — | ~901 |
+| 11:54 | Created tests/unit/test_ml_auto_advisor.py | — | ~906 |
+| 11:55 | Edited frontend/src/components/Layout.tsx | 8→7 lines | ~38 |
+| 11:56 | Phase4 A: signals/catalog.py 策略目录(54策略)+arbitrage_extended补2策略 | signals/ | catalog采集OK | ~1400 |
+| 11:56 | Phase4 B: ml auto_pipeline/model_monitor/model_selector | ml/ | auto重训+退化检测OK | ~1100 |
+| 11:56 | Phase4 C: core/feedback_loop+config+feedback_routes | core/+api/ | 赛后回填OK | ~700 |
+| 11:56 | Phase4 D: llm/strategy_advisor(带降级)+llm_routes接口 | core/llm/+api/ | 降级返回非空OK | ~500 |
+| 11:56 | Phase4 E: mlopts_routes + MLAnalyzer/Feedback/LLMConfig/StrategyLibrary 4页+路由菜单 | api/+frontend/ | RB2510分析OK,tsc过 | ~1500 |
+| 11:56 | Phase4 验证: 全量1112 passed,49 Phase3+4单测过 | tests/ | 无回归 | ~100 |

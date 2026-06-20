@@ -1,7 +1,7 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T03:00:27.756Z
-> Files: 584 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T03:55:53.512Z
+> Files: 601 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
@@ -29,7 +29,7 @@
 - `IMPLEMENTATION_COMPLETE_PHASE1.md` — 🎉 用户需求全面实施完成报告 (~1770 tok)
 - `IMPLEMENTATION_COMPLETE_PHASE2.md` — 🎉 Phase 2 实施完成报告 (~1631 tok)
 - `LICENSE` — Project license (~292 tok)
-- `main.py` — lifespan (~874 tok)
+- `main.py` — lifespan (~930 tok)
 - `nginx.conf` — Nginx configuration (~605 tok)
 - `OPENWOLF_INTEGRATION.md` — OpenWolf Integration Report (~1788 tok)
 - `PROJECT_CLEANUP_REPORT.md` — 项目文件整理完成报告 (~1813 tok)
@@ -50,7 +50,7 @@
 ## .claude/
 
 - `settings.json` (~491 tok)
-- `settings.local.json` (~748 tok)
+- `settings.local.json` — Declares AKShareFetcher (~1121 tok)
 
 ## .claude/rules/
 
@@ -116,13 +116,15 @@
 - `data_routes.py` — API: GET (3 endpoints) (~593 tok)
 - `db_routes.py` — API: GET, POST (9 endpoints) (~5290 tok)
 - `factor_routes.py` — API: 4 endpoints (~6354 tok)
+- `feedback_routes.py` — 反馈闭环 API — 处理锦标赛结果 / 查询反馈历史与排名。 (~311 tok)
 - `health_routes.py` — API: GET (1 endpoints) (~76 tok)
 - `intelligence_routes.py` — API routes for intelligence upgrade: RL, risk monitoring, monitoring. (~2371 tok)
-- `llm_routes.py` — API routes for LLM-powered market analysis and strategy generation. (~1318 tok)
+- `llm_routes.py` — API routes for LLM-powered market analysis and strategy generation. (~1591 tok)
 - `ml_routes.py` — API: GET, POST (3 endpoints) (~662 tok)
+- `mlopts_routes.py` — API: 1 endpoints (~1670 tok)
 - `phase3_routes.py` — API: 4 endpoints (~1463 tok)
 - `portfolio_routes.py` — API: GET, POST (3 endpoints) (~372 tok)
-- `strategy_routes.py` — API: GET, POST (3 endpoints) (~482 tok)
+- `strategy_routes.py` — API: 5 endpoints (~790 tok)
 - `tournament_routes.py` — API routes for Strategy Tournament — rankings, scoring, and elimination. (~817 tok)
 - `trading_routes.py` — API: GET, POST (4 endpoints) (~528 tok)
 
@@ -149,6 +151,8 @@
 
 - `__init__.py` (~0 tok)
 - `exceptions.py` — Declares AppException (~349 tok)
+- `feedback_config.py` — 反馈闭环参数配置。 (~130 tok)
+- `feedback_loop.py` — class: to_dict, process_tournament_results, get_strategy_rankings, get_history + 1 more (~1392 tok)
 
 ## core/adaptive/
 
@@ -332,6 +336,7 @@
 - `deepseek_client.py` — DeepSeek API client — OpenAI-compatible interface for DeepSeek models. (~1746 tok)
 - `llm_client.py` — Generic LLMClient — multi-provider LLM client with auto-discovery. (~1478 tok)
 - `market_analyzer.py` — LLM-powered market analyzer: interpret market data and generate insights. (~1691 tok)
+- `strategy_advisor.py` — LLMStrategyAdvisor: ask, generate_strategy, compute (~1541 tok)
 - `strategy_factory.py` — LLM Strategy Factory — generate, validate, and register complete strategies from natural language. (~3370 tok)
 - `strategy_generator.py` — LLM-powered strategy generator: generate, optimize, and evolve trading strategies. (~1504 tok)
 
@@ -564,7 +569,7 @@
 ## frontend/src/
 
 - `App.css` — Styles: 12 rules, 2 media queries, 2 animations (~557 tok)
-- `App.tsx` — 动态导入页面组件 (~874 tok)
+- `App.tsx` — 动态导入页面组件 (~1025 tok)
 - `main.tsx` (~145 tok)
 
 ## frontend/src/api/
@@ -574,7 +579,7 @@
 ## frontend/src/components/
 
 - `DataSyncPanel.tsx` — DataSyncPanel — renders table — uses useState, useEffect (~3177 tok)
-- `Layout.tsx` — menuItems (~1758 tok)
+- `Layout.tsx` — menuItems (~1851 tok)
 - `RealtimeSignalPanel.tsx` — generateMockSignal — uses useState, useEffect (~3281 tok)
 - `StrategyBuilder.tsx` — StrategyBuilder — renders form — uses useForm, useState (~2711 tok)
 
@@ -584,12 +589,16 @@
 - `Dashboard.tsx` — MOCK_EQUITY — renders table, chart — uses useEffect, useState (~2593 tok)
 - `DataCenter.tsx` — API (~24615 tok)
 - `FactorResearch.tsx` — mockFactors (~14734 tok)
+- `Feedback.tsx` — Feedback — renders table (~943 tok)
+- `LLMConfig.tsx` — LLMConfig (~1056 tok)
 - `ML.tsx` — MOCK_MODELS — renders form, table, modal — uses useState, useForm, useEffect (~2184 tok)
+- `MLAnalyzer.tsx` — DIR_COLOR (~1402 tok)
 - `Monitoring.tsx` — METRICS — renders table, chart — uses useState, useEffect (~3049 tok)
 - `Phase3.tsx` — ivColor — renders table (~2779 tok)
 - `Portfolio.tsx` — MOCK_PORTFOLIO — renders form, table, chart, modal — uses useState, useForm, useEffect (~2601 tok)
 - `Settings.tsx` — Settings — renders form — uses useState, useForm (~2262 tok)
 - `Strategy.tsx` — statusMap — renders form, table, modal — uses useState, useForm, useEffect (~2352 tok)
+- `StrategyLibrary.tsx` — TYPE_CN — renders table (~1374 tok)
 - `Tournament.tsx` — MOCK_STANDINGS — renders table — uses useEffect (~1740 tok)
 - `Trading.tsx` — MOCK_POSITIONS — renders form, table, chart, modal — uses useEffect, useState, useForm (~3626 tok)
 
@@ -597,6 +606,8 @@
 
 - `factorApi.ts` — API routes: POST, GET (10 endpoints) (~850 tok)
 - `phase3Api.ts` — API routes: GET, POST (4 endpoints) (~254 tok)
+- `phase4Api.ts` — API routes: POST, GET (7 endpoints) (~383 tok)
+- `strategyApi.ts` — API routes: GET (2 endpoints) (~128 tok)
 
 ## frontend/src/store/
 
@@ -636,9 +647,12 @@
 ## ml/
 
 - `__init__.py` — ML 模块统一导出。 (~205 tok)
+- `auto_pipeline.py` — class: to_dict, run (~1420 tok)
 - `demo.py` — demo_ml, train_fn, demo_options (~1470 tok)
 - `ensemble.py` — ModelEnsemble: add_model, fit, predict, weights_info (~651 tok)
 - `hyperopt.py` — HyperoptSearcher: search, objective (~1444 tok)
+- `model_monitor.py` — from: to_dict, check, batch_check (~1151 tok)
+- `model_selector.py` — ModelSelector: score_model, select, select_with_hyperopt, train_fn (~1017 tok)
 - `pipeline.py` — class: train, predict, get_pipeline_summary (~1333 tok)
 - `registry.py` — class: save, load, list_models, delete + 1 more (~1488 tok)
 - `signal_adapter.py` — MLSignalAdapter: to_signals, to_combined_signal (~662 tok)
@@ -813,6 +827,7 @@
 
 - `__init__.py` (~0 tok)
 - `base.py` — Direction: compute (~347 tok)
+- `catalog.py` — StrategyType: to_dict, register, build_from_registry, query + 6 more (~2627 tok)
 - `engine.py` — View: get (~573 tok)
 - `indicators.py` — SMA, EMA, RSI, MACD + 29 more (~3418 tok)
 - `price_action.py` — detect_engulfing, detect_doji, detect_hammer, detect_shooting_star + 3 more (~610 tok)
@@ -827,7 +842,7 @@
 
 - `__init__.py` — 策略包自动加载器。 (~243 tok)
 - `arbitrage_carry.py` — 套利 / Carry / 期限结构 / 季节性策略。 (~3118 tok)
-- `arbitrage_extended.py` (~0 tok)
+- `arbitrage_extended.py` — 套利策略增强版 — 补充 arbitrage_carry.py 之外的套利变体。 (~1103 tok)
 - `breakout_extended.py` — 突破类策略扩展。 (~1939 tok)
 - `breakout_strategies.py` — BreakoutDonchian: compute, compute, compute (~1422 tok)
 - `filter_strategies.py` — FilterVolatility: compute, compute, compute (~1447 tok)
@@ -890,9 +905,11 @@
 - `test_alpha061_101.py` — Tests: alpha_factor, alpha_factor_description, alpha_factor_compute_with_lookback, alpha_factor_not_all_nan + 1 more (~739 tok)
 - `test_alpha101_base.py` — Tests: is_abstract, subclass_interface, validate_with_complete_data, validate_with_missing_columns + 6 more (~1521 tok)
 - `test_alpha101.py` — Tests: is_abstract, subclass_interface, is_alpha_base, properties + 8 more (~1053 tok)
+- `test_catalog_feedback.py` — Phase4 A篇 — 策略目录 + C篇 反馈闭环 测试。 (~901 tok)
 - `test_factor_cli.py` — factor_cli 统一入口 — 单元测试 (CSV 路径, 不依赖仓库/网络)。 (~819 tok)
 - `test_factor_mining.py` — 因子挖掘 — 单元测试 (Spec §7.1)。 (~1087 tok)
 - `test_factor_phase2.py` — 因子管理 Phase2 — 算子集/健康检测/行业中性化/报告 单元测试。 (~1395 tok)
+- `test_ml_auto_advisor.py` — Phase4 B篇 ML自动迭代 + D篇 LLM建议器 测试。 (~906 tok)
 - `test_ml_features.py` — ML 特征工程测试。 (~726 tok)
 - `test_ml_registry.py` — ML 模型注册中心 / sklearn 包装 / 超参搜索 / 集成 测试。 (~980 tok)
 - `test_options_strategies_extended.py` — 期权-期货联合策略 / ML 信号适配器 扩展测试。 (~689 tok)

@@ -145,3 +145,29 @@ async def list_providers():
     client = LLMClient()
     providers = client.list_providers()
     return {"providers": providers}
+
+
+# ---- Phase4: 策略建议器 (Agent → LLM) ----
+
+class StrategyAdviceRequest(BaseModel):
+    question: str = Field(..., description="自然语言策略问题")
+    context: Dict[str, Any] = Field(default_factory=dict, description="市态/品种等上下文")
+
+
+class StrategyDraftRequest(BaseModel):
+    description: str = Field(..., description="策略的自然语言描述")
+
+
+@router.post("/strategy/advise", summary="LLM 策略建议 (基于策略目录)")
+async def strategy_advise(req: StrategyAdviceRequest):
+    """让 LLM 基于当前策略库 + 市场上下文给出建议 (无 LLM 时本地降级)。"""
+    from core.llm.strategy_advisor import LLMStrategyAdvisor
+    advice = LLMStrategyAdvisor().ask(req.question, req.context)
+    return {"question": req.question, "advice": advice}
+
+
+@router.post("/strategy/draft", summary="LLM 据描述生成策略代码草稿")
+async def strategy_draft(req: StrategyDraftRequest):
+    """据自然语言描述生成策略代码草稿 (无 LLM 时返回模板)。"""
+    from core.llm.strategy_advisor import LLMStrategyAdvisor
+    return LLMStrategyAdvisor().generate_strategy(req.description)

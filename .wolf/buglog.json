@@ -1456,6 +1456,70 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-20T03:00:27.779Z"
+    },
+    {
+      "id": "bug-090",
+      "timestamp": "2026-06-20T03:45:35.895Z",
+      "error_message": "Significant refactor of ",
+      "file": "core/llm/strategy_advisor.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 13→17 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T03:45:35.895Z"
+    },
+    {
+      "id": "bug-091",
+      "timestamp": "2026-06-20T03:46:40.025Z",
+      "error_message": "Wrong reference: List should be Optional",
+      "file": "core/llm/strategy_advisor.py",
+      "root_cause": "Used \"List\" instead of \"Optional\"",
+      "fix": "Changed List → Optional",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T03:46:40.025Z"
+    },
+    {
+      "id": "bug-092",
+      "timestamp": "2026-06-20T03:51:52.002Z",
+      "error_message": "Missing import: ./pages/StrategyLibrary, ./pages/MLAnalyzer, ./pages/Feedback, ./pages/LLMConfig",
+      "file": "frontend/src/App.tsx",
+      "root_cause": "Module(s) not imported: ./pages/StrategyLibrary, ./pages/MLAnalyzer, ./pages/Feedback, ./pages/LLMConfig",
+      "fix": "Added import(s) for ./pages/StrategyLibrary, ./pages/MLAnalyzer, ./pages/Feedback, ./pages/LLMConfig",
+      "tags": [
+        "auto-detected",
+        "missing-import",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T03:51:52.002Z"
+    },
+    {
+      "id": "bug-093",
+      "timestamp": "2026-06-20T03:52:43.418Z",
+      "error_message": "CSS fix: key",
+      "file": "frontend/src/components/Layout.tsx",
+      "root_cause": "key: \"/phase3\", icon: <ThunderboltOutlined />, label: \"ML+期权\" → \"/llm-config\", icon: <ApiOutlined />, label: \"LLM配置\"",
+      "fix": "Changed key: \"/phase3\", icon: <ThunderboltOutlined />, label: \"ML+期权\" → \"/llm-config\", icon: <ApiOutlined />, label: \"LLM配置\"",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T03:52:43.418Z"
     }
   ]
 }

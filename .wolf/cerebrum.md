@@ -37,6 +37,7 @@
 - [2026-06-15] When adding new routes, must import and register in main.py (e.g., factor_router). Server needs restart to pick up new routes
 - [2026-06-15] Windows paths in bash: use forward slashes or escape backslashes properly
 - [2026-06-20] 装 Python 包必须用 `python -m pip install`（项目跑在 C:\Program Files\Python310），裸 `pip` 默认指向 Python314 会装错解释器，且会顺带升级 3.14 的 numpy/scipy。验证安装也要用项目的 python。
+- [2026-06-20] **Spec 的"现状描述"可能严重过时,落地前必须核实真实文件**。Phase4 spec 声称 signals/strategies/ 全是 0 字节空文件需补齐,实际已有 54 个实现完整的策略——若照搬会覆盖大量已有代码。教训:对 spec 里"现状/缺口"类断言,先用 wc -c / grep / Explore 核实,再决定做什么。用户已确认"spec 只是参考,按实际情况发挥"。
 
 ## Decision Log
 

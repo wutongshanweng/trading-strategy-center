@@ -20,6 +20,37 @@ async def list_all_strategies():
     return {"strategies": list_strategies()}
 
 
+@router.get("/catalog")
+async def strategy_catalog(
+    regime: Optional[str] = None,
+    strategy_type: Optional[str] = None,
+    symbol: Optional[str] = None,
+    top_k: int = 200,
+):
+    """策略目录查询 — 按市态/类型/品种过滤, 含运行期表现。"""
+    from signals.catalog import get_catalog
+    cat = get_catalog()
+    results = cat.query(regime=regime, strategy_type=strategy_type,
+                        symbol=symbol, top_k=top_k, active_only=False)
+    return {"total": len(results), "strategies": [s.to_dict() for s in results]}
+
+
+@router.get("/catalog/grouped")
+async def strategy_catalog_grouped():
+    """策略目录按类型分组 — 供前端策略库页展示。"""
+    from signals.catalog import get_catalog
+    cat = get_catalog()
+    grouped = cat.list_by_type()
+    out = {}
+    for stype, metas in grouped.items():
+        active = sum(1 for m in metas if m.is_active)
+        out[stype] = {
+            "count": len(metas), "active": active, "inactive": len(metas) - active,
+            "strategies": [m.to_dict() for m in metas],
+        }
+    return {"types": out, "total": sum(len(m) for m in grouped.values())}
+
+
 @router.get("/{name}")
 async def get_strategy_detail(name: str):
     cls = get_strategy(name)
