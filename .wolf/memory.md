@@ -420,3 +420,22 @@
 | 21:25 | Edited core/alpha/factor_cli.py | added error handling | ~282 |
 | 21:50 | Session end: 150 writes across 44 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 61 reads | ~186204 tok |
 | 22:45 | 因子研究用户入口: factor_cli.py统一CLI(6命令report/combine/mine/health/layered/scan,全资产,优先HTTP API避DuckDB锁)+USAGE真实指南+前端标的下拉从仓库动态加载+修CLI测试全局registry污染(无条件补齐alpha101类) | factor_cli.py,USAGE_FACTOR.md,FactorResearch.tsx,test_factor_cli.py | 8CLI单测+1063回归通过 | ~50k |
+| 00:16 | Session end: 150 writes across 44 files (cross_market.py, options_analytics.py, test_options_analytics.py, options_collector.py, test_options_collector_greeks.py) | 61 reads | ~186204 tok |
+
+## Session: 2026-06-19 07:51
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 08:48 | Edited api/routes/factor_routes.py | modified full_analysis() | ~996 |
+| 08:48 | Edited frontend/src/services/factorApi.ts | expanded (+6 lines) | ~66 |
+| 08:49 | Edited frontend/src/services/factorApi.ts | modified neutralize() | ~120 |
+| 08:50 | Edited frontend/src/pages/FactorResearch.tsx | 23→27 lines | ~95 |
+| 08:50 | Edited frontend/src/pages/FactorResearch.tsx | expanded (+6 lines) | ~184 |
+| 08:51 | Edited frontend/src/pages/FactorResearch.tsx | added error handling | ~1735 |
+| 08:51 | Edited frontend/src/pages/FactorResearch.tsx | expanded (+41 lines) | ~497 |
+| 08:54 | Edited api/routes/factor_routes.py | modified _safe() | ~116 |
+| 08:54 | Edited api/routes/factor_routes.py | float() → _safe() | ~516 |
+| 08:55 | Verified /api/factor/full-analysis (RB2510, 243 bars, 101 factors) + 404 path | api/routes/factor_routes.py | endpoint OK | ~200 |
+| 08:55 | Logged bug-081 (NaN/Inf JSON serialization) | .wolf/buglog.json | done | ~60 |
+| 08:59 | Session end: 9 writes across 3 files (factor_routes.py, factorApi.ts, FactorResearch.tsx) | 13 reads | ~30742 tok |
+| 09:02 | Edited .gitignore | 5→8 lines | ~31 |

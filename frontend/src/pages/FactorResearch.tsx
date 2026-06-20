@@ -15,12 +15,16 @@ import {
   Spin,
   message,
   Divider,
+  Input,
+  Progress,
+  Empty,
 } from "antd";
 import {
   ExperimentOutlined,
   LineChartOutlined,
   BarChartOutlined,
   ReloadOutlined,
+  SearchOutlined,
 } from "@ant-design/icons";
 import { factorApi } from "../services/factorApi";
 
@@ -126,6 +130,12 @@ export default function FactorResearch() {
   const [healthData, setHealthData] = useState<any>(null);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportData, setReportData] = useState<any>(null);
+
+  // 一键完整分析状态
+  const [symbolInput, setSymbolInput] = useState("");
+  const [analysisLoading, setAnalysisLoading] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState("");
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
 
   // 标的列表 (从仓库加载, 期货/股票/期权全资产)
   const [symbolOptions, setSymbolOptions] = useState<{ code: string; status?: string }[]>([
@@ -795,6 +805,147 @@ export default function FactorResearch() {
     );
   };
 
+  // ───────── 一键完整分析 ─────────
+  const handleFullAnalysis = async () => {
+    const sym = symbolInput.trim().toUpperCase();
+    if (!sym) {
+      message.warning("请输入合约代码");
+      return;
+    }
+    setAnalysisLoading(true);
+    setAnalysisResult(null);
+    setAnalysisProgress("正在加载行情数据 / 计算 101 个 Alpha 因子...");
+    try {
+      const result = await factorApi.fullAnalysis({ symbol: sym });
+      if (result?.success) {
+        setAnalysisResult(result);
+        message.success(`${sym} 完整分析完成 (${result.data_points} 条数据)`);
+      } else {
+        message.error("分析返回异常");
+      }
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail || error?.message || "未知错误";
+      message.error(`分析失败: ${detail}`);
+    } finally {
+      setAnalysisLoading(false);
+      setAnalysisProgress("");
+    }
+  };
+
+  const healthColor = (h: string) =>
+    h === "HEALTHY" ? "#52c41a" : h === "WARNING" ? "#faad14" : "#ff4d4f";
+  const healthIcon = (h: string) =>
+    h === "HEALTHY" ? "✅" : h === "WARNING" ? "⚠️" : "❌";
+
+  const renderAnalysisResult = () => {
+    if (!analysisResult) return null;
+    const r = analysisResult;
+    const topRows = (r.top_factors || []).map((f: any) => ({ ...f, key: f.name }));
+    const layeredQs = r.layered?.quantiles || [];
+    const maxAbs = Math.max(
+      0.0001,
+      ...layeredQs.map((q: any) => Math.abs(q.mean_return || 0))
+    );
+    return (
+      <>
+        {/* 总览卡片 */}
+        <Card title="📊 因子总览" style={{ marginBottom: 16 }}>
+          <Row gutter={[16, 16]}>
+            <Col xs={12} sm={6}>
+              <Statistic title="Top因子平均IC" value={r.ic_stats?.mean ?? 0}
+                precision={4}
+                valueStyle={{ color: (r.ic_stats?.mean ?? 0) > 0 ? "#52c41a" : "#ff4d4f" }} />
+            </Col>
+            <Col xs={12} sm={6}>
+              <Statistic title="正IC因子" value={r.ic_stats?.positive_count ?? 0}
+                suffix={`/ ${r.ic_stats?.total ?? 0}`} valueStyle={{ color: "#1890ff" }} />
+            </Col>
+            <Col xs={12} sm={6}>
+              <Statistic title="推荐组合数" value={(r.recommended || []).length}
+                valueStyle={{ color: "#722ed1" }} />
+            </Col>
+            <Col xs={12} sm={6}>
+              <Space direction="vertical" size={0}>
+                <Text style={{ color: "#52c41a" }}>✅ 健康 {r.health_distribution?.healthy ?? 0}</Text>
+                <Text style={{ color: "#faad14" }}>⚠️ 警告 {r.health_distribution?.warning ?? 0}</Text>
+                <Text style={{ color: "#ff4d4f" }}>❌ 失效 {r.health_distribution?.decayed ?? 0}</Text>
+              </Space>
+            </Col>
+          </Row>
+          <Divider style={{ margin: "12px 0" }} />
+          <Text type="secondary">
+            数据来源: 仓库直连 · {r.data_points} 条 D1 · 推荐组合 IC={r.recommended_ic} ICIR={r.recommended_icir}
+          </Text>
+          <div style={{ marginTop: 8 }}>
+            {(r.recommended || []).map((n: string) => (
+              <Tag color="purple" key={n}>{n}</Tag>
+            ))}
+          </div>
+        </Card>
+
+        {/* 排名表格 */}
+        <Card title="🏆 因子排名 + 推荐组合" style={{ marginBottom: 16 }}>
+          <Table
+            dataSource={topRows}
+            size="small"
+            pagination={{ pageSize: 10 }}
+            columns={[
+              { title: "#", dataIndex: "rank", key: "rank", width: 50 },
+              { title: "因子", dataIndex: "name", key: "name",
+                render: (t: string) => <Text strong>{t}</Text> },
+              { title: "IC", dataIndex: "ic", key: "ic",
+                render: (v: number) => (
+                  <Text style={{ color: v > 0 ? "#52c41a" : "#ff4d4f" }}>{v?.toFixed(4)}</Text>
+                ) },
+              { title: "ICIR", dataIndex: "icir", key: "icir",
+                render: (v: number) => v?.toFixed(2) },
+              { title: "多空Sharpe", dataIndex: "sharpe", key: "sharpe",
+                render: (v: number) => v?.toFixed(2) },
+              { title: "健康", dataIndex: "health", key: "health",
+                render: (h: string) => (
+                  <span style={{ color: healthColor(h) }}>{healthIcon(h)} {h}</span>
+                ) },
+              { title: "推荐", dataIndex: "recommended", key: "recommended",
+                width: 60, render: (v: boolean) => (v ? <Text style={{ color: "#faad14" }}>★</Text> : "") },
+            ]}
+          />
+        </Card>
+
+        {/* 分层回测柱状图 */}
+        <Card title={`📉 分层回测${r.layered?.factor ? ` — ${r.layered.factor}` : ""}`} style={{ marginBottom: 16 }}>
+          {layeredQs.length ? (
+            <>
+              {layeredQs.map((q: any) => {
+                const pct = (Math.abs(q.mean_return) / maxAbs) * 100;
+                const pos = q.mean_return >= 0;
+                return (
+                  <div key={q.quantile} style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+                    <span style={{ width: 40 }}>{q.quantile}</span>
+                    <div style={{ flex: 1, background: "#f0f0f0", borderRadius: 4, height: 22 }}>
+                      <div style={{
+                        width: `${pct}%`, height: "100%", borderRadius: 4,
+                        background: pos ? "#52c41a" : "#ff4d4f", transition: "width .3s",
+                      }} />
+                    </div>
+                    <span style={{ width: 90, textAlign: "right", color: pos ? "#52c41a" : "#ff4d4f" }}>
+                      {(q.mean_return * 100).toFixed(3)}%
+                    </span>
+                  </div>
+                );
+              })}
+              <Divider style={{ margin: "12px 0" }} />
+              <Space size="large">
+                <Text>多空收益: <Text strong style={{ color: r.layered.long_short_return >= 0 ? "#52c41a" : "#ff4d4f" }}>
+                  {(r.layered.long_short_return * 100).toFixed(3)}%</Text></Text>
+                <Text>多空夏普: <Text strong>{r.layered.long_short_sharpe?.toFixed(2)}</Text></Text>
+              </Space>
+            </>
+          ) : <Empty description="无分层数据" />}
+        </Card>
+      </>
+    );
+  };
+
   return (
     <div>
       <Alert
@@ -805,6 +956,47 @@ export default function FactorResearch() {
         closable
         style={{ marginBottom: 16 }}
       />
+
+      {/* 一键完整分析 */}
+      <Card style={{ marginBottom: 16 }}>
+        <Title level={4} style={{ marginTop: 0 }}>🧬 因子完整分析</Title>
+        <Space.Compact style={{ width: "100%" }}>
+          <Input
+            size="large"
+            allowClear
+            placeholder="输入合约代码，如 RB2510 / 600019.SH / IO"
+            value={symbolInput}
+            onChange={(e) => setSymbolInput(e.target.value)}
+            onPressEnter={handleFullAnalysis}
+            prefix={<SearchOutlined />}
+            disabled={analysisLoading}
+          />
+          <Button
+            type="primary"
+            size="large"
+            loading={analysisLoading}
+            onClick={handleFullAnalysis}
+          >
+            🧬 完整分析
+          </Button>
+        </Space.Compact>
+        <Text type="secondary" style={{ marginTop: 8, display: "block" }}>
+          支持: 期货合约(RB2510) / 股票(600019.SH) / 期权(IO) — 数据直连仓库，全 101 因子真实计算
+        </Text>
+        {analysisLoading && (
+          <Progress percent={100} status="active" showInfo={false} style={{ marginTop: 12 }} />
+        )}
+        {analysisLoading && (
+          <Text type="secondary">{analysisProgress}</Text>
+        )}
+      </Card>
+
+      {!analysisLoading && analysisResult && renderAnalysisResult()}
+      {!analysisLoading && !analysisResult && (
+        <Card style={{ marginBottom: 16 }}>
+          <Empty description="输入合约代码，点击「完整分析」开始" />
+        </Card>
+      )}
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
         <Col xs={24} sm={12} lg={6}>

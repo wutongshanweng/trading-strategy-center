@@ -460,6 +460,104 @@ async def factor_report(req: ReportRequest) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=f"报告生成失败: {str(e)}")
 
 
+class FullAnalysisRequest(BaseModel):
+    symbol: str                       # 合约/股票/期权代码 如 RB2510 / 600019.SH
+    top_n: int = 20
+    n_quantiles: int = 5
+
+
+def _safe(v) -> float:
+    """NaN/Inf → 0.0, 否则 float (避免 JSON 序列化报 out-of-range)。"""
+    try:
+        f = float(v)
+        return f if np.isfinite(f) else 0.0
+    except (TypeError, ValueError):
+        return 0.0
+
+
+@router.post("/full-analysis")
+async def full_analysis(req: FullAnalysisRequest) -> Dict[str, Any]:
+    """一键完整分析: 取真实行情 → 全 101 Alpha 因子 → IC/健康/排名/推荐 → 头名因子分层。
+
+    复用 factor_cli 的取数与因子计算 (不走 subprocess), 数据源仅真实仓库,
+    无数据直接 404 (不回退 mock — 一键分析要么真要么报错)。
+    """
+    try:
+        from core.alpha import factor_cli
+        from core.alpha.management import FactorReportGenerator
+
+        df = factor_cli._load_from_warehouse(req.symbol)
+        if df is None or df.empty:
+            raise HTTPException(404, f"{req.symbol} 无仓库数据 (先在数据中心采集)")
+        if len(df) < 30:
+            raise HTTPException(422, f"{req.symbol} 数据不足 ({len(df)} 条, 需 ≥30)")
+
+        fwd = df["close"].pct_change().shift(-1)
+        factors = factor_cli._alpha101_factors(df)
+        if factors.empty:
+            raise HTTPException(500, "无可用因子 (Alpha101 计算全部失败)")
+
+        rep = FactorReportGenerator().generate(
+            factors, fwd, top_n=req.top_n, n_quantiles=req.n_quantiles)
+
+        # 头名因子分层 (Q1..Qn + 多空), 供前端柱状图
+        layered: Dict[str, Any] = {"quantiles": [], "long_short_return": 0.0,
+                                   "long_short_sharpe": 0.0, "factor": None}
+        if rep.top_factors:
+            top_name = rep.top_factors[0].name
+            lb = FactorAnalyzer().layered_backtest(
+                factors[top_name], fwd, req.n_quantiles)
+            quantiles = [
+                {"quantile": f"Q{i}",
+                 "mean_return": _safe(lb.get(f"Q{i}", {}).get("mean_return")),
+                 "sharpe": _safe(lb.get(f"Q{i}", {}).get("sharpe"))}
+                for i in range(1, req.n_quantiles + 1) if f"Q{i}" in lb
+            ]
+            ls = lb.get("long_short", {})
+            layered = {
+                "factor": top_name,
+                "quantiles": quantiles,
+                "long_short_return": _safe(ls.get("mean_return")),
+                "long_short_sharpe": _safe(ls.get("sharpe")),
+            }
+
+        top = rep.top_factors
+        positive = sum(1 for f in top if f.ic_mean > 0)
+        ic_mean = round(_safe(np.mean([f.ic_mean for f in top])), 4) if top else 0.0
+
+        return {
+            "success": True,
+            "symbol": req.symbol,
+            "data_source": "warehouse",
+            "data_points": len(df),
+            "ic_stats": {
+                "mean": ic_mean,
+                "positive_count": positive,
+                "total": rep.total_factors,
+            },
+            "health_distribution": {
+                "healthy": rep.healthy_count,
+                "warning": rep.warning_count,
+                "decayed": rep.decayed_count,
+            },
+            "top_factors": [
+                {"rank": f.rank, "name": f.name, "ic": _safe(f.ic_mean),
+                 "icir": _safe(f.icir), "sharpe": _safe(f.sharpe_q5q1),
+                 "turnover": _safe(f.turnover),
+                 "health": f.health, "recommended": f.is_recommended}
+                for f in top
+            ],
+            "recommended": rep.recommended,
+            "recommended_ic": _safe(rep.recommended_ic),
+            "recommended_icir": _safe(rep.recommended_icir),
+            "layered": layered,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(status_code=500, detail=f"完整分析失败: {str(e)}")
+
+
 class NeutralizeRequest(BaseModel):
     values: Dict[str, float]          # {标的: 因子值}
     industries: Dict[str, str]        # {标的: 行业}

@@ -1,12 +1,12 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-19T13:25:55.429Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T01:02:09.209Z
 > Files: 559 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.dockerignore` — Docker ignore rules (~26 tok)
-- `.gitignore` — Git ignore rules (~82 tok)
+- `.gitignore` — Git ignore rules (~93 tok)
 - `alembic.ini` (~162 tok)
 - `api.log` (~177 tok)
 - `ARCHITECTURE.md` — 交易策略中心 — 架构设计文档 (~18087 tok)
@@ -109,7 +109,7 @@
 - `backtest_routes.py` — API: POST, GET (2 endpoints) (~583 tok)
 - `data_routes.py` — API: GET (3 endpoints) (~593 tok)
 - `db_routes.py` — API: GET, POST (9 endpoints) (~5290 tok)
-- `factor_routes.py` — API: 4 endpoints (~5042 tok)
+- `factor_routes.py` — API: 4 endpoints (~6092 tok)
 - `health_routes.py` — API: GET (1 endpoints) (~76 tok)
 - `intelligence_routes.py` — API routes for intelligence upgrade: RL, risk monitoring, monitoring. (~2371 tok)
 - `llm_routes.py` — API routes for LLM-powered market analysis and strategy generation. (~1318 tok)
@@ -574,7 +574,7 @@
 - `Backtest.tsx` — MOCK_RESULTS — renders form, table — uses useForm, useEffect (~2193 tok)
 - `Dashboard.tsx` — MOCK_EQUITY — renders table, chart — uses useEffect, useState (~2593 tok)
 - `DataCenter.tsx` — API (~24615 tok)
-- `FactorResearch.tsx` — mockFactors (~11575 tok)
+- `FactorResearch.tsx` — mockFactors (~13790 tok)
 - `ML.tsx` — MOCK_MODELS — renders form, table, modal — uses useState, useForm, useEffect (~2184 tok)
 - `Monitoring.tsx` — METRICS — renders table, chart — uses useState, useEffect (~3049 tok)
 - `Portfolio.tsx` — MOCK_PORTFOLIO — renders form, table, chart, modal — uses useState, useForm, useEffect (~2601 tok)
@@ -585,7 +585,7 @@
 
 ## frontend/src/services/
 
-- `factorApi.ts` — API routes: POST, GET (8 endpoints) (~702 tok)
+- `factorApi.ts` — API routes: POST, GET (9 endpoints) (~796 tok)
 
 ## frontend/src/store/
 

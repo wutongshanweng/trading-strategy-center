@@ -44,6 +44,12 @@ export interface NeutralizeRequest {
   method?: string;
 }
 
+export interface FullAnalysisRequest {
+  symbol: string;
+  top_n?: number;
+  n_quantiles?: number;
+}
+
 export const factorApi = {
   // IC分析
   async icAnalysis(request: ICAnalysisRequest) {
@@ -91,6 +97,12 @@ export const factorApi = {
   // Phase2: 行业中性化
   async neutralize(request: NeutralizeRequest) {
     const response = await axios.post(`${API_BASE_URL}/api/factor/neutralize`, request);
+    return response.data;
+  },
+
+  // 一键完整分析 (真实仓库数据, 全 101 因子)
+  async fullAnalysis(request: FullAnalysisRequest) {
+    const response = await axios.post(`${API_BASE_URL}/api/factor/full-analysis`, request, { timeout: 120000 });
     return response.data;
   },
 };

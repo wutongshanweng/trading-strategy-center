@@ -1,444 +1,149 @@
 {
-  "session_id": "session-2026-06-18-1946",
-  "started": "2026-06-18T11:46:56.025Z",
+  "session_id": "session-2026-06-19-0751",
+  "started": "2026-06-19T23:51:31.833Z",
   "files_read": {
     "d:/完整项目/trading-strategy-center/.wolf/anatomy.md": {
-      "count": 2,
+      "count": 1,
       "tokens": 0,
-      "first_read": "2026-06-18T11:49:37.105Z"
+      "first_read": "2026-06-19T23:51:58.065Z"
+    },
+    "d:/完整项目/trading-strategy-center/main.py": {
+      "count": 1,
+      "tokens": 846,
+      "first_read": "2026-06-19T23:52:10.517Z"
+    },
+    "d:/完整项目/trading-strategy-center/api.run.log": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-06-19T23:53:52.446Z"
+    },
+    "d:/完整项目/trading-strategy-center/frontend.run.log": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-06-19T23:54:00.487Z"
+    },
+    "d:/完整项目/trading-strategy-center/docs/SPEC_FRONTEND_ANALYSIS.md": {
+      "count": 1,
+      "tokens": 0,
+      "first_read": "2026-06-20T00:46:45.225Z"
     },
     "d:/完整项目/trading-strategy-center/.wolf/cerebrum.md": {
       "count": 1,
       "tokens": 0,
-      "first_read": "2026-06-18T11:49:37.283Z"
+      "first_read": "2026-06-20T00:46:54.070Z"
     },
-    "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx": {
-      "count": 17,
-      "tokens": 15133,
-      "first_read": "2026-06-18T11:49:47.043Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/api/warehouse.py": {
+    "d:/完整项目/trading-strategy-center/core/alpha/factor_cli.py": {
       "count": 1,
-      "tokens": 1414,
-      "first_read": "2026-06-18T11:50:10.228Z"
+      "tokens": 3335,
+      "first_read": "2026-06-20T00:46:59.611Z"
     },
-    "d:/完整项目/trading-strategy-center/data_center/api/__init__.py": {
+    "d:/完整项目/trading-strategy-center/core/alpha/management/report_generator.py": {
+      "count": 1,
+      "tokens": 2746,
+      "first_read": "2026-06-20T00:47:06.631Z"
+    },
+    "d:/完整项目/trading-strategy-center/research/factor_lab/factor_analyzer.py": {
+      "count": 1,
+      "tokens": 2082,
+      "first_read": "2026-06-20T00:47:20.241Z"
+    },
+    "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py": {
+      "count": 1,
+      "tokens": 5042,
+      "first_read": "2026-06-20T00:47:26.112Z"
+    },
+    "d:/完整项目/trading-strategy-center/frontend/src/services/factorApi.ts": {
+      "count": 1,
+      "tokens": 702,
+      "first_read": "2026-06-20T00:47:31.987Z"
+    },
+    "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx": {
       "count": 4,
-      "tokens": 4445,
-      "first_read": "2026-06-18T11:50:22.018Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/collectors/stocks_collector.py": {
-      "count": 1,
-      "tokens": 664,
-      "first_read": "2026-06-18T11:50:42.082Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/collectors/options_collector.py": {
-      "count": 1,
-      "tokens": 910,
-      "first_read": "2026-06-18T11:50:46.814Z"
-    },
-    "d:/完整项目/trading-strategy-center/scripts/download_all.py": {
-      "count": 1,
-      "tokens": 1586,
-      "first_read": "2026-06-18T11:50:59.302Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/db/seeds/products.csv": {
-      "count": 1,
-      "tokens": 457,
-      "first_read": "2026-06-18T11:51:16.554Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/collectors/base_collector.py": {
-      "count": 1,
-      "tokens": 668,
-      "first_read": "2026-06-18T11:51:24.809Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/collectors/futures_collector.py": {
-      "count": 6,
-      "tokens": 2112,
-      "first_read": "2026-06-18T11:51:34.829Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/storage/duckdb_store.py": {
-      "count": 1,
-      "tokens": 833,
-      "first_read": "2026-06-18T11:51:43.233Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/db/init_schema.sql": {
-      "count": 2,
-      "tokens": 929,
-      "first_read": "2026-06-18T11:51:50.717Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/history/data_store.py": {
-      "count": 1,
-      "tokens": 1622,
-      "first_read": "2026-06-18T11:54:05.620Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/core/data_source.py": {
-      "count": 2,
-      "tokens": 3025,
-      "first_read": "2026-06-18T11:54:16.955Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/fetchers/akshare_fetcher.py": {
-      "count": 2,
-      "tokens": 2979,
-      "first_read": "2026-06-18T11:54:38.669Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/fetchers/baostock_fetcher.py": {
-      "count": 1,
-      "tokens": 1415,
-      "first_read": "2026-06-18T11:54:59.301Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/fetchers/options_fetcher.py": {
-      "count": 2,
-      "tokens": 3399,
-      "first_read": "2026-06-18T11:55:12.375Z"
-    },
-    "d:/完整项目/trading-strategy-center/.wolf/memory.md": {
-      "count": 1,
-      "tokens": 0,
-      "first_read": "2026-06-18T11:59:42.000Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/core/base_fetcher.py": {
-      "count": 1,
-      "tokens": 1337,
-      "first_read": "2026-06-18T12:01:59.682Z"
-    },
-    "d:/完整项目/trading-strategy-center/main.py": {
-      "count": 2,
-      "tokens": 798,
-      "first_read": "2026-06-18T12:06:41.231Z"
+      "tokens": 11664,
+      "first_read": "2026-06-20T00:47:36.338Z"
     },
     "d:/完整项目/trading-strategy-center/.wolf/buglog.json": {
-      "count": 4,
+      "count": 3,
       "tokens": 0,
-      "first_read": "2026-06-18T12:16:55.201Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/history/download_manager.py": {
-      "count": 2,
-      "tokens": 3198,
-      "first_read": "2026-06-18T12:51:43.449Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/db/registry.py": {
-      "count": 1,
-      "tokens": 1320,
-      "first_read": "2026-06-18T12:53:30.698Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/knowledge/main_contract.py": {
-      "count": 1,
-      "tokens": 2260,
-      "first_read": "2026-06-18T12:53:43.870Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/collectors/__init__.py": {
-      "count": 1,
-      "tokens": 114,
-      "first_read": "2026-06-18T12:53:55.479Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/history/sync_scheduler.py": {
-      "count": 1,
-      "tokens": 1318,
-      "first_read": "2026-06-18T12:55:25.917Z"
-    },
-    "d:/完整项目/trading-strategy-center/data_center/history/full_downloader.py": {
-      "count": 2,
-      "tokens": 1646,
-      "first_read": "2026-06-18T13:39:11.714Z"
+      "first_read": "2026-06-20T00:57:25.510Z"
     },
     "d:/完整项目/trading-strategy-center/.gitignore": {
-      "count": 1,
-      "tokens": 43,
-      "first_read": "2026-06-18T14:23:34.685Z"
+      "count": 2,
+      "tokens": 82,
+      "first_read": "2026-06-20T01:01:55.079Z"
     }
   },
   "files_written": [
     {
-      "file": "d:/完整项目/trading-strategy-center/data_center/core/data_source.py",
+      "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
       "action": "edit",
-      "tokens": 136,
-      "at": "2026-06-18T11:59:52.308Z"
+      "tokens": 996,
+      "at": "2026-06-20T00:48:45.063Z"
     },
     {
-      "file": "d:/完整项目/trading-strategy-center/data_center/core/data_source.py",
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/services/factorApi.ts",
       "action": "edit",
-      "tokens": 252,
-      "at": "2026-06-18T12:00:06.764Z"
+      "tokens": 66,
+      "at": "2026-06-20T00:48:53.356Z"
     },
     {
-      "file": "d:/完整项目/trading-strategy-center/data_center/fetchers/options_fetcher.py",
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/services/factorApi.ts",
       "action": "edit",
-      "tokens": 621,
-      "at": "2026-06-18T12:00:54.543Z"
+      "tokens": 120,
+      "at": "2026-06-20T00:49:01.157Z"
     },
     {
-      "file": "d:/完整项目/trading-strategy-center/data_center/fetchers/akshare_fetcher.py",
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
       "action": "edit",
-      "tokens": 146,
-      "at": "2026-06-18T12:01:12.351Z"
+      "tokens": 95,
+      "at": "2026-06-20T00:50:12.173Z"
     },
     {
-      "file": "d:/完整项目/trading-strategy-center/data_center/api/__init__.py",
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
       "action": "edit",
-      "tokens": 572,
-      "at": "2026-06-18T12:01:36.931Z"
+      "tokens": 184,
+      "at": "2026-06-20T00:50:26.202Z"
     },
     {
-      "file": "d:/完整项目/trading-strategy-center/data_center/api/__init__.py",
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
       "action": "edit",
-      "tokens": 78,
-      "at": "2026-06-18T12:01:49.420Z"
+      "tokens": 1735,
+      "at": "2026-06-20T00:51:02.555Z"
     },
     {
-      "file": "d:/完整项目/trading-strategy-center/data_center/api/__init__.py",
+      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/FactorResearch.tsx",
       "action": "edit",
-      "tokens": 1181,
-      "at": "2026-06-18T12:02:39.802Z"
+      "tokens": 497,
+      "at": "2026-06-20T00:51:17.368Z"
     },
     {
-      "file": "d:/完整项目/trading-strategy-center/data_center/api/__init__.py",
+      "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
       "action": "edit",
-      "tokens": 91,
-      "at": "2026-06-18T12:02:54.223Z"
+      "tokens": 116,
+      "at": "2026-06-20T00:54:16.361Z"
     },
     {
-      "file": "d:/完整项目/trading-strategy-center/data_center/api/__init__.py",
+      "file": "d:/完整项目/trading-strategy-center/api/routes/factor_routes.py",
       "action": "edit",
-      "tokens": 45,
-      "at": "2026-06-18T12:04:14.442Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 224,
-      "at": "2026-06-18T12:08:52.772Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 723,
-      "at": "2026-06-18T12:09:20.723Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 1209,
-      "at": "2026-06-18T12:09:46.241Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 27,
-      "at": "2026-06-18T12:11:04.837Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 1314,
-      "at": "2026-06-18T12:11:40.240Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 39,
-      "at": "2026-06-18T12:12:40.949Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 30,
-      "at": "2026-06-18T12:12:56.576Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 24,
-      "at": "2026-06-18T12:14:25.371Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/main.py",
-      "action": "edit",
-      "tokens": 81,
-      "at": "2026-06-18T12:58:06.116Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/collectors/futures_collector.py",
-      "action": "edit",
-      "tokens": 486,
-      "at": "2026-06-18T12:58:49.630Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/collectors/futures_collector.py",
-      "action": "edit",
-      "tokens": 642,
-      "at": "2026-06-18T13:00:07.792Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/collectors/futures_collector.py",
-      "action": "edit",
-      "tokens": 232,
-      "at": "2026-06-18T13:01:22.710Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/history/collect_jobs.py",
-      "action": "create",
-      "tokens": 604,
-      "at": "2026-06-18T13:03:47.307Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/history/full_downloader.py",
-      "action": "create",
-      "tokens": 1344,
-      "at": "2026-06-18T13:04:50.651Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/api/warehouse.py",
-      "action": "edit",
-      "tokens": 117,
-      "at": "2026-06-18T13:06:35.621Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/api/warehouse.py",
-      "action": "edit",
-      "tokens": 1525,
-      "at": "2026-06-18T13:07:12.747Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/api/warehouse.py",
-      "action": "edit",
-      "tokens": 68,
-      "at": "2026-06-18T13:07:26.996Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/history/sync_scheduler.py",
-      "action": "edit",
-      "tokens": 263,
-      "at": "2026-06-18T13:09:53.836Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/db/init_schema.sql",
-      "action": "edit",
-      "tokens": 109,
-      "at": "2026-06-18T13:18:36.310Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/collectors/futures_collector.py",
-      "action": "edit",
-      "tokens": 252,
-      "at": "2026-06-18T13:18:54.678Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 50,
-      "at": "2026-06-18T13:24:27.435Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 302,
-      "at": "2026-06-18T13:24:44.223Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 896,
-      "at": "2026-06-18T13:25:16.617Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 1496,
-      "at": "2026-06-18T13:26:04.031Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 750,
-      "at": "2026-06-18T13:27:36.716Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/collectors/futures_collector.py",
-      "action": "edit",
-      "tokens": 531,
-      "at": "2026-06-18T13:37:17.931Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/collectors/stocks_collector.py",
-      "action": "edit",
-      "tokens": 221,
-      "at": "2026-06-18T13:38:27.175Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/api/warehouse.py",
-      "action": "edit",
-      "tokens": 726,
-      "at": "2026-06-18T13:38:54.195Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/history/full_downloader.py",
-      "action": "edit",
-      "tokens": 1283,
-      "at": "2026-06-18T13:39:50.536Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/api/warehouse.py",
-      "action": "edit",
-      "tokens": 350,
-      "at": "2026-06-18T13:40:11.406Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 168,
-      "at": "2026-06-18T13:41:58.381Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 618,
-      "at": "2026-06-18T13:42:25.415Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 768,
-      "at": "2026-06-18T13:43:22.798Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/frontend/src/pages/DataCenter.tsx",
-      "action": "edit",
-      "tokens": 252,
-      "at": "2026-06-18T13:44:06.809Z"
-    },
-    {
-      "file": "d:/完整项目/trading-strategy-center/data_center/collectors/stocks_collector.py",
-      "action": "edit",
-      "tokens": 419,
-      "at": "2026-06-18T14:10:11.695Z"
+      "tokens": 516,
+      "at": "2026-06-20T00:54:33.382Z"
     },
     {
       "file": "d:/完整项目/trading-strategy-center/.gitignore",
       "action": "edit",
-      "tokens": 51,
-      "at": "2026-06-18T14:24:19.632Z"
+      "tokens": 33,
+      "at": "2026-06-20T01:02:09.223Z"
     }
   ],
   "edit_counts": {
-    "data_center/core/data_source.py": 2,
-    "data_center/fetchers/options_fetcher.py": 1,
-    "data_center/fetchers/akshare_fetcher.py": 1,
-    "data_center/api/__init__.py": 5,
-    "frontend/src/pages/DataCenter.tsx": 17,
-    "main.py": 1,
-    "data_center/collectors/futures_collector.py": 5,
-    "data_center/history/collect_jobs.py": 1,
-    "data_center/history/full_downloader.py": 2,
-    "data_center/api/warehouse.py": 5,
-    "data_center/history/sync_scheduler.py": 1,
-    "data_center/db/init_schema.sql": 1,
-    "data_center/collectors/stocks_collector.py": 2,
+    "api/routes/factor_routes.py": 3,
+    "frontend/src/services/factorApi.ts": 2,
+    "frontend/src/pages/FactorResearch.tsx": 4,
     ".gitignore": 1
   },
-  "anatomy_hits": 25,
-  "anatomy_misses": 3,
-  "repeated_reads_warned": 35,
+  "anatomy_hits": 8,
+  "anatomy_misses": 6,
+  "repeated_reads_warned": 6,
   "cerebrum_warnings": 0,
-  "stop_count": 6
+  "stop_count": 3
 }

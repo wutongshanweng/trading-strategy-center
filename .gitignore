@@ -23,6 +23,9 @@ data_center/download_checkpoint.json
 *.tsbuildinfo
 # OpenWolf 运行时日志 (非追踪)
 .wolf/*.log
+# 本地启动日志 (后端/前端运行时生成)
+*.run.log
+api.log
 
 # Frontend dependencies
 node_modules/
