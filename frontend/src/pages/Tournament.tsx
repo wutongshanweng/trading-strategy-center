@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import {
-  Card, Table, Tag, Typography, Statistic, Spin, Row, Col, Button, Progress, Empty, Tooltip,
+  Card, Table, Tag, Typography, Statistic, Spin, Row, Col, Button, Progress, Empty, Tooltip, message, Modal, Input, InputNumber, Space,
 } from "antd";
 import {
   TrophyOutlined, FireOutlined, RiseOutlined, FallOutlined,
-  CrownOutlined, GoldOutlined,
+  CrownOutlined, GoldOutlined, ThunderboltOutlined, SafetyCertificateOutlined,
 } from "@ant-design/icons";
-import { getTournamentStandings } from "../api/client";
+import { getTournamentStandings, runTournamentBacktest, promoteCandidates, getLifecycle, graduateStrategy } from "../api/client";
 import type { TournamentEntry } from "../api/client";
 import { useTournamentStore } from "../store/useAppStore";
 
@@ -90,27 +90,110 @@ const columns = [
 
 export default function Tournament() {
   const { standings, setStandings, status, setStatus } = useTournamentStore();
+  const [running, setRunning] = useState(false);
+  const [promoting, setPromoting] = useState(false);
+  const [lifecycle, setLifecycle] = useState<{ champions: any[]; challengers: any[]; retired: any[] }>({ champions: [], challengers: [], retired: [] });
+  const [gradTarget, setGradTarget] = useState<any | null>(null);
+  const [approver, setApprover] = useState("");
+  const [allocation, setAllocation] = useState(0.1);
 
-  useEffect(() => {
+  const load = () => {
     setStatus("loading");
     getTournamentStandings()
       .then((res) => setStandings(res.data))
       .catch(() => setStandings(MOCK_STANDINGS))
       .finally(() => setStatus("success"));
-  }, []);
+  };
+
+  const loadLifecycle = () => {
+    getLifecycle().then((res) => setLifecycle(res.data)).catch(() => {});
+  };
+
+  useEffect(() => { load(); loadLifecycle(); }, []);
+
+  const runBacktest = async () => {
+    setRunning(true);
+    message.loading({ content: "正在对全部策略跑真实回测 (可能数十秒)...", key: "bt", duration: 0 });
+    try {
+      const res = await runTournamentBacktest();
+      const d = res.data;
+      message.success({
+        content: `回测完成: ${d.strategies_with_trades} 个策略有成交, 冠军 ${d.top_strategy} (夏普 ${d.top_sharpe?.toFixed?.(2) ?? d.top_sharpe}), 下线 ${d.retired?.length ?? 0}`,
+        key: "bt", duration: 5,
+      });
+      load();
+    } catch {
+      message.error({ content: "回测失败, 检查后端", key: "bt" });
+    } finally { setRunning(false); }
+  };
+
+  const runPromote = async () => {
+    setPromoting(true);
+    message.loading({ content: "晋升验证中: 对排行榜策略跑样本外 walk-forward (较慢)...", key: "pm", duration: 0 });
+    try {
+      const res = await promoteCandidates();
+      const d = res.data;
+      message.success({
+        content: `验证完成: 评估 ${d.evaluated}, 晋级 ${d.promoted?.length ?? 0}, 市态冠军 ${Object.keys(d.champions_by_regime || {}).join("/") || "无"}`,
+        key: "pm", duration: 6,
+      });
+      loadLifecycle();
+    } catch {
+      message.error({ content: "晋升验证失败 (需先跑回测有候选)", key: "pm" });
+    } finally { setPromoting(false); }
+  };
+
+  const doGraduate = async () => {
+    if (!gradTarget || !approver.trim()) { message.warning("请填写批准人"); return; }
+    try {
+      const res = await graduateStrategy(gradTarget.name, approver.trim(), allocation);
+      if (res.data.ok) { message.success(`${gradTarget.name} 已毕业为 champion`); loadLifecycle(); }
+      else message.error(res.data.reason || "毕业失败");
+    } catch { message.error("毕业请求失败"); }
+    finally { setGradTarget(null); setApprover(""); }
+  };
 
   const topScore = standings[0]?.score ?? 0;
   const avgSharpe = standings.length > 0
     ? standings.reduce((s, e) => s + e.sharpe, 0) / standings.length
     : 0;
 
+  const lifecycleColumns = [
+    { title: "策略", dataIndex: "name", key: "name", render: (v: string) => <Text strong>{v}</Text> },
+    { title: "状态", dataIndex: "status", key: "status",
+      render: (v: string) => <Tag color={v === "champion" ? "gold" : v === "challenger" ? "blue" : "default"}>{v === "champion" ? "冠军" : v === "challenger" ? "考察中" : "已下线"}</Tag> },
+    { title: "市态", dataIndex: "regime", key: "regime", render: (v: string) => <Tag>{v}</Tag> },
+    { title: "评估次数", dataIndex: "n_evals", key: "n_evals" },
+    { title: "通过率", dataIndex: "pass_rate", key: "pass_rate", render: (v: number) => `${(v * 100).toFixed(0)}%` },
+    { title: "平均OOS夏普", dataIndex: "avg_oos_sharpe", key: "avg_oos_sharpe",
+      render: (v: number) => <span className={v >= 0.3 ? "text-green" : "text-red"}>{v.toFixed(2)}</span> },
+    { title: "分配", dataIndex: "allocation", key: "allocation", render: (v: number) => v > 0 ? `${(v * 100).toFixed(0)}%` : "-" },
+    { title: "操作", key: "actions",
+      render: (_: any, r: any) => r.status === "challenger" ? (
+        <Tooltip title={r.eligible ? "达标, 可毕业" : "未达毕业门槛"}>
+          <Button size="small" type="primary" ghost disabled={!r.eligible}
+            onClick={() => { setGradTarget(r); setAllocation(0.1); }}>批准毕业</Button>
+        </Tooltip>
+      ) : null },
+  ];
+
+  const allLifecycle = [...lifecycle.champions, ...lifecycle.challengers, ...lifecycle.retired];
+
   return (
     <Spin spinning={status === "loading"}>
-      <div className="page-header">
+      <div className="page-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <h2>
           <TrophyOutlined style={{ color: "#ffd666", marginRight: 8 }} />
           策略锦标赛
         </h2>
+        <Space>
+          <Button type="primary" icon={<ThunderboltOutlined />} loading={running} onClick={runBacktest}>
+            跑真实回测
+          </Button>
+          <Button icon={<SafetyCertificateOutlined />} loading={promoting} onClick={runPromote}>
+            晋升验证
+          </Button>
+        </Space>
       </div>
 
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
@@ -168,6 +251,31 @@ export default function Tournament() {
           </Card>
         </Col>
       </Row>
+
+      {/* Champion/Challenger 生命周期 (阶段4) */}
+      <Card
+        title={<span><SafetyCertificateOutlined style={{ color: "#52c41a", marginRight: 8 }} />策略晋级生命周期 (Champion / Challenger)</span>}
+        bordered={false}
+        style={{ marginTop: 24 }}
+        extra={<Text type="secondary" style={{ fontSize: 12 }}>新策略经"晋升验证"入考察 → 连续达标 → 人工批准毕业为冠军</Text>}
+      >
+        {allLifecycle.length === 0 ? (
+          <Empty description="暂无考察/冠军策略, 点击上方「晋升验证」开始" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+        ) : (
+          <Table dataSource={allLifecycle} columns={lifecycleColumns} rowKey="name" pagination={false} size="small" />
+        )}
+      </Card>
+
+      <Modal title="批准毕业为 Champion" open={!!gradTarget} onOk={doGraduate} onCancel={() => setGradTarget(null)} okText="确认毕业" cancelText="取消">
+        {gradTarget && (
+          <Space direction="vertical" style={{ width: "100%" }}>
+            <Text>策略: <b>{gradTarget.name}</b> · 平均OOS夏普 <b>{gradTarget.avg_oos_sharpe}</b> · 通过率 <b>{(gradTarget.pass_rate * 100).toFixed(0)}%</b></Text>
+            <Text type="secondary" style={{ fontSize: 12 }}>毕业后该策略获得资金分配权重 (记录性, 无真实下单)。这是人工安全闸门。</Text>
+            <div><Text>批准人: </Text><Input value={approver} onChange={(e) => setApprover(e.target.value)} placeholder="你的名字" style={{ width: 200 }} /></div>
+            <div><Text>资金分配权重: </Text><InputNumber value={allocation} onChange={(v) => setAllocation(v ?? 0.1)} min={0} max={1} step={0.05} /></div>
+          </Space>
+        )}
+      </Modal>
     </Spin>
   );
 }

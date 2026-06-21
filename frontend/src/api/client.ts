@@ -208,6 +208,46 @@ export interface TournamentEntry {
 export const getTournamentStandings = () =>
   client.get<TournamentEntry[]>("/tournament/standings");
 
+export const runTournamentBacktest = (products?: string[]) =>
+  client.post("/tournament/run-backtest", products ?? null, { timeout: 300000 });
+
+export const promoteCandidates = (body?: { strategies?: string[]; products?: string[] }) =>
+  client.post("/tournament/promote", body ?? {}, { timeout: 600000 });
+
+export const getLifecycle = () =>
+  client.get<{ champions: any[]; challengers: any[]; retired: any[] }>("/tournament/lifecycle");
+
+export const graduateStrategy = (name: string, approved_by: string, allocation = 0.1) =>
+  client.post("/tournament/graduate", { name, approved_by, allocation });
+
+// ─── Intelligence Iteration Monitor ──────────────────────────────
+export const getIterationOverview = () =>
+  client.get("/intelligence/iteration/overview");
+
+export const getParamVersions = (strategy?: string) =>
+  client.get("/intelligence/iteration/param-versions", { params: strategy ? { strategy } : undefined });
+
+export const getPromotionHistory = (limit = 20) =>
+  client.get("/intelligence/iteration/promotion-history", { params: { limit } });
+
+export const getRetrainHistory = (limit = 20) =>
+  client.get("/intelligence/iteration/retrain-history", { params: { limit } });
+
+export const runRetrainCycle = (body?: { strategies?: string[]; products?: string[]; param_n_iter?: number }) =>
+  client.post("/intelligence/retrain/cycle", body ?? {}, { timeout: 600000 });
+
+export const getAutomationConfig = () =>
+  client.get("/intelligence/automation/config");
+
+export const setAutomationConfig = (body: { enabled?: boolean; interval_hours?: number; param_n_iter?: number; top_n_for_param?: number }) =>
+  client.post("/intelligence/automation/config", body);
+
+export const runAutomationNow = () =>
+  client.post("/intelligence/automation/run-now", {}, { timeout: 600000 });
+
+export const listRealMLModels = () =>
+  client.get<{ models: string[] }>("/models");
+
 // ─── Alpha Factors ────────────────────────────────────────────────
 export const listAlphaFactors = () =>
   client.get<{ id: string; name: string; description: string }[]>("/alpha/factors");

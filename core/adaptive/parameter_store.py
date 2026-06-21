@@ -146,6 +146,16 @@ class ParameterStore:
     def list_versions(self, strategy_name: str) -> List[ParameterVersion]:
         return self._load_versions(strategy_name)
 
+    def list_strategies(self) -> List[str]:
+        """列出所有有参数版本记录的策略 (扫描 base_path 子目录)。"""
+        if not self.base_path.exists():
+            return []
+        names = []
+        for d in self.base_path.iterdir():
+            if d.is_dir() and (d / "versions.json").exists():
+                names.append(d.name)
+        return sorted(names)
+
     def get_best(
         self, strategy_name: str, higher_is_better: bool = True
     ) -> Optional[ParameterVersion]:

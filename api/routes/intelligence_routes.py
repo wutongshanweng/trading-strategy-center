@@ -12,6 +12,165 @@ from pydantic import BaseModel
 router = APIRouter(prefix="/api/v1/intelligence", tags=["intelligence"])
 
 
+class RetrainCycleRequest(BaseModel):
+    strategies: Optional[List[str]] = None
+    products: Optional[List[str]] = None
+    param_n_iter: int = 10
+
+
+@router.post("/retrain/cycle")
+async def retrain_cycle(req: RetrainCycleRequest):
+    """触发式重训单周期 (阶段3): 参数层贝叶斯再优化 + 因子/模型层检测。
+
+    strategies 省略时取锦标赛排行榜前 8。同步执行, 参数层较慢。
+    """
+    from core.adaptive.retrain_orchestrator import get_orchestrator
+    strategies = req.strategies
+    if not strategies:
+        from api.routes.tournament_routes import _manager
+        board = await _manager.get_leaderboard(8)
+        strategies = [e.name for e in board]
+    report = get_orchestrator().run_cycle(
+        strategy_names=strategies, products=req.products, param_n_iter=req.param_n_iter)
+    return report.to_dict()
+
+
+# ---- 智能迭代监控 (统一状态聚合) ----
+
+def _read_json(path, default):
+    import json
+    from pathlib import Path
+    p = Path(path)
+    if not p.exists():
+        return default
+    try:
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return default
+
+
+@router.get("/iteration/overview")
+async def iteration_overview():
+    """智能迭代总览: 自动化状态 + 各环节计数。"""
+    from core.adaptive.parameter_store import ParameterStore
+    from api.routes.tournament_routes import _manager
+
+    store = ParameterStore()
+    strategies = store.list_strategies()
+    total_versions = sum(len(store.list_versions(s)) for s in strategies)
+
+    promo_hist = _read_json("data/promotion_history.json", [])
+    retrain_hist = _read_json("data/retrain_history.json", [])
+    feedback = _read_json("data/feedback_log.json", [])
+
+    from core.adaptive.champion_challenger import get_registry
+    lifecycle = get_registry().list_all()
+
+    board = await _manager.get_leaderboard(100)
+    return {
+        "automation": {
+            "enabled": False,
+            "note": "迭代当前为手动触发 (回测/晋升/重训需点按钮或调 API)。后台线程仅跑新闻30min+信号15min。",
+            "background_tasks": ["news_refresh_30min", "signal_scan_15min"],
+        },
+        "counts": {
+            "ranked_strategies": len(board),
+            "param_tuned_strategies": len(strategies),
+            "param_versions_total": total_versions,
+            "promotion_runs": len(promo_hist),
+            "retrain_cycles": len(retrain_hist),
+            "feedback_entries": len(feedback),
+            "champions": len(lifecycle["champions"]),
+            "challengers": len(lifecycle["challengers"]),
+        },
+        "last_promotion": promo_hist[0] if promo_hist else None,
+        "last_retrain": retrain_hist[0] if retrain_hist else None,
+    }
+
+
+@router.get("/iteration/param-versions")
+async def iteration_param_versions(strategy: Optional[str] = None):
+    """参数版本演化: 某策略或全部策略的优化历史。"""
+    from core.adaptive.parameter_store import ParameterStore
+    store = ParameterStore()
+    names = [strategy] if strategy else store.list_strategies()
+    out = {}
+    for name in names:
+        versions = store.list_versions(name)
+        out[name] = [
+            {"version": v.version, "score": round(v.score, 4),
+             "params": v.params, "timestamp": v.timestamp}
+            for v in versions
+        ]
+    return {"strategies": out}
+
+
+@router.get("/iteration/promotion-history")
+async def iteration_promotion_history(limit: int = 20):
+    """晋升验证历史 (含每窗口 IS/OOS 明细)。"""
+    hist = _read_json("data/promotion_history.json", [])
+    return {"count": len(hist), "history": hist[:limit]}
+
+
+@router.get("/iteration/retrain-history")
+async def iteration_retrain_history(limit: int = 20):
+    """重训周期历史。"""
+    hist = _read_json("data/retrain_history.json", [])
+    return {"count": len(hist), "history": hist[:limit]}
+
+
+# ---- 自动迭代 (B 阶段) ----
+
+class AutomationConfigRequest(BaseModel):
+    enabled: Optional[bool] = None
+    interval_hours: Optional[int] = None
+    param_n_iter: Optional[int] = None
+    top_n_for_param: Optional[int] = None
+
+
+@router.get("/automation/config")
+async def automation_config():
+    """读取自动迭代配置 + 最近运行日志。"""
+    from core.adaptive.auto_iteration import get_config, get_log
+    return {"config": get_config(), "log": get_log(20)}
+
+
+@router.post("/automation/config")
+async def set_automation_config(req: AutomationConfigRequest):
+    """更新自动迭代配置 (运行时生效, 无需重启)。"""
+    from core.adaptive.auto_iteration import update_config
+    return {"config": update_config(req.model_dump(exclude_none=True))}
+
+
+@router.post("/automation/run-now")
+async def automation_run_now():
+    """立即手动触发一次安全自动周期 (回测 + 参数层重优化)。"""
+    from core.adaptive.auto_iteration import run_safe_cycle
+    return await run_safe_cycle(trigger="manual")
+
+
+# ---- UMP 裁判机制 (交易级 ML 否决闸门) ----
+
+class UMPTrainRequest(BaseModel):
+    strategy: str
+    contracts: Optional[List[str]] = None
+
+
+@router.get("/ump/models")
+async def ump_models():
+    """已训练的 UMP 裁判模型列表。"""
+    from core.ump.service import get_ump_service
+    return {"models": get_ump_service().list_models()}
+
+
+@router.post("/ump/train")
+async def ump_train(req: UMPTrainRequest):
+    """对某策略训练 UMP 裁判 (从真实 kline 提取逐笔交易特征+盈亏)。"""
+    from core.ump.service import get_ump_service
+    return get_ump_service().train(req.strategy, req.contracts)
+
+
+
 # ---- Request / Response Models ----
 
 class VaRRequest(BaseModel):

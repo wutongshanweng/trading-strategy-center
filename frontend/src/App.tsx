@@ -11,11 +11,9 @@ import Layout from "./components/Layout";
 
 // 动态导入页面组件
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Strategy = lazy(() => import("./pages/Strategy"));
 const Trading = lazy(() => import("./pages/Trading"));
 const Backtest = lazy(() => import("./pages/Backtest"));
 const Portfolio = lazy(() => import("./pages/Portfolio"));
-const ML = lazy(() => import("./pages/ML"));
 const DataCenter = lazy(() => import("./pages/DataCenter"));
 const Tournament = lazy(() => import("./pages/Tournament"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -25,6 +23,9 @@ const Phase3 = lazy(() => import("./pages/Phase3"));
 const StrategyLibrary = lazy(() => import("./pages/StrategyLibrary"));
 const Feedback = lazy(() => import("./pages/Feedback"));
 const LLMConfig = lazy(() => import("./pages/LLMConfig"));
+const MacroNews = lazy(() => import("./pages/MacroNews"));
+const SignalDetail = lazy(() => import("./pages/SignalDetail"));
+const IterationMonitor = lazy(() => import("./pages/IterationMonitor"));
 
 function PageLoading() {
   return (
@@ -74,11 +75,11 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Layout />}>
                 <Route index element={<Dashboard />} />
-                <Route path="strategies" element={<Strategy />} />
+                <Route path="macro-news" element={<MacroNews />} />
+                <Route path="signal/:id" element={<SignalDetail />} />
                 <Route path="trading" element={<Trading />} />
                 <Route path="backtest" element={<Backtest />} />
                 <Route path="portfolio" element={<Portfolio />} />
-                <Route path="ml" element={<ML />} />
                 <Route path="factors" element={<FactorResearch />} />
                 <Route path="phase3" element={<Phase3 />} />
                 <Route path="strategy-library" element={<StrategyLibrary />} />
@@ -86,6 +87,7 @@ export default function App() {
                 <Route path="llm-config" element={<LLMConfig />} />
                 <Route path="data" element={<DataCenter />} />
                 <Route path="tournament" element={<Tournament />} />
+                <Route path="iteration" element={<IterationMonitor />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="monitoring" element={<Monitoring />} />
               </Route>

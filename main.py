@@ -26,6 +26,9 @@ from api.routes.factor_routes import router as factor_router
 from api.routes.phase3_routes import router as phase3_router
 from api.routes.feedback_routes import router as feedback_router
 from api.routes.mlopts_routes import router as mlopts_router
+from api.routes.macro_news_routes import router as macro_news_router
+from api.routes.alert_routes import router as alert_router
+from api.routes.simulated_trading_routes import router as simulated_trading_router
 from api.websocket.trading_stream import router as ws_router, start_periodic_updates
 from data_center.api import router as data_center_router
 from data_center.api.warehouse import router as warehouse_router
@@ -36,10 +39,57 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     setup_logger(debug=settings.debug)
     logger.info("Trading Strategy Center starting...")
+    _start_background_refresh()
     yield
     from core.db.session import async_engine
     await async_engine.dispose()
     logger.info("Shutting down.")
+
+
+def _start_background_refresh():
+    """后台线程: 定时刷新新闻缓存(30min) 与信号扫描(15min)。
+
+    daemon 线程, 随主进程退出。首轮延迟启动避免拖慢启动。
+    """
+    import threading
+    import time
+
+    def _loop():
+        time.sleep(20)  # 启动后稍等, 避免与首批请求争抢
+        news_every, scan_every = 1800, 900
+        auto_check_every = 3600  # 每小时检查一次是否到自动迭代周期
+        last_news = last_scan = last_auto = 0.0
+        while True:
+            now = time.time()
+            if now - last_news >= news_every:
+                try:
+                    from news.pipeline import get_pipeline
+                    get_pipeline().refresh()
+                except Exception as e:
+                    logger.warning(f"[bg] news refresh failed: {e}")
+                last_news = now
+            if now - last_scan >= scan_every:
+                try:
+                    from signals.alert_aggregator import get_aggregator
+                    get_aggregator().run_once()
+                except Exception as e:
+                    logger.warning(f"[bg] signal scan failed: {e}")
+                last_scan = now
+            if now - last_auto >= auto_check_every:
+                try:
+                    import asyncio
+                    from core.adaptive.auto_iteration import should_run_now, run_safe_cycle
+                    if should_run_now():
+                        logger.info("[bg] auto-iteration cycle triggered")
+                        asyncio.run(run_safe_cycle(trigger="scheduled"))
+                except Exception as e:
+                    logger.warning(f"[bg] auto-iteration failed: {e}")
+                last_auto = now
+            time.sleep(60)
+
+    t = threading.Thread(target=_loop, name="bg-refresh", daemon=True)
+    t.start()
+    logger.info("Background refresh thread started (news 30min / signals 15min / auto-iteration hourly-check)")
 
 
 settings = get_settings()
@@ -75,6 +125,9 @@ app.include_router(factor_router)
 app.include_router(phase3_router)
 app.include_router(feedback_router)
 app.include_router(mlopts_router)
+app.include_router(macro_news_router)
+app.include_router(alert_router)
+app.include_router(simulated_trading_router)
 app.include_router(ws_router)
 app.include_router(data_center_router)
 app.include_router(warehouse_router)
