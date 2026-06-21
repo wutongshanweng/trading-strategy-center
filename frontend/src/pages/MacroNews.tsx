@@ -136,21 +136,9 @@ export default function MacroNews() {
                     <div style={{ background: SENTI_BG[n.label] || "transparent", padding: "4px 8px", borderRadius: 4 }}>
                       <Popover
                         title={<span>{n.label} {n.title}</span>}
-                        overlayStyle={{ maxWidth: 420 }}
-                        content={
-                          <div style={{ maxWidth: 400 }}>
-                            <Paragraph style={{ marginBottom: 8, whiteSpace: "pre-wrap" }}>
-                              {n.content || "(无内容概述)"}
-                            </Paragraph>
-                            <Space wrap size={4}>
-                              <Tag color={n.label === "🟢" ? "green" : n.label === "🔴" ? "red" : "gold"}>
-                                {n.sentiment} {n.sentiment_score != null ? `(${n.sentiment_score})` : ""}
-                              </Tag>
-                              {(n.products || []).map((p: string) => <Tag key={p} color="blue">{p}</Tag>)}
-                              <Text type="secondary" style={{ fontSize: 11 }}>{n.source}</Text>
-                            </Space>
-                          </div>
-                        }>
+                        overlayStyle={{ maxWidth: 460 }}
+                        trigger="hover"
+                        content={<NewsPopoverContent n={n} />}>
                         <Text style={{ fontSize: 13, cursor: "pointer" }}>{n.label} {n.title}</Text>
                       </Popover>
                       <div>
@@ -312,6 +300,43 @@ export default function MacroNews() {
           </Form>
         )}
       </Modal>
+    </div>
+  );
+}
+
+function NewsPopoverContent({ n }: { n: any }) {
+  const [full, setFull] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const loadFull = async () => {
+    if (!n.url || loading || full) return;
+    setLoading(true);
+    try {
+      const r = await macroNewsApi.newsDetail(n.url);
+      setFull(r.available && r.content ? r.content : "(未能获取完整正文)");
+    } catch { setFull("(获取失败)"); } finally { setLoading(false); }
+  };
+  return (
+    <div style={{ maxWidth: 440 }}>
+      <Paragraph style={{ marginBottom: 8, whiteSpace: "pre-wrap", maxHeight: 280, overflowY: "auto" }}>
+        {full || n.content || "(无内容概述)"}
+      </Paragraph>
+      <Space wrap size={4}>
+        <Tag color={n.label === "🟢" ? "green" : n.label === "🔴" ? "red" : "gold"}>
+          {n.sentiment} {n.sentiment_score != null ? `(${n.sentiment_score})` : ""}
+        </Tag>
+        {(n.products || []).map((p: string) => <Tag key={p} color="blue">{p}</Tag>)}
+        <Text type="secondary" style={{ fontSize: 11 }}>{n.source}</Text>
+        {n.url && !full && (
+          <Button size="small" type="link" loading={loading} onClick={loadFull} style={{ padding: 0 }}>
+            展开全文
+          </Button>
+        )}
+        {n.url && (
+          <Button size="small" type="link" href={n.url} target="_blank" style={{ padding: 0 }}>
+            原文
+          </Button>
+        )}
+      </Space>
     </div>
   );
 }

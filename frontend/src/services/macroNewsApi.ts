@@ -8,6 +8,7 @@ export interface NewsItem {
   content: string;
   timestamp: string;
   source: string;
+  url?: string;
   products: string[];
   sentiment: string;
   label: string;
@@ -79,6 +80,10 @@ export const macroNewsApi = {
   async news(limit = 80, product?: string) {
     const r = await axios.get(`${API}/macro-news/news`, { params: { limit, product }, timeout: 60000 });
     return r.data as { updated_at: string; count: number; items: NewsItem[] };
+  },
+  async newsDetail(url: string) {
+    const r = await axios.get(`${API}/macro-news/news/detail`, { params: { url }, timeout: 30000 });
+    return r.data as { url: string; content: string | null; available: boolean };
   },
   async macro() {
     const r = await axios.get(`${API}/macro-news/macro`, { timeout: 30000 });

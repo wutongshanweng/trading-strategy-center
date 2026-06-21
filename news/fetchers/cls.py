@@ -11,10 +11,52 @@
 from __future__ import annotations
 
 import concurrent.futures
+import re
+import time
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from loguru import logger
+
+# 文章全文缓存 (url → 正文), 避免重复抓取
+_ARTICLE_CACHE: Dict[str, str] = {}
+
+
+def fetch_article_content(url: str, timeout: float = 12.0, retries: int = 3) -> Optional[str]:
+    """按需抓取东财文章页完整正文 (如《新闻联播》要闻N条的全部条目)。
+
+    带重试 (网络抖动) + 缓存。失败返回 None。
+    """
+    if not url or not url.startswith("http"):
+        return None
+    if url in _ARTICLE_CACHE:
+        return _ARTICLE_CACHE[url]
+    import requests
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+               "Referer": "https://finance.eastmoney.com/"}
+    html = None
+    for attempt in range(retries):
+        try:
+            r = requests.get(url, headers=headers, timeout=timeout)
+            r.encoding = "utf-8"
+            html = r.text
+            break
+        except Exception as e:
+            logger.warning(f"[news] 文章抓取第{attempt+1}次失败: {type(e).__name__}")
+            time.sleep(1.5)
+    if not html:
+        return None
+    # 东财正文容器 id=ContentBody
+    body = (re.search(r'id="ContentBody"[^>]*>(.*?)</div>\s*<!--', html, re.S)
+            or re.search(r'id="ContentBody"[^>]*>(.*?)</div>', html, re.S)
+            or re.search(r'class="txtinfos"[^>]*>(.*?)</div>', html, re.S))
+    if not body:
+        return None
+    text = re.sub(r"<[^>]+>", " ", body.group(1))
+    text = re.sub(r"\s+", " ", text).strip()
+    if text:
+        _ARTICLE_CACHE[url] = text
+    return text or None
 
 
 # 种子快讯 (全部数据源失败时的兜底, 标注为 seed 源)
@@ -73,9 +115,10 @@ class CLSNewsFetcher:
             title = str(r.get("标题") or "").strip()
             content = str(r.get("摘要") or title).strip()
             ts = str(r.get("发布时间") or datetime.now().isoformat())
+            url = str(r.get("链接") or "").strip()
             if title:
                 rows.append({"title": title, "content": content,
-                             "timestamp": ts, "source": "东方财富"})
+                             "timestamp": ts, "source": "东方财富", "url": url})
         return rows
 
     def _seed(self) -> List[Dict]:

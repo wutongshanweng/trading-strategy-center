@@ -20,6 +20,15 @@ async def get_news(limit: int = Query(80, le=200), product: Optional[str] = None
     return get_pipeline().get_cached(limit=limit, product=product)
 
 
+@router.get("/news/detail")
+async def get_news_detail(url: str = Query(..., description="新闻文章链接")):
+    """按需抓取新闻文章完整正文 (如《新闻联播》要闻N条的全部条目)。"""
+    from news.fetchers.cls import fetch_article_content
+    content = fetch_article_content(url)
+    return {"url": url, "content": content,
+            "available": content is not None}
+
+
 @router.get("/macro")
 async def get_macro_dashboard():
     """宏观指标看板。"""

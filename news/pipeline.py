@@ -51,6 +51,7 @@ class NewsPipeline:
                 "content": n.get("content", ""),
                 "timestamp": n.get("timestamp", ""),
                 "source": n.get("source", ""),
+                "url": n.get("url", ""),
                 "products": _tag_products(text),
                 "sentiment": senti["sentiment"],
                 "label": senti["label"],
