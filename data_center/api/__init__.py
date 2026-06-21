@@ -433,13 +433,27 @@ async def get_sync_status():
 
 @router.post("/sync/add")
 async def add_sync_symbol(
-    symbol: str = Query(...),
-    intervals: str = Query("1d,5m,15m", description="周期列表，逗号分隔"),
+    symbol: str = Query(..., description="期货品种RB / 股票600019.SH / 期权标的510050"),
+    asset_type: str = Query("futures", description="futures/stock/option"),
+    with_minute: bool = Query(False, description="是否同采分钟线"),
+    sync_seconds: int = Query(300, description="该品种同步间隔(秒)"),
 ):
-    """添加同步品种"""
-    interval_list = [KlineInterval(i.strip()) for i in intervals.split(",")]
-    _scheduler.add_symbol(symbol.upper(), interval_list)
-    return {"status": "added", "symbol": symbol.upper()}
+    """添加实时同步品种 (持久化, 重启不丢)。"""
+    if asset_type not in ("futures", "stock", "option"):
+        return {"status": "error", "detail": f"无效资产类型: {asset_type}"}
+    _scheduler.add_symbol(symbol.upper(), asset_type=asset_type,
+                          with_minute=with_minute, sync_seconds=sync_seconds)
+    return {"status": "added", "symbol": symbol.upper(), "asset_type": asset_type}
+
+
+@router.post("/sync/remove")
+async def remove_sync_symbol(
+    symbol: str = Query(...),
+    asset_type: str = Query("futures", description="futures/stock/option"),
+):
+    """移除实时同步品种 (持久化)。"""
+    _scheduler.remove_symbol(symbol.upper(), asset_type=asset_type)
+    return {"status": "removed", "symbol": symbol.upper(), "asset_type": asset_type}
 
 
 # ========== 存储管理 ==========

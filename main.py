@@ -40,6 +40,12 @@ async def lifespan(app: FastAPI):
     setup_logger(debug=settings.debug)
     logger.info("Trading Strategy Center starting...")
     _start_background_refresh()
+    # 实时同步调度器: 若上次为运行态则自动恢复 (重启自恢复)
+    try:
+        from data_center.api import _scheduler
+        await _scheduler.autostart_if_enabled()
+    except Exception as e:
+        logger.warning(f"实时同步自启失败: {e}")
     yield
     from core.db.session import async_engine
     await async_engine.dispose()

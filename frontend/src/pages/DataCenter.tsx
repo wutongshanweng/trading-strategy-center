@@ -173,6 +173,10 @@ export default function DataCenter() {
   const [yearSyncLoading, setYearSyncLoading] = useState(false);
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [yearWithMinute, setYearWithMinute] = useState(false);
+  // 实时同步添加品种表单
+  const [syncAddSym, setSyncAddSym] = useState("");
+  const [syncAddAsset, setSyncAddAsset] = useState("futures");
+  const [syncAddMinute, setSyncAddMinute] = useState(false);
 
   // Stock knowledge base
   const [stockSectors, setStockSectors] = useState<any[]>([]);
@@ -1833,21 +1837,67 @@ export default function DataCenter() {
         )}
 
         {/* 实时增量同步 (轮询调度器) */}
-        <Card size="small" title="实时增量同步 (轮询调度器)" style={{ marginTop: 12 }}>
+        <Card size="small" title="实时增量同步 (服务端常驻, 关网页/重启自恢复)" style={{ marginTop: 12 }}>
           {syncStatus ? (
-            <Space>
+            <Space wrap>
               <Badge status={syncStatus.running ? "processing" : "default"}
                 text={syncStatus.running ? "运行中" : "已停止"} />
-              <Text type="secondary">监控品种: {syncStatus.symbols || 0}</Text>
+              <Text type="secondary">关注品种: {syncStatus.symbols || 0}</Text>
               <Button size="small" type="primary" icon={<SyncOutlined />}
-                onClick={async () => { await API.post("/sync/start"); loadSyncStatus(); }}>启动</Button>
+                onClick={async () => { await API.post("/sync/start"); message.success("已启动 (重启自恢复)"); loadSyncStatus(); }}>启动</Button>
               <Button size="small" danger icon={<CloseCircleOutlined />}
-                onClick={async () => { await API.post("/sync/stop"); loadSyncStatus(); }}>停止</Button>
+                onClick={async () => { await API.post("/sync/stop"); message.success("已停止"); loadSyncStatus(); }}>停止</Button>
               <Button size="small" onClick={loadSyncStatus}>刷新</Button>
             </Space>
           ) : (
             <Space><Text type="secondary">后端未运行</Text>
               <Button size="small" onClick={loadSyncStatus}>刷新状态</Button></Space>
+          )}
+
+          {/* 添加关注品种 */}
+          <div style={{ marginTop: 12 }}>
+            <Space wrap>
+              <Text type="secondary">添加关注:</Text>
+              <Select size="small" value={syncAddAsset} onChange={setSyncAddAsset} style={{ width: 100 }}
+                options={[{ value: "futures", label: "期货" }, { value: "stock", label: "股票" }, { value: "option", label: "期权" }]} />
+              <Input size="small" style={{ width: 160 }} value={syncAddSym}
+                onChange={(e) => setSyncAddSym(e.target.value)}
+                placeholder={syncAddAsset === "futures" ? "RB" : syncAddAsset === "stock" ? "600019.SH" : "510050"} />
+              <Tooltip title="该品种同步时是否含分钟线 M5~H4">
+                <span><Switch size="small" checked={syncAddMinute} onChange={setSyncAddMinute}
+                  checkedChildren="含分钟" unCheckedChildren="仅日线" /></span>
+              </Tooltip>
+              <Button size="small" type="primary" disabled={!syncAddSym.trim()}
+                onClick={async () => {
+                  try {
+                    await API.post("/sync/add", null, { params: { symbol: syncAddSym.trim(), asset_type: syncAddAsset, with_minute: syncAddMinute } });
+                    message.success(`已添加 ${syncAddSym.trim()}`); setSyncAddSym(""); loadSyncStatus();
+                  } catch (e: any) { message.error(`添加失败: ${e.response?.data?.detail || e.message}`); }
+                }}>添加</Button>
+            </Space>
+          </div>
+
+          {/* 关注品种列表 */}
+          {syncStatus?.configs?.length > 0 && (
+            <Table size="small" style={{ marginTop: 12 }} pagination={false}
+              rowKey={(r: any) => `${r.asset_type}:${r.symbol}`}
+              dataSource={syncStatus.configs}
+              columns={[
+                { title: "资产", dataIndex: "asset_type", width: 70,
+                  render: (v: string) => <Tag>{v === "futures" ? "期货" : v === "stock" ? "股票" : "期权"}</Tag> },
+                { title: "品种", dataIndex: "symbol" },
+                { title: "分钟线", dataIndex: "with_minute", width: 70,
+                  render: (v: boolean) => v ? <Tag color="blue">含</Tag> : <Tag>否</Tag> },
+                { title: "间隔", dataIndex: "interval_s", width: 70, render: (v: number) => `${v}s` },
+                { title: "上次同步", dataIndex: "last_sync", render: (v: string) => v ? v.slice(5, 19).replace("T", " ") : "—" },
+                { title: "操作", width: 60,
+                  render: (_: any, r: any) => (
+                    <Button size="small" danger type="link" onClick={async () => {
+                      await API.post("/sync/remove", null, { params: { symbol: r.symbol, asset_type: r.asset_type } });
+                      message.success("已移除"); loadSyncStatus();
+                    }}>移除</Button>
+                  ) },
+              ]} />
           )}
         </Card>
       </div>
