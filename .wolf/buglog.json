@@ -2066,6 +2066,57 @@
       "related_bugs": [],
       "occurrences": 2,
       "last_seen": "2026-06-21T04:18:47.746Z"
+    },
+    {
+      "id": "bug-128",
+      "timestamp": "2026-06-21T05:37:14.322Z",
+      "error_message": "Significant refactor of ",
+      "file": "frontend/src/pages/LLMConfig.tsx",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 61→86 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T05:37:14.322Z"
+    },
+    {
+      "id": "bug-129",
+      "timestamp": "2026-06-21T14:13:51.335921",
+      "error_message": "按年同步 stock/option 秒退返回{}, 不采集任何数据",
+      "file": "data_center/history/full_downloader.py",
+      "root_cause": "API用单数asset_type(stock/option), 但_run_full_sync判断用复数(phase in stocks/options), 字符串不匹配导致股票/期权阶段整个跳过。期货(futures)恰好单复同形才一直能跑",
+      "fix": "_run_full_sync 开头归一化 phase={stock:stocks,option:options}.get(phase,phase)",
+      "tags": [
+        "sync",
+        "warehouse",
+        "stock",
+        "option",
+        "naming",
+        "full_downloader"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T14:13:51.335921"
+    },
+    {
+      "id": "bug-130",
+      "timestamp": "2026-06-21T06:22:03.568Z",
+      "error_message": "Significant refactor of ",
+      "file": "data_center/collectors/stocks_collector.py",
+      "root_cause": "5 lines replaced/restructured",
+      "fix": "Rewrote 16→41 lines (5 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T06:22:03.568Z"
     }
   ]
 }

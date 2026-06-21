@@ -1,6 +1,6 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-21T05:22:35.040Z
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-21T07:52:55.291Z
 > Files: 647 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
@@ -477,7 +477,7 @@
 - `futures_collector.py` — FuturesCollector: discover_contracts, collect_contract, mark_main_contract, collect_product + 2 more (~2525 tok)
 - `macro_collector.py` — MacroCollector: collect, conv, collect_all (~962 tok)
 - `options_collector.py` — OptionsCollector: collect_etf_option_daily, collect_index_option_daily, collect_greeks_snapshot, col (~4082 tok)
-- `stocks_collector.py` — StocksCollector: list_all_symbols, collect_kline, collect_info, collect_financial + 1 more (~2905 tok)
+- `stocks_collector.py` — StocksCollector: list_all_symbols, collect_kline, collect_info, collect_financial + 1 more (~3386 tok)
 
 ## data_center/collectors/ (资产类别采集器 — 2026-06-18 新增)
 
@@ -505,7 +505,7 @@
 ## data_center/fetchers/
 
 - `__init__.py` (~102 tok)
-- `akshare_fetcher.py` — AKShareFetcher: get_futures_daily, get_futures_hist_em, get_kline, get_futures_minute + 4 more (~3034 tok)
+- `akshare_fetcher.py` — AKShareFetcher: get_futures_daily, get_futures_hist_em, get_kline, get_futures_minute + 5 more (~3214 tok)
 - `alpha_vantage_fetcher.py` — AlphaVantageFetcher: get_stock_daily, get_forex_rate, get_forex_daily, get_crypto_daily + 4 more (~1881 tok)
 - `baostock_fetcher.py` — BaoStockFetcher: get_kline, get_realtime, get_trade_dates, validate (~1456 tok)
 - `ctp_fetcher.py` — CTPFetcher: get_kline, get_realtime, ticks_to_bars, validate (~836 tok)
@@ -526,7 +526,7 @@
 - `collect_jobs.py` — CollectJobs: is_running, start, status, get_jobs (~604 tok)
 - `data_store.py` — URL configuration (~1622 tok)
 - `download_manager.py` — DownloadStatus: display_name, create_task, execute_task, execute_batch + 7 more (~3198 tok)
-- `full_downloader.py` — reset_ckpt, collect_futures_product, run_full, default_test_start (~2155 tok)
+- `full_downloader.py` — reset_ckpt, collect_futures_product, run_full, default_test_start (~2222 tok)
 - `sync_scheduler.py` — class: add_symbol, remove_symbol, start, stop + 3 more (~1248 tok)
 
 ## data_center/knowledge/
@@ -609,7 +609,7 @@
 - `FactorResearch.tsx` — mockFactors (~14734 tok)
 - `Feedback.tsx` — Feedback — renders table (~943 tok)
 - `IterationMonitor.tsx` — degColor — renders table (~4556 tok)
-- `LLMConfig.tsx` — LLMConfig (~1056 tok)
+- `LLMConfig.tsx` — LLMConfig (~1356 tok)
 - `MacroNews.tsx` — SENTI_BG (~3872 tok)
 - `ML.tsx` — MOCK_MODELS — renders form, table, modal — uses useState, useForm, useEffect (~2184 tok)
 - `MLAnalyzer.tsx` — DIR_COLOR (~1462 tok)
