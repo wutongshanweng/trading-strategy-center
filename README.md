@@ -1,308 +1,142 @@
-# Trading Strategy Center
+# Trading Strategy Center · 交易策略中心
 
 <div align="center">
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-green.svg)
 ![React](https://img.shields.io/badge/React-18.3+-61DAFB.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.4+-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
-![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen.svg)
 
-**企业级量化交易平台 | Enterprise Quantitative Trading Platform**
-
-[English](#english) | [中文](#chinese)
+**数据驱动、自我迭代的量化交易研究与决策平台**
 
 </div>
 
 ---
 
-## 🌟 项目亮点
+## 这是什么
 
-- 🚀 **101个Alpha因子** - 完整的WorldQuant Alpha101因子库
-- 📊 **57+交易策略** - 覆盖趋势、均值回复、套利、动量等
-- 🤖 **ML策略优化** - 贝叶斯优化 + 遗传算法自动调参
-- 💡 **实时信号推送** - WebSocket秒级推送交易信号
-- 🎯 **策略锦标赛** - 赛马机制自动筛选优质策略
-- 🌐 **Agent API** - 完整的外部API生态系统
-- 🎨 **双主题UI** - 亮色/暗色主题自由切换
-- 📱 **响应式设计** - 完美支持桌面和移动端
+一个全栈量化平台,核心是一个正反馈飞轮:
 
----
+```
+统一数据中心(期货/股票/期权/宏观/新闻)
+   → 策略库(55) + Alpha101因子 + ML模型 + 缠论买卖点
+   → 多 agent 委员会综合决策 → 交易信号(可模拟, 后续可实盘)
+   → 锦标赛赛马 + walk-forward晋升 + 触发式重训
+   → (更强的策略回流) → 弹药库越来越丰富, 信号越来越准
+```
 
-## 📋 目录
-
-- [快速开始](#快速开始)
-- [核心功能](#核心功能)
-- [系统架构](#系统架构)
-- [技术栈](#技术栈)
-- [安装部署](#安装部署)
-- [使用文档](#使用文档)
-- [API文档](#api文档)
-- [贡献指南](#贡献指南)
-- [许可证](#许可证)
+> 完整设计见 **[系统说明文档 docs/SYSTEM_OVERVIEW.md](./docs/SYSTEM_OVERVIEW.md)**
 
 ---
 
-## 🚀 快速开始
+## 核心能力
 
-### 5分钟快速体验
+- **统一数据中心** — DuckDB 真实合约仓库, 多周期(D1/M5/M15/M30/H1/H4/W1/M1), 多源容错(限流/黑名单自动切换), 按年全量同步 + 实时增量同步(服务端常驻, 重启自恢复)
+- **多 agent 交易委员会** — 技术面/因子面/机器学习/缠论/宏观消息 五个 agent 各看一维度, 主席加权裁决, 可选 LLM 自然语言点评
+- **ML 自我迭代闭环** — 锦标赛真实回测 → walk-forward 防过拟合晋升 → 触发式三层重训 → Champion/Challenger 人工安全闸门
+- **55 策略 + Alpha101 因子 + 专业缠论** — 规则策略 + WorldQuant 101 因子 + 一/二/三买卖点/背驰
+- **UMP 裁判机制** — 交易级 ML 否决闸门, 下单前拦截"长得像历史亏损单"的交易
+- **新闻宏观仪表盘** — 中文财经快讯(情绪分析) + 宏观指标看板 + 事件日历 + 品种联动分析
+- **模拟交易** — 从信号一键开仓, 实时盈亏, 全程 JSON 持久化
+- **15 个 LLM 多 provider** — DeepSeek/OpenAI/Claude/通义/智谱/Groq/Ollama 等, 无 key 自动降级
+
+---
+
+## 快速开始
 
 ```bash
-# 1. 克隆项目
+# 1. 克隆
 git clone https://github.com/wutongshanweng/trading-strategy-center.git
 cd trading-strategy-center
 
-# 2. 安装依赖
+# 2. 依赖
 pip install -e .
 cd frontend && npm install && cd ..
 
-# 3. 启动服务
-python main.py  # 后端: http://localhost:8000
-cd frontend && npm run dev  # 前端: http://localhost:3000
+# 3. 配置 (复制后填入你的 key, 全部可选)
+cp .env.example .env
 
-# 4. 访问系统
-打开浏览器: http://localhost:3000
+# 4. 启动
+python main.py                 # 后端 http://localhost:8000
+cd frontend && npm run dev     # 前端 http://localhost:3000
 ```
 
-详细文档: [QUICK_START.md](./QUICK_START.md)
+打开 http://localhost:3000 即可。免费数据源(akshare/baostock/通达信)无需任何 key。
 
 ---
 
-## ✨ 核心功能
-
-### 1. 实时信号监控
-- ✅ WebSocket实时推送
-- ✅ 高/中/低优先级信号分类
-- ✅ 声音 + 浏览器推送通知
-- ✅ 完整的信号详情（品种/价格/置信度/原因）
-
-### 2. 策略自动进化
-- ✅ ML参数自动优化（贝叶斯 + 遗传算法）
-- ✅ 策略自动组合（最大化夏普比率）
-- ✅ 策略共振分析
-- ✅ 高胜率策略自动部署
-
-### 3. 数据实时同步
-- ✅ 分钟/小时级实时同步
-- ✅ 自动填充缺失数据
-- ✅ 多品种并发同步
-- ✅ 同步状态实时监控
-
-### 4. 策略锦标赛
-- ✅ 自动排名和竞赛
-- ✅ 前10%自动晋级实盘
-- ✅ 后30%淘汰重新优化
-- ✅ 赛马资金动态分配
-
-### 5. Agent API
-- ✅ JWT认证系统
-- ✅ 数据API（历史+实时）
-- ✅ 策略API（列表+信号计算）
-- ✅ 因子API（101个Alpha因子）
-- ✅ 交易API（模拟下单）
-
-### 6. Web策略创建器
-- ✅ 可视化策略构建
-- ✅ 无需编程
-- ✅ 一键回测
-- ✅ 即时部署
-
----
-
-## 🏗️ 系统架构
-
-```
-┌─────────────────────────────────────────────┐
-│           Frontend (React + TS)              │
-│  Dashboard | Strategies | Backtest | Data   │
-└─────────────────┬───────────────────────────┘
-                  │ WebSocket + REST API
-┌─────────────────▼───────────────────────────┐
-│           Backend (FastAPI)                  │
-│  ├─ API Layer (REST + WebSocket)            │
-│  ├─ Core Layer (Alpha/RL/Risk)              │
-│  ├─ ML Layer (Evolution/Tournament)         │
-│  └─ Data Layer (Sync/Cache/Quality)         │
-└─────────────────┬───────────────────────────┘
-                  │
-┌─────────────────▼───────────────────────────┐
-│     Data Sources & Storage                  │
-│  AKShare | yfinance | TDX | PostgreSQL      │
-└─────────────────────────────────────────────┘
-```
-
-详细架构: [ARCHITECTURE.md](./ARCHITECTURE.md)
-
----
-
-## 🛠️ 技术栈
-
-### 后端
-- **框架**: FastAPI 0.104+
-- **语言**: Python 3.10+
-- **ML**: scikit-learn, scipy, numpy, pandas
-- **数据**: PostgreSQL, Redis, SQLAlchemy
-- **异步**: asyncio, aiohttp
-
-### 前端
-- **框架**: React 18 + TypeScript 5
-- **UI**: Ant Design 5
-- **图表**: lightweight-charts (TradingView)
-- **状态**: Zustand
-- **构建**: Vite 5
-
-### 部署
-- **容器**: Docker + Docker Compose
-- **Web服务器**: Uvicorn + Nginx
-- **任务队列**: Celery + Redis
-
----
-
-## 📦 安装部署
-
-### 开发环境
+## LLM 配置 (可选, 开启 AI 点评)
 
 ```bash
-# Python环境
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-pip install -e .
-
-# 前端环境
-cd frontend
-npm install
+# .env 中填入 (以 DeepSeek 为例)
+DEEPSEEK_API_KEY=sk-你的key
+DEFAULT_LLM_PROVIDER=deepseek
 ```
+不配也能跑——LLM 功能自动降级为本地规则建议。支持 15 个 provider, 详见 `config/models.yaml`。
 
-### Docker部署
+---
+
+## 技术栈
+
+| 层 | 技术 |
+|----|------|
+| 后端 | Python 3.10+, FastAPI, asyncio |
+| 数据 | DuckDB(行情/宏观) + SQLite/PostgreSQL(交易侧) |
+| ML | scikit-learn, scipy, numpy, pandas, statsmodels, empyrical |
+| 前端 | React 18 + TypeScript 5, Ant Design 5, Vite 5, Zustand |
+| 数据源 | akshare/baostock/通达信(免费) + tushare/tqsdk(需key) |
+
+---
+
+## 主要页面
+
+新闻宏观 · 模拟交易 · 锦标赛 · 智能中心 · 数据中心 · 策略军火库 · 因子研究 · ML+期权 · LLM配置
+
+完整页面导览见 [系统说明文档](./docs/SYSTEM_OVERVIEW.md#四前端页面导览-菜单)。
+
+---
+
+## API
+
+启动后访问 **http://localhost:8000/docs** 查看 FastAPI 自动生成的完整接口文档。
+关键接口清单见 [系统说明文档](./docs/SYSTEM_OVERVIEW.md#五关键-api)。
+
+---
+
+## 测试
 
 ```bash
-# 一键启动所有服务
-docker-compose up -d
-
-# 查看日志
-docker-compose logs -f
-
-# 停止服务
-docker-compose down
-```
-
-详细部署: [DEPLOYMENT.md](./docs/DEPLOYMENT.md)
-
----
-
-## 📚 使用文档
-
-### 新手入门
-- [快速开始](./QUICK_START.md) - 5分钟上手指南
-- [系统架构](./ARCHITECTURE.md) - 完整架构设计
-- [功能说明](./IMPLEMENTATION_COMPLETE_PHASE2.md) - 所有功能详解
-
-### 开发指南
-- [贡献指南](./CONTRIBUTING.md) - 如何参与开发
-- [API文档](./docs/API.md) - 完整API参考
-- [策略开发](./docs/STRATEGY_DEVELOPMENT.md) - 自定义策略开发
-
-### 用户指南
-- [前端使用](./FRONTEND_UPGRADE_REPORT.md) - Web界面使用
-- [主题切换](./THEME_SWITCH_GUIDE.md) - 亮色/暗色主题
-- [Agent集成](./IMPLEMENTATION_COMPLETE_PHASE1.md) - 外部Agent接入
-
----
-
-## 🔌 API文档
-
-### 认证
-```bash
-POST /api/v1/agent/auth
-Content-Type: application/json
-
-{
-  "api_key": "your_api_key"
-}
-```
-
-### 获取信号
-```bash
-POST /api/v1/agent/signals/compute
-Authorization: Bearer {token}
-
-{
-  "symbol": "RB",
-  "strategy_names": ["trend_ma_cross"],
-  "timeframe": "1d"
-}
-```
-
-完整API文档: [API.md](./docs/API.md)
-
----
-
-## 📊 项目统计
-
-```
-代码行数:     160,000+
-Python文件:   420+
-前端组件:     50+
-策略数量:     67个
-Alpha因子:    101个
-RL算法:       7种
-测试用例:     981个
-文档数量:     23份
+python -m pytest tests/ -q     # 全量约 1200 个测试
 ```
 
 ---
 
-## 🤝 贡献指南
+## 文档
 
-欢迎贡献！请查看 [CONTRIBUTING.md](./CONTRIBUTING.md)
-
-### 贡献方式
-1. Fork 项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
+- [系统说明文档](./docs/SYSTEM_OVERVIEW.md) — 完整架构、模块、API、配置、约束
+- [架构设计](./ARCHITECTURE.md)
+- [快速入门](./QUICK_START.md)
+- [贡献指南](./CONTRIBUTING.md)
 
 ---
 
-## 📄 许可证
+## 重要约束
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](./LICENSE) 文件了解详情
-
----
-
-## 🌟 Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=wutongshanweng/trading-strategy-center&type=Date)](https://star-history.com/#wutongshanweng/trading-strategy-center&Date)
+1. DuckDB 单进程独占锁 — 行情仓库不可双进程打开
+2. 数据源限流/黑名单是常态 — 已做多源容错 + 断点续传
+3. 免费源分钟线只到近月(~6月), 历史分钟线需付费源
+4. 自动迭代只做安全可逆操作, 晋升毕业/资金分配需人工批准
 
 ---
 
-## 📞 联系方式
+## 许可证
 
-- **Issues**: [GitHub Issues](https://github.com/wutongshanweng/trading-strategy-center/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/wutongshanweng/trading-strategy-center/discussions)
-
----
-
-## 🙏 致谢
-
-感谢所有贡献者和开源社区的支持！
-
----
-
-## 🔗 相关链接
-
-- [文档中心](./docs)
-- [更新日志](./CHANGELOG.md)
-- [路线图](./docs/ROADMAP.md)
-
----
+MIT License — 详见 [LICENSE](./LICENSE)。
+内置 `vendor/chanpy/` 为 chan.py (MIT) 的 vendored 核心算法。
 
 <div align="center">
 
-**如果这个项目对您有帮助，请给个 ⭐ Star！**
-
-Made with ❤️ by Trading Strategy Center Team
+**如果这个项目对你有帮助, 请给个 ⭐ Star!**
 
 </div>
