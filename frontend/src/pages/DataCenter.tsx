@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import {
   Row, Col, Card, Table, Tag, Typography, Statistic, Badge,
   Input, Button, Tabs, message, Select, Space, Progress, DatePicker, Popconfirm,
+  Switch, Tooltip,
 } from "antd";
 import dayjs from "dayjs";
 import {
@@ -171,6 +172,7 @@ export default function DataCenter() {
   const [yearStatus, setYearStatus] = useState<any[]>([]);
   const [yearSyncLoading, setYearSyncLoading] = useState(false);
   const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [yearWithMinute, setYearWithMinute] = useState(false);
 
   // Stock knowledge base
   const [stockSectors, setStockSectors] = useState<any[]>([]);
@@ -1739,8 +1741,8 @@ export default function DataCenter() {
     setYearSyncLoading(true);
     try {
       const res = await WH.post("/sync/year", null,
-        { params: { asset_type: asset, year, reset_checkpoint: reset } });
-      message.success(`${year}年${asset}同步已启动 (后台): ${res.data.job}`);
+        { params: { asset_type: asset, year, reset_checkpoint: reset, with_minute: yearWithMinute } });
+      message.success(`${year}年${asset}同步已启动 (后台${yearWithMinute ? ", 含分钟线" : ""}): ${res.data.job}`);
       setTimeout(loadYearStatus, 1500);
     } catch (err: any) {
       message.error(`启动失败: ${err.response?.data?.detail || err.message}`);
@@ -1790,6 +1792,12 @@ export default function DataCenter() {
             </Text>
             <Button size="small" onClick={loadYearStatus}>刷新状态</Button>
             <Button size="small" onClick={pollProgress}>刷新进度</Button>
+            <Tooltip title="开启后: D1走全年 + 同采分钟线M5并聚合M15/M30/H1/H4 (近月, 日内/小时级策略用)。耗时与磁盘显著增加。">
+              <span>
+                <Switch size="small" checked={yearWithMinute} onChange={setYearWithMinute}
+                  checkedChildren="含分钟线" unCheckedChildren="仅日线" />
+              </span>
+            </Tooltip>
           </Space>
           {collectProgress?.job?.running && (
             <div style={{ marginTop: 8 }}>

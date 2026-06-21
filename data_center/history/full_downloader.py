@@ -182,6 +182,16 @@ def _run_full_sync(phase: str, year: Optional[int], end_year: Optional[int],
 
         results["options"] = totals
 
+    # 分钟线聚合: 采了 M5 后, 重采样生成 M15/M30/H1/H4 (供日内/小时级策略)
+    if with_minute:
+        try:
+            from ..aggregator import aggregate_all
+            agg = aggregate_all()
+            results["aggregated"] = agg
+            logger.info(f"分钟线聚合完成: {agg}")
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"分钟线聚合失败: {e}")
+
     return results
 
 

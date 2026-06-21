@@ -317,8 +317,12 @@ async def sync_year(
     asset_type: str = Query(..., description="futures/stock/option"),
     year: int = Query(..., description="同步年份 如 2026"),
     reset_checkpoint: bool = Query(False, description="复跑前清空进度 (校验补漏)"),
+    with_minute: bool = Query(False, description="同采分钟线 M5 并聚合 M15/M30/H1/H4 (近月, 日内策略用)"),
 ):
-    """按年同步某资产类型 (后台任务, 断点续传)。具体合约, 生命周期守卫保证挂牌/交割范围。"""
+    """按年同步某资产类型 (后台任务, 断点续传)。具体合约, 生命周期守卫保证挂牌/交割范围。
+
+    with_minute=True: D1 走全年 + M5 采近月并自动聚合 M15/M30/H1/H4 (日内/小时级策略数据)。
+    """
     if asset_type not in ("futures", "stock", "option"):
         raise HTTPException(400, f"无效资产类型: {asset_type}")
     start_date = f"{year}-01-01"
@@ -326,11 +330,11 @@ async def sync_year(
     name = f"sync-year:{asset_type}:{year}"
     try:
         jobs.start(name, lambda: full_downloader.run_full(
-            asset_type, year, year, start_date, False, None, reset_checkpoint))
+            asset_type, year, year, start_date, with_minute, None, reset_checkpoint))
     except RuntimeError as e:
         raise HTTPException(409, str(e))
     return {"status": "started", "job": name, "asset_type": asset_type,
-            "year": year, "reset_checkpoint": reset_checkpoint}
+            "year": year, "reset_checkpoint": reset_checkpoint, "with_minute": with_minute}
 
 
 @router.get("/sync/year/verify")
