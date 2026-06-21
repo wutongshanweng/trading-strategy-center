@@ -16,6 +16,7 @@ from loguru import logger
 
 from ..core.base_fetcher import KlineInterval
 from ..fetchers.baostock_fetcher import BaoStockFetcher
+from ..fetchers.akshare_fetcher import AKShareFetcher
 from .base_collector import BaseCollector
 
 
@@ -27,7 +28,9 @@ class StocksCollector(BaseCollector):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._bs = BaoStockFetcher()
+        self._akf = AKShareFetcher()
         self._ak = None
+        self._bs_dead = False  # baostock 登录失败(黑名单/限流)后置位, 后续直接走 akshare
 
     def _get_ak(self):
         if self._ak is None:
@@ -76,18 +79,51 @@ class StocksCollector(BaseCollector):
 
     def collect_kline(self, symbol: str, start_date: Optional[str] = None,
                       end_date: Optional[str] = None) -> int:
-        """BaoStock 前复权日线 -> kline。symbol 带后缀 600019.SH。"""
-        data = self._bs.get_kline(symbol, KlineInterval.DAY, start_date, end_date)
-        if not data or not data.timestamps:
-            return 0
+        """A股日线 -> kline。主源 BaoStock(前复权), 失败/被封时回退 akshare。
+
+        symbol 带后缀 600019.SH。多源容错: baostock 黑名单/限流时自动转 akshare。
+        """
+        data = None
+        if not self._bs_dead:
+            try:
+                data = self._bs.get_kline(symbol, KlineInterval.DAY, start_date, end_date)
+            except Exception as e:
+                # 登录失败(黑名单/限流) → 整批弃用 baostock, 后续直接 akshare
+                if "登录" in str(e) or "黑名单" in str(e) or "login" in str(e).lower():
+                    self._bs_dead = True
+                    logger.warning(f"BaoStock 不可用({e}), 本批后续股票直接走 akshare")
+                else:
+                    logger.warning(f"{symbol} BaoStock 失败, 转 akshare: {e}")
+
+        ts = open_ = high = low = close = vol = None
+        if data and data.timestamps:
+            ts, open_, high, low, close, vol = (
+                data.timestamps, data.open, data.high, data.low, data.close, data.volume)
+        else:
+            # akshare 兜底 (新浪源, 本环境比东财稳定)
+            df_ak = self._akf.get_stock_daily_sina(symbol, adjust="qfq")
+            if df_ak is None or df_ak.empty:
+                df_ak = self._akf.get_stock_daily(symbol.split(".")[0], adjust="qfq")
+            if df_ak is None or df_ak.empty:
+                return 0
+            if start_date:
+                df_ak = df_ak[pd.to_datetime(df_ak["date"]) >= pd.to_datetime(start_date)]
+            if end_date:
+                df_ak = df_ak[pd.to_datetime(df_ak["date"]) <= pd.to_datetime(end_date)]
+            if df_ak.empty:
+                return 0
+            ts = pd.to_datetime(df_ak["date"]).tolist()
+            open_, high, low = df_ak["open"].tolist(), df_ak["high"].tolist(), df_ak["low"].tolist()
+            close, vol = df_ak["close"].tolist(), df_ak["volume"].tolist()
+
         sid = self.registry.get_or_create_symbol(
             symbol, symbol, asset_type="stock", name=symbol,
         )
         df = pd.DataFrame({
-            "datetime": pd.to_datetime(data.timestamps),
+            "datetime": pd.to_datetime(ts),
             "symbol_id": sid, "timeframe": "D1",
-            "open": data.open, "high": data.high, "low": data.low,
-            "close": data.close, "volume": data.volume,
+            "open": open_, "high": high, "low": low,
+            "close": close, "volume": vol,
         })
         return self.store.upsert_df("kline", df, ["datetime", "symbol_id", "timeframe"])
 

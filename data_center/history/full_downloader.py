@@ -78,6 +78,8 @@ def _run_full_sync(phase: str, year: Optional[int], end_year: Optional[int],
     stock_limit: 测试期股票只下前 N 只; None=全市场。
     reset_checkpoint: 定期全量复跑前清空进度 (数据校验/补漏)。
     start_date=None: 股票从上市日起全历史。"""
+    # 归一化资产类型: API 用单数(futures/stock/option), 内部阶段用复数(stocks/options)
+    phase = {"stock": "stocks", "option": "options"}.get(phase, phase)
     if reset_checkpoint:
         reset_ckpt()
     load_all()  # 幂等: 确保 products 种子就绪
@@ -138,18 +140,8 @@ def _run_full_sync(phase: str, year: Optional[int], end_year: Optional[int],
                 return None
             return next((c for c in ("期权代码", "合约代码", "代码") if c in df.columns), None)
 
-        # 商品期权: 指定 year 时按年逐交易日全量 (覆盖该年所有挂过的合约 + IV/Delta)
-        if year is not None:
-            ckpt_done = set(k for k in ckpt["done"] if k.startswith("copt:"))
-            try:
-                ct = oc.collect_commodity_year(
-                    year, ckpt_done={k[5:] for k in ckpt_done})
-                totals["commodity_kline"] = ct.get("kline_rows", 0)
-                totals["commodity_greeks"] = ct.get("greeks_rows", 0)
-            except Exception as e:  # noqa: BLE001
-                logger.warning(f"商品期权 {year} 年采集失败: {e}")
-
-        # ETF 期权: 50/300/500 ETF, 看涨+看跌 (当前在挂, 代码无年月)
+        # ETF 期权优先: 50/300/500 ETF, 看涨+看跌 (当前在挂, 代码无年月, 有数据)
+        # 放在商品期权之前 — 避免被商品期权全年逐日空转的长循环堵住。
         for und in ("510050", "510300", "510500"):
             got = False
             for otype in ("看涨期权", "看跌期权"):
@@ -175,6 +167,19 @@ def _run_full_sync(phase: str, year: Optional[int], end_year: Optional[int],
                     logger.warning(f"{und}/{otype} 合约枚举失败: {e}")
             if got:
                 totals["underlyings"] += 1
+
+        # 商品期权: 指定 year 时按年逐交易日全量 (覆盖该年所有挂过的合约 + IV/Delta)
+        # 注意 2026 时钟下远程数据滞后, 多数交易日返回空属正常。
+        if year is not None:
+            ckpt_done = set(k for k in ckpt["done"] if k.startswith("copt:"))
+            try:
+                ct = oc.collect_commodity_year(
+                    year, ckpt_done={k[5:] for k in ckpt_done})
+                totals["commodity_kline"] = ct.get("kline_rows", 0)
+                totals["commodity_greeks"] = ct.get("greeks_rows", 0)
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"商品期权 {year} 年采集失败: {e}")
+
         results["options"] = totals
 
     return results

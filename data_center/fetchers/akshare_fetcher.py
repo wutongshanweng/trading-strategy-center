@@ -224,6 +224,19 @@ class AKShareFetcher(BaseFetcher):
             logger.warning(f"AKShare stock_daily failed for {symbol}: {e}")
             return pd.DataFrame()
 
+    def get_stock_daily_sina(self, symbol: str, adjust: str = "qfq") -> pd.DataFrame:
+        """A 股日线 (新浪源, 本环境比东财稳定)。symbol 接受 600019/600019.SH/sh600019。"""
+        ak = self._get_ak()
+        code = symbol.split(".")[0]
+        prefix = "sh" if code[0] == "6" else "sz"
+        sina_sym = code if symbol[:2].lower() in ("sh", "sz") else f"{prefix}{code}"
+        try:
+            df = ak.stock_zh_a_daily(symbol=sina_sym, adjust=adjust)
+            return self._clean_futures_df(df)
+        except Exception as e:
+            logger.warning(f"AKShare stock_daily_sina failed for {symbol}: {e}")
+            return pd.DataFrame()
+
     def list_available_symbols(self) -> List[str]:
         """列出支持的品种"""
         return list(self.FUTURES_SYMBOL_MAP.keys())
