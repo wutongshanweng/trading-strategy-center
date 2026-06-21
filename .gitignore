@@ -26,6 +26,9 @@ data_center/download_checkpoint.json
 # 本地启动日志 (后端/前端运行时生成)
 *.run.log
 api.log
+frontend-dev.log
+# 参数优化版本存储 (运行时生成)
+parameter_store/
 
 # Frontend dependencies
 node_modules/
