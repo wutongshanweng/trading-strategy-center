@@ -1616,6 +1616,456 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-06-20T15:11:28.698Z"
+    },
+    {
+      "id": "bug-100",
+      "timestamp": "2026-06-20T22:35:36.651Z",
+      "error_message": "Incorrect value in code",
+      "file": "frontend/src/components/Layout.tsx",
+      "root_cause": "Had \", icon: <FundOutlined />, label: \"",
+      "fix": "Changed to \", icon: <StockOutlined />, label: \"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T22:35:36.651Z"
+    },
+    {
+      "id": "bug-101",
+      "timestamp": "2026-06-20T22:36:20.390Z",
+      "error_message": "Wrong reference: FundOutlined should be StockOutlined",
+      "file": "frontend/src/components/Layout.tsx",
+      "root_cause": "Used \"FundOutlined\" instead of \"StockOutlined\"",
+      "fix": "Changed FundOutlined → StockOutlined",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T22:36:20.390Z"
+    },
+    {
+      "id": "bug-102",
+      "timestamp": "2026-06-20T22:36:32.225Z",
+      "error_message": "Incorrect value in code",
+      "file": "frontend/src/App.tsx",
+      "root_cause": "Had \"./pages/Strategy\"",
+      "fix": "Changed to \"./pages/Trading\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-20T22:36:41.247Z"
+    },
+    {
+      "id": "bug-103",
+      "timestamp": "2026-06-20T23:35:56.110Z",
+      "error_message": "Significant refactor of ",
+      "file": "news/fetchers/cls.py",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 12→15 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T23:35:56.110Z"
+    },
+    {
+      "id": "bug-104",
+      "timestamp": "2026-06-20T23:42:08.236Z",
+      "error_message": "Missing import: ./pages/MacroNews, ./pages/SignalDetail",
+      "file": "frontend/src/App.tsx",
+      "root_cause": "Module(s) not imported: ./pages/MacroNews, ./pages/SignalDetail",
+      "fix": "Added import(s) for ./pages/MacroNews, ./pages/SignalDetail",
+      "tags": [
+        "auto-detected",
+        "missing-import",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T23:42:08.236Z"
+    },
+    {
+      "id": "bug-105",
+      "timestamp": "2026-06-20T23:42:31.202Z",
+      "error_message": "Incorrect value in code",
+      "file": "frontend/src/components/Layout.tsx",
+      "root_cause": "Had \", icon: <StockOutlined />, label: \"",
+      "fix": "Changed to \", icon: <FundOutlined />, label: \"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T23:42:31.202Z"
+    },
+    {
+      "id": "bug-106",
+      "timestamp": "2026-06-20T23:42:41.779Z",
+      "error_message": "Wrong reference: StockOutlined should be FundOutlined",
+      "file": "frontend/src/components/Layout.tsx",
+      "root_cause": "Used \"StockOutlined\" instead of \"FundOutlined\"",
+      "fix": "Changed StockOutlined → FundOutlined",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-20T23:42:41.779Z"
+    },
+    {
+      "id": "bug-107",
+      "timestamp": "2026-06-21T01:13:01.812Z",
+      "error_message": "Null/undefined access in ",
+      "file": "frontend/src/api/client.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T01:13:01.812Z"
+    },
+    {
+      "id": "bug-108",
+      "timestamp": "2026-06-21T01:13:36.364Z",
+      "error_message": "Missing await",
+      "file": "frontend/src/pages/Tournament.tsx",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T01:13:36.364Z"
+    },
+    {
+      "id": "bug-109",
+      "timestamp": "2026-06-21T01:19:26.427Z",
+      "error_message": "Missing await",
+      "file": "api/routes/tournament_routes.py",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T01:19:26.427Z"
+    },
+    {
+      "id": "bug-110",
+      "timestamp": "2026-06-21T09:22:48.711072",
+      "error_message": "HMMDetector.fit: array must not contain infs or NaNs (regime detect failed)",
+      "file": "core/adaptive/promotion_gate.py",
+      "root_cause": "close.pct_change() 在零价/跳空时产生 inf, HMM fit 拒绝 inf/NaN",
+      "fix": "pct_change 后 replace([inf,-inf],nan).dropna() 再 fit",
+      "tags": [
+        "regime",
+        "hmm",
+        "nan",
+        "walk-forward",
+        "phase2"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T09:22:48.711072"
+    },
+    {
+      "id": "bug-111",
+      "timestamp": "2026-06-21T01:28:39.405Z",
+      "error_message": "Missing await",
+      "file": "api/routes/intelligence_routes.py",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T01:28:39.405Z"
+    },
+    {
+      "id": "bug-112",
+      "timestamp": "2026-06-21T01:32:50.305Z",
+      "error_message": "Function not marked async",
+      "file": "api/routes/tournament_routes.py",
+      "root_cause": "Function uses await but wasn't declared async",
+      "fix": "Added async modifier",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T01:32:50.305Z"
+    },
+    {
+      "id": "bug-113",
+      "timestamp": "2026-06-21T01:38:17.199Z",
+      "error_message": "CSS fix: content, key",
+      "file": "frontend/src/pages/Tournament.tsx",
+      "root_cause": "content: \"回测失败, 检查后端\", key: \"bt\" → \"晋升验证失败 (需先跑回测有候选)\", key: \"pm\"; key: \"bt\", duration: 5, → \"pm\", duration: 6,",
+      "fix": "Changed content: \"回测失败, 检查后端\", key: \"bt\" → \"晋升验证失败 (需先跑回测有候选)\", key: \"pm\"; key: \"bt\", duration: 5, → \"pm\", duration: 6,",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T01:38:17.199Z"
+    },
+    {
+      "id": "bug-114",
+      "timestamp": "2026-06-21T01:39:03.690Z",
+      "error_message": "Null/undefined access in ",
+      "file": "frontend/src/pages/Tournament.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T01:39:03.690Z"
+    },
+    {
+      "id": "bug-115",
+      "timestamp": "2026-06-21T01:40:23.769Z",
+      "error_message": "Incorrect value in code",
+      "file": "frontend/src/pages/Tournament.tsx",
+      "root_cause": "Had \"暂无考察/冠军策略, 点击上方\"",
+      "fix": "Changed to \"暂无考察/冠军策略, 点击上方「晋升验证」开始\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T01:40:23.769Z"
+    },
+    {
+      "id": "bug-116",
+      "timestamp": "2026-06-21T01:57:40.434Z",
+      "error_message": "Incorrect value in code",
+      "file": "core/adaptive/retrain_orchestrator.py",
+      "root_cause": "Had \"pathlib\"",
+      "fix": "Changed to \"data\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T01:57:40.434Z"
+    },
+    {
+      "id": "bug-117",
+      "timestamp": "2026-06-21T01:58:29.210Z",
+      "error_message": "Missing await",
+      "file": "api/routes/intelligence_routes.py",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T01:58:29.210Z"
+    },
+    {
+      "id": "bug-118",
+      "timestamp": "2026-06-21T01:59:44.495Z",
+      "error_message": "Null/undefined access in ",
+      "file": "frontend/src/api/client.ts",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "ts"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T01:59:44.495Z"
+    },
+    {
+      "id": "bug-119",
+      "timestamp": "2026-06-21T02:00:55.992Z",
+      "error_message": "Null/undefined access in ",
+      "file": "frontend/src/pages/IterationMonitor.tsx",
+      "root_cause": "Property access on potentially null/undefined value",
+      "fix": "Added null safety (optional chaining or null check)",
+      "tags": [
+        "auto-detected",
+        "null-safety",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T02:00:55.992Z"
+    },
+    {
+      "id": "bug-120",
+      "timestamp": "2026-06-21T02:01:10.765Z",
+      "error_message": "Missing import: ./pages/IterationMonitor",
+      "file": "frontend/src/App.tsx",
+      "root_cause": "Module(s) not imported: ./pages/IterationMonitor",
+      "fix": "Added import(s) for ./pages/IterationMonitor",
+      "tags": [
+        "auto-detected",
+        "missing-import",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T02:01:10.765Z"
+    },
+    {
+      "id": "bug-121",
+      "timestamp": "2026-06-21T02:01:41.101Z",
+      "error_message": "CSS fix: key",
+      "file": "frontend/src/components/Layout.tsx",
+      "root_cause": "key: \"/tournament\", icon: <TrophyOutlined />, label: \"锦标赛\" → \"/iteration\", icon: <BranchesOutlined />, label: \"智能迭代\"",
+      "fix": "Changed key: \"/tournament\", icon: <TrophyOutlined />, label: \"锦标赛\" → \"/iteration\", icon: <BranchesOutlined />, label: \"智能迭代\"",
+      "tags": [
+        "auto-detected",
+        "style-fix",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T02:01:41.101Z"
+    },
+    {
+      "id": "bug-122",
+      "timestamp": "2026-06-21T02:13:41.874Z",
+      "error_message": "Significant refactor of ",
+      "file": "main.py",
+      "root_cause": "2 lines replaced/restructured",
+      "fix": "Rewrote 25→36 lines (2 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T02:13:41.874Z"
+    },
+    {
+      "id": "bug-123",
+      "timestamp": "2026-06-21T02:14:03.861Z",
+      "error_message": "Missing await",
+      "file": "api/routes/intelligence_routes.py",
+      "root_cause": "Async call without await — returned Promise instead of value",
+      "fix": "Added await to async call",
+      "tags": [
+        "auto-detected",
+        "async-fix",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T02:14:03.861Z"
+    },
+    {
+      "id": "bug-124",
+      "timestamp": "2026-06-21T02:16:35.878Z",
+      "error_message": "Significant refactor of ",
+      "file": "frontend/src/pages/IterationMonitor.tsx",
+      "root_cause": "16 lines replaced/restructured",
+      "fix": "Rewrote 97→216 lines (16 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-06-21T02:16:35.878Z"
+    },
+    {
+      "id": "bug-125",
+      "timestamp": "2026-06-21T02:17:13.077Z",
+      "error_message": "Incorrect value in code",
+      "file": "frontend/src/components/Layout.tsx",
+      "root_cause": "Had \"/ml\"",
+      "fix": "Changed to \"/factors\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-21T02:17:29.113Z"
+    },
+    {
+      "id": "bug-126",
+      "timestamp": "2026-06-21T02:18:14.699Z",
+      "error_message": "Incorrect value in code",
+      "file": "frontend/src/App.tsx",
+      "root_cause": "Had \"./pages/ML\"",
+      "fix": "Changed to \"./pages/DataCenter\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "tsx"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-21T02:19:00.379Z"
+    },
+    {
+      "id": "bug-127",
+      "timestamp": "2026-06-21T04:17:32.334Z",
+      "error_message": "Wrong reference: List should be Optional",
+      "file": "analysis/chan_pro.py",
+      "root_cause": "Used \"List\" instead of \"Optional\"",
+      "fix": "Changed List → Optional",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "py"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-06-21T04:18:47.746Z"
     }
   ]
 }

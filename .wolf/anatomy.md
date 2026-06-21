@@ -1,12 +1,12 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-06-20T15:11:28.676Z
-> Files: 601 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-06-21T05:22:35.040Z
+> Files: 647 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.dockerignore` — Docker ignore rules (~26 tok)
-- `.gitignore` — Git ignore rules (~93 tok)
+- `.gitignore` — Git ignore rules (~107 tok)
 - `alembic.ini` (~162 tok)
 - `api.log` (~177 tok)
 - `ARCHITECTURE.md` — 交易策略中心 — 架构设计文档 (~18087 tok)
@@ -29,12 +29,12 @@
 - `IMPLEMENTATION_COMPLETE_PHASE1.md` — 🎉 用户需求全面实施完成报告 (~1770 tok)
 - `IMPLEMENTATION_COMPLETE_PHASE2.md` — 🎉 Phase 2 实施完成报告 (~1631 tok)
 - `LICENSE` — Project license (~292 tok)
-- `main.py` — lifespan (~930 tok)
+- `main.py` — lifespan (~1548 tok)
 - `nginx.conf` — Nginx configuration (~605 tok)
 - `OPENWOLF_INTEGRATION.md` — OpenWolf Integration Report (~1788 tok)
 - `PROJECT_CLEANUP_REPORT.md` — 项目文件整理完成报告 (~1813 tok)
 - `PROJECT_FINAL_REPORT.md` — 🎊 项目全面完成报告 (~2240 tok)
-- `pyproject.toml` — Python project configuration (~258 tok)
+- `pyproject.toml` — 三系统融合量化交易策略中心 — Guanshan / Chufeng / Tinghai (~247 tok)
 - `QUICK_START_PHASE1.md` — 🚀 立即启动指南 - Phase 1 功能使用 (~1814 tok)
 - `QUICK_START.md` — 交易策略中心 - 快速入门指南 (~2397 tok)
 - `README.md` — Project documentation (~1365 tok)
@@ -91,6 +91,7 @@
 
 - `__init__.py` (~0 tok)
 - `bayesian_inference.py` — BayesianInference: update, get_probability, get_credible_interval (~425 tok)
+- `chan_pro.py` — chan.py 专业缠论引擎适配层。 (~1182 tok)
 - `chan_theory.py` — ChanTheory: detect_bi, detect_zhongshu, classify_trend (~927 tok)
 - `divergence_detector.py` — DivergenceDetector: detect (~929 tok)
 - `factor_eval.py` — FactorEvaluator: compute_ic, turnover, factor_decay (~306 tok)
@@ -112,20 +113,23 @@
 
 - `__init__.py` (~0 tok)
 - `agent_routes.py` — API: POST, GET (12 endpoints) (~2926 tok)
+- `alert_routes.py` — 交易信号提醒 API — 活跃信号列表 / 单信号全链路详情 / 手动刷新。 (~259 tok)
 - `backtest_routes.py` — API: POST, GET (2 endpoints) (~583 tok)
 - `data_routes.py` — API: GET (3 endpoints) (~593 tok)
 - `db_routes.py` — API: GET, POST (9 endpoints) (~5290 tok)
 - `factor_routes.py` — API: 4 endpoints (~6354 tok)
 - `feedback_routes.py` — 反馈闭环 API — 处理锦标赛结果 / 查询反馈历史与排名。 (~311 tok)
 - `health_routes.py` — API: GET (1 endpoints) (~76 tok)
-- `intelligence_routes.py` — API routes for intelligence upgrade: RL, risk monitoring, monitoring. (~2371 tok)
+- `intelligence_routes.py` — API routes for intelligence upgrade: RL, risk monitoring, monitoring. (~3831 tok)
 - `llm_routes.py` — API routes for LLM-powered market analysis and strategy generation. (~1591 tok)
+- `macro_news_routes.py` — 新闻宏观仪表盘 API — 新闻 + 宏观 + 日历 + 联动 + 展望。 (~967 tok)
 - `ml_routes.py` — API: GET, POST (3 endpoints) (~662 tok)
 - `mlopts_routes.py` — API: 1 endpoints (~1880 tok)
 - `phase3_routes.py` — API: 4 endpoints (~1463 tok)
 - `portfolio_routes.py` — API: GET, POST (3 endpoints) (~372 tok)
+- `simulated_trading_routes.py` — 模拟交易 API — 持仓 / 开平仓 / 历史 / 关注列表 / 实时行情。 (~694 tok)
 - `strategy_routes.py` — API: 5 endpoints (~790 tok)
-- `tournament_routes.py` — API routes for Strategy Tournament — rankings, scoring, and elimination. (~817 tok)
+- `tournament_routes.py` — API routes for Strategy Tournament — rankings, scoring, and elimination. (~1448 tok)
 - `trading_routes.py` — API: GET, POST (4 endpoints) (~528 tok)
 
 ## api/websocket/
@@ -139,6 +143,7 @@
 
 - `__init__.py` (~0 tok)
 - `metrics.py` — sharpe_ratio, max_drawdown, calmar_ratio, win_rate + 2 more (~418 tok)
+- `risk_metrics_ext.py` — empyrical 风险调整收益指标扩展层 (Apache-2.0 上游)。 (~715 tok)
 - `threshold_optimizer.py` — ThresholdOptimizer: optimize (~311 tok)
 - `vectorized_engine.py` — class: run, compare_strategies (~1237 tok)
 - `walkforward.py` — WalkForward: run (~314 tok)
@@ -157,9 +162,13 @@
 ## core/adaptive/
 
 - `__init__.py` (~115 tok)
+- `auto_iteration.py` — 自动迭代调度 (B 阶段) — 安全的后台自动化。 (~1328 tok)
 - `bayesian_optimizer.py` — class: suggest_next, update, optimize, best + 1 more (~1715 tok)
-- `parameter_store.py` — from: save, load_latest, load_version, list_versions + 5 more (~1899 tok)
+- `champion_challenger.py` — Champion/Challenger 安全晋级 (阶段4)。 (~1873 tok)
+- `parameter_store.py` — from: save, load_latest, load_version, list_versions + 6 more (~1998 tok)
+- `promotion_gate.py` — 晋升闸门 (阶段2) — 样本外验证 + 防过拟合 + 按市态分组冠军。 (~2742 tok)
 - `regime_aware_optimizer.py` — RegimeAwareOptimizer: suggest_next, update, optimize, get_regime_params + 1 more (~720 tok)
+- `retrain_orchestrator.py` — 重训编排器 (阶段3) — 触发式三层迭代, 非定时盲重训。 (~2576 tok)
 - `scheduler.py` — class: submit_task, run_task, run_all, get_task_status + 2 more (~1151 tok)
 - `walk_forward_validator.py` — class: split, validate, check_robustness, detect_overfitting (~1338 tok)
 
@@ -299,6 +308,7 @@
 
 - `__init__.py` (~0 tok)
 - `settings.py` — Settings: db_url, get_settings (~576 tok)
+- `watchlist.py` — 关注品种列表 + 宏观↔品种联动规则 (静态配置)。 (~752 tok)
 
 ## core/data/
 
@@ -424,6 +434,13 @@
 
 - `tournament_system.py` — API: POST, GET (3 endpoints) (~3443 tok)
 
+## core/ump/
+
+- `__init__.py` — UMP 裁判机制 — 交易级 ML 否决闸门 (受 abu 启发, 独立实现, 非拷贝 GPL 代码)。 (~96 tok)
+- `judges.py` — UMP 裁判机制 — 交易级 ML 否决闸门 (受 abu 启发, 全新独立实现)。 (~1991 tok)
+- `service.py` — UMP 服务 — 训练/持久化/预测 (从真实 kline 训练裁判, 供下单前否决)。 (~1213 tok)
+- `training.py` — UMP 训练数据生成 — 从策略回测产出"逐笔交易特征 + 盈亏"训练集。 (~573 tok)
+
 ## core/utils/
 
 - `__init__.py` (~0 tok)
@@ -443,6 +460,7 @@
 - `aggregator.py` — aggregate_symbol, aggregate_all (~1186 tok)
 - `cross_market.py` — compute_all (~1208 tok)
 - `options_analytics.py` — compute_option_greeks (~656 tok)
+- `realtime_quote.py` — 实时行情快照 — 多源容错。 (~973 tok)
 
 ## data_center/ (DuckDB 统一仓库 — 2026-06-18 新增)
 
@@ -569,17 +587,17 @@
 ## frontend/src/
 
 - `App.css` — Styles: 12 rules, 2 media queries, 2 animations (~557 tok)
-- `App.tsx` — 动态导入页面组件 (~988 tok)
+- `App.tsx` — 动态导入页面组件 (~1042 tok)
 - `main.tsx` (~145 tok)
 
 ## frontend/src/api/
 
-- `client.ts` — API routes: GET, DELETE, POST (4 endpoints) (~1785 tok)
+- `client.ts` — API routes: GET, DELETE, POST (15 endpoints) (~2321 tok)
 
 ## frontend/src/components/
 
 - `DataSyncPanel.tsx` — DataSyncPanel — renders table — uses useState, useEffect (~3177 tok)
-- `Layout.tsx` — menuItems (~1831 tok)
+- `Layout.tsx` — menuItems (~1836 tok)
 - `RealtimeSignalPanel.tsx` — generateMockSignal — uses useState, useEffect (~3281 tok)
 - `StrategyBuilder.tsx` — StrategyBuilder — renders form — uses useForm, useState (~2711 tok)
 
@@ -590,21 +608,25 @@
 - `DataCenter.tsx` — API (~24615 tok)
 - `FactorResearch.tsx` — mockFactors (~14734 tok)
 - `Feedback.tsx` — Feedback — renders table (~943 tok)
+- `IterationMonitor.tsx` — degColor — renders table (~4556 tok)
 - `LLMConfig.tsx` — LLMConfig (~1056 tok)
+- `MacroNews.tsx` — SENTI_BG (~3872 tok)
 - `ML.tsx` — MOCK_MODELS — renders form, table, modal — uses useState, useForm, useEffect (~2184 tok)
 - `MLAnalyzer.tsx` — DIR_COLOR (~1462 tok)
 - `Monitoring.tsx` — METRICS — renders table, chart — uses useState, useEffect (~3049 tok)
 - `Phase3.tsx` — DIR_COLOR — renders table (~4391 tok)
 - `Portfolio.tsx` — MOCK_PORTFOLIO — renders form, table, chart, modal — uses useState, useForm, useEffect (~2601 tok)
 - `Settings.tsx` — Settings — renders form — uses useState, useForm (~2262 tok)
+- `SignalDetail.tsx` — DIR_CFG (~1873 tok)
 - `Strategy.tsx` — statusMap — renders form, table, modal — uses useState, useForm, useEffect (~2352 tok)
 - `StrategyLibrary.tsx` — TYPE_CN — renders table (~1374 tok)
-- `Tournament.tsx` — MOCK_STANDINGS — renders table — uses useEffect (~1740 tok)
-- `Trading.tsx` — MOCK_POSITIONS — renders form, table, chart, modal — uses useEffect, useState, useForm (~3626 tok)
+- `Tournament.tsx` — MOCK_STANDINGS — renders table, modal (~3370 tok)
+- `Trading.tsx` — pnlSpan — renders form, table, modal (~2828 tok)
 
 ## frontend/src/services/
 
 - `factorApi.ts` — API routes: POST, GET (10 endpoints) (~850 tok)
+- `macroNewsApi.ts` — 走 vite 代理 (/api → localhost:8000), 生产同源 (~1161 tok)
 - `phase3Api.ts` — API routes: GET, POST (4 endpoints) (~254 tok)
 - `phase4Api.ts` — API routes: POST, GET (7 endpoints) (~383 tok)
 - `strategyApi.ts` — API routes: GET (2 endpoints) (~128 tok)
@@ -627,6 +649,12 @@
 - `trading_2026-06-13.log` (~149 tok)
 - `trading_2026-06-14.log` (~50 tok)
 - `trading_2026-06-15.log` (~50 tok)
+
+## macro/
+
+- `__init__.py` — macro — 宏观指标聚合 + 宏观联动/市态/展望。 (~51 tok)
+- `aggregator.py` — 宏观指标聚合 — 从 DuckDB macro_data 查最新值 + 趋势。 (~1015 tok)
+- `regime_adapter.py` — 宏观→市态/品种联动分析 + 远期趋势展望 (规则引擎, 非 ML)。 (~1462 tok)
 
 ## market_state/
 
@@ -704,9 +732,17 @@
 
 ## news/
 
-- `__init__.py` (~0 tok)
+- `__init__.py` — news — 财经新闻采集 / 中文情绪 / 宏观事件日历。 (~76 tok)
+- `calendar.py` — 宏观事件日历 — 内置规则化种子事件 + 近 N 天展望。 (~703 tok)
 - `news_fetcher.py` — NewsFetcher: fetch (~366 tok)
-- `sentiment.py` — NewsSentimentAnalyzer: analyze (~387 tok)
+- `pipeline.py` — 新闻管道: 采集 → 品种标签 → 情绪分析 → JSON 缓存。 (~880 tok)
+- `sentiment.py` — 中文财经新闻情绪分析 — 关键词词典法 (替换原英文词袋)。 (~591 tok)
+
+## news/fetchers/
+
+- `__init__.py` — news.fetchers — 新闻数据源采集器。 (~48 tok)
+- `cls.py` — 财联社快讯采集器 — 多源容错。 (~1128 tok)
+- `eastmoney_guba.py` — 东方财富个股公告/股吧舆情采集器 (参考 ai_quant_trade, Apache-2.0)。 (~738 tok)
 
 ## options/
 
@@ -826,6 +862,7 @@
 ## signals/
 
 - `__init__.py` (~0 tok)
+- `alert_aggregator.py` — 交易信号聚合器 — 从各引擎收集信号, 聚合去重排序, 产出交易提醒。 (~2410 tok)
 - `base.py` — Direction: compute (~347 tok)
 - `catalog.py` — StrategyType: to_dict, register, build_from_registry, query + 7 more (~3229 tok)
 - `engine.py` — View: get (~573 tok)
@@ -845,6 +882,7 @@
 - `arbitrage_extended.py` — 套利策略增强版 — 补充 arbitrage_carry.py 之外的套利变体。 (~1103 tok)
 - `breakout_extended.py` — 突破类策略扩展。 (~1939 tok)
 - `breakout_strategies.py` — BreakoutDonchian: compute, compute, compute (~1422 tok)
+- `chan_strategies.py` — 缠论买卖点策略 — 接入专业版 chan.py 引擎 (analysis/chan_pro)。 (~783 tok)
 - `filter_strategies.py` — FilterVolatility: compute, compute, compute (~1447 tok)
 - `mean_reversion_extended.py` — 均值回归类策略扩展。 (~2775 tok)
 - `momentum_extended.py` — 动量类策略扩展。 (~2149 tok)
@@ -861,6 +899,7 @@
 - `rule_engine.py` — RuleEngine: add_rule, check, check_all, min_confidence_rule + 3 more (~280 tok)
 - `scoring.py` — score_positions (~194 tok)
 - `sim_engine.py` — class: execute_signal, close_position, get_portfolio_summary (~974 tok)
+- `simulated_trading.py` — 模拟交易服务 — 持仓/历史/关注列表的 JSON 持久化 + 盈亏计算。 (~1572 tok)
 
 ## tasks/
 
@@ -905,13 +944,41 @@
 - `test_alpha061_101.py` — Tests: alpha_factor, alpha_factor_description, alpha_factor_compute_with_lookback, alpha_factor_not_all_nan + 1 more (~739 tok)
 - `test_alpha101_base.py` — Tests: is_abstract, subclass_interface, validate_with_complete_data, validate_with_missing_columns + 6 more (~1521 tok)
 - `test_alpha101.py` — Tests: is_abstract, subclass_interface, is_alpha_base, properties + 8 more (~1053 tok)
+- `test_auto_iteration.py` — 自动迭代调度 (B 阶段) — 单测。 (~610 tok)
 - `test_catalog_feedback.py` — Phase4 A篇 — 策略目录 + C篇 反馈闭环 测试。 (~1205 tok)
+- `test_champion_challenger.py` — Champion/Challenger 安全晋级 (阶段4) — 单测。 (~834 tok)
+- `test_chan_pro.py` — 缠论专业版引擎集成 (chan.py vendored) — 单测。 (~689 tok)
+- `test_eastmoney_guba.py` — 东财股吧舆情采集器 — 单测。 (~421 tok)
 - `test_factor_cli.py` — factor_cli 统一入口 — 单元测试 (CSV 路径, 不依赖仓库/网络)。 (~819 tok)
 - `test_factor_mining.py` — 因子挖掘 — 单元测试 (Spec §7.1)。 (~1087 tok)
 - `test_factor_phase2.py` — 因子管理 Phase2 — 算子集/健康检测/行业中性化/报告 单元测试。 (~1395 tok)
+- `test_macro_news.py` — 新闻宏观仪表盘 — 新增模块单测 (纯逻辑, 不触网/不触库)。 (~778 tok)
 - `test_ml_auto_advisor.py` — Phase4 B篇 ML自动迭代 + D篇 LLM建议器 测试。 (~1181 tok)
 - `test_ml_features.py` — ML 特征工程测试。 (~726 tok)
 - `test_ml_registry.py` — ML 模型注册中心 / sklearn 包装 / 超参搜索 / 集成 测试。 (~980 tok)
 - `test_options_strategies_extended.py` — 期权-期货联合策略 / ML 信号适配器 扩展测试。 (~689 tok)
 - `test_options_surface.py` — 期权波动率曲面 / 期限结构套利 测试。 (~996 tok)
+- `test_promotion_gate.py` — 晋升闸门 (阶段2) — 单测。 (~681 tok)
+- `test_retrain_orchestrator.py` — 重训编排器 (阶段3) — 单测。 (~499 tok)
+- `test_risk_metrics_ext.py` — empyrical 风险指标扩展 — 单测。 (~372 tok)
+- `test_tournament_runner.py` — 锦标赛真实回测编排 (阶段1) — 单测。 (~920 tok)
+- `test_ump.py` — UMP 裁判机制 (交易级否决闸门) — 单测。 (~931 tok)
 - `test_warehouse.py` — TestDuckDBStore: store, test_schema_tables_created, test_upsert_dedup, test_upsert_empty_df + 8 more (~1540 tok)
+
+## tournament/
+
+- `tournament_manager.py` — class: register_strategy, record_trade, record_result, update_scores + 3 more (~1643 tok)
+- `tournament_runner.py` — 锦标赛回测编排层 — 让反馈变真 (阶段1)。 (~1771 tok)
+
+## vendor/chanpy/Combiner/
+
+- `KLine_Combiner.py` — CKLine_Combiner: clean_cache, time_begin, time_end, high + 16 more (~1804 tok)
+
+## vendor/chanpy/DataAPI/
+
+- `chan_df_api.py` — 自定义 DataAPI — 从内存 DataFrame 喂给 chan.py。 (~416 tok)
+
+## vendor/chanpy/Seg/
+
+- `Eigen.py` — CEigen: update_fx, GetPeakBiIdx (~321 tok)
+- `Seg.py` — CSeg: set_seg_idx, check, add_zs, cal_klu_slope + 20 more (~1693 tok)

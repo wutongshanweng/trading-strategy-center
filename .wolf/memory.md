@@ -589,3 +589,207 @@
 | 23:09 | Edited frontend/src/App.tsx | 4→3 lines | ~59 |
 | 23:11 | Edited frontend/src/components/Layout.tsx | 3→2 lines | ~42 |
 | 23:15 | Session end: 132 writes across 57 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore, feedback-communication-language.md) | 59 reads | ~141221 tok |
+| 23:19 | Session end: 132 writes across 57 files (factor_routes.py, factorApi.ts, FactorResearch.tsx, .gitignore, feedback-communication-language.md) | 59 reads | ~141221 tok |
+
+## Session: 2026-06-20 06:10
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| 06:35 | Edited frontend/src/components/Layout.tsx | 3→2 lines | ~36 |
+| 06:35 | Edited frontend/src/components/Layout.tsx | 2→1 lines | ~22 |
+| 06:36 | Edited frontend/src/components/Layout.tsx | 1→2 lines | ~40 |
+| 06:36 | Edited frontend/src/components/Layout.tsx | 3→2 lines | ~11 |
+| 06:36 | Edited frontend/src/App.tsx | 3→2 lines | ~33 |
+| 06:36 | Edited frontend/src/App.tsx | 3→2 lines | ~34 |
+| 06:38 | Session end: 6 writes across 2 files (Layout.tsx, App.tsx) | 14 reads | ~9777 tok |
+| 07:21 | Created core/config/watchlist.py | — | ~752 |
+| 07:22 | Created news/sentiment.py | — | ~591 |
+| 07:22 | Created news/fetchers/cls.py | — | ~1022 |
+| 07:22 | Created news/fetchers/__init__.py | — | ~28 |
+| 07:23 | Created news/calendar.py | — | ~703 |
+| 07:23 | Created news/pipeline.py | — | ~880 |
+| 07:23 | Created news/__init__.py | — | ~76 |
+| 07:24 | Created macro/aggregator.py | — | ~1015 |
+| 07:25 | Created macro/regime_adapter.py | — | ~1462 |
+| 07:25 | Created macro/__init__.py | — | ~51 |
+| 07:27 | Created signals/alert_aggregator.py | — | ~2406 |
+| 07:28 | Edited signals/alert_aggregator.py | 3→3 lines | ~49 |
+| 07:28 | Edited signals/alert_aggregator.py | 5→5 lines | ~73 |
+| 07:28 | Created data_center/realtime_quote.py | — | ~973 |
+| 07:29 | Created simulation/simulated_trading.py | — | ~1572 |
+| 07:30 | Created api/routes/macro_news_routes.py | — | ~789 |
+| 07:30 | Created api/routes/alert_routes.py | — | ~259 |
+| 07:30 | Created api/routes/simulated_trading_routes.py | — | ~694 |
+| 07:30 | Edited main.py | added 3 import(s) | ~78 |
+| 07:31 | Edited main.py | 1→4 lines | ~43 |
+| 07:31 | Edited main.py | modified lifespan() | ~433 |
+| 07:35 | Edited news/fetchers/cls.py | added 1 import(s) | ~46 |
+| 07:35 | Edited news/fetchers/cls.py | modified fetch() | ~255 |
+| 07:36 | Edited news/fetchers/cls.py | modified fetch() | ~272 |
+| 07:40 | Created frontend/src/services/macroNewsApi.ts | — | ~1161 |
+| 07:41 | Created frontend/src/pages/MacroNews.tsx | — | ~3872 |
+| 07:41 | Created frontend/src/pages/SignalDetail.tsx | — | ~1873 |
+| 07:42 | Edited frontend/src/App.tsx | 2→4 lines | ~69 |
+| 07:42 | Edited frontend/src/App.tsx | 2→4 lines | ~74 |
+| 07:42 | Edited frontend/src/components/Layout.tsx | 2→3 lines | ~55 |
+| 07:42 | Edited frontend/src/components/Layout.tsx | 2→3 lines | ~16 |
+| 07:43 | Created frontend/src/pages/Trading.tsx | — | ~2828 |
+| 07:48 | Created tests/unit/test_macro_news.py | — | ~778 |
+| 07:52 | Session end: 39 writes across 22 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 59 reads | ~101768 tok |
+
+## Session: 2026-06-21 新闻宏观仪表盘 (SPEC_MACRO_NEWS)
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| - | 核实 spec 依赖现状 (4 Explore agents) | news/macro/signals/前端 | news 需重写, macro_collector 可复用, kline/macro 真有数据 | ~12k |
+| - | 新增 watchlist 配置 | core/config/watchlist.py | 关注品种+宏观联动规则+新闻关键词标签 | ~1k |
+| - | news 模块 | news/{sentiment,calendar,pipeline}.py + fetchers/cls.py | 中文情绪+规则日历+多源容错采集 | ~3k |
+| - | macro 模块 | macro/{aggregator,regime_adapter}.py | 查 DuckDB 算趋势+规则联动/市态/展望 | ~2k |
+| - | 信号聚合器 | signals/alert_aggregator.py | kline→StrategyEngine→ResonanceV2→AlertSignal | ~2k |
+| - | 模拟交易+实时行情 | simulation/simulated_trading.py, data_center/realtime_quote.py | JSON 持久化+akshare/warehouse 兜底 | ~2k |
+| - | 3 个 API 路由 + main.py 注册 + 后台线程 | api/routes/{macro_news,alert,simulated_trading}_routes.py, main.py | 全接口 200, dashboard 聚合 errors=[] | ~2k |
+| - | 前端 3 页 + service + 路由菜单 | pages/{MacroNews,SignalDetail}.tsx, Trading.tsx 改4Tab, services/macroNewsApi.ts, App/Layout | tsc 0 错, HMR 无错, 代理转发 OK | ~5k |
+| - | 测试 | tests/unit/test_macro_news.py | 16 新测试通过; 全量 1116 passed/5 skipped | ~1k |
+| 08:00 | Session end: 39 writes across 22 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 59 reads | ~101768 tok |
+| 08:14 | Session end: 39 writes across 22 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 59 reads | ~101768 tok |
+| 08:17 | Session end: 39 writes across 22 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 61 reads | ~104704 tok |
+| 09:04 | Created tournament/tournament_runner.py | — | ~1574 |
+| 09:04 | Edited tournament/tournament_manager.py | modified __init__() | ~714 |
+| 09:05 | Edited tournament/tournament_manager.py | modified get_tournament_summary() | ~564 |
+| 09:05 | Edited api/routes/tournament_routes.py | 3→3 lines | ~42 |
+| 09:05 | Edited api/routes/tournament_routes.py | modified run_backtest() | ~145 |
+| 09:13 | Edited frontend/src/api/client.ts | added nullish coalescing | ~71 |
+| 09:13 | Edited frontend/src/pages/Tournament.tsx | 11→11 lines | ~146 |
+| 09:13 | Edited frontend/src/pages/Tournament.tsx | modified Tournament() | ~463 |
+| 09:14 | Created tests/unit/test_tournament_runner.py | — | ~920 |
+| 09:16 | Session end: 48 writes across 28 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 79 reads | ~134252 tok |
+| 09:19 | Created core/adaptive/promotion_gate.py | — | ~2219 |
+| 09:19 | Edited api/routes/tournament_routes.py | modified promote_candidates() | ~225 |
+| 09:21 | Edited core/adaptive/promotion_gate.py | modified _detect_regime() | ~198 |
+| 09:23 | Created tests/unit/test_promotion_gate.py | — | ~681 |
+| 09:24 | Edited core/adaptive/promotion_gate.py | modified _ensure_strategies_loaded() | ~109 |
+| 09:24 | Edited tournament/tournament_runner.py | added 1 import(s) | ~52 |
+| 09:28 | Created core/adaptive/retrain_orchestrator.py | — | ~2252 |
+| 09:28 | Edited api/routes/intelligence_routes.py | modified retrain_cycle() | ~240 |
+| 09:29 | Created tests/unit/test_retrain_orchestrator.py | — | ~499 |
+| 09:32 | Created core/adaptive/champion_challenger.py | — | ~1873 |
+| 09:32 | Edited api/routes/tournament_routes.py | modified get_lifecycle() | ~435 |
+| 09:33 | Created tests/unit/test_champion_challenger.py | — | ~834 |
+| 09:37 | Edited frontend/src/api/client.ts | expanded (+9 lines) | ~173 |
+| 09:37 | Edited frontend/src/pages/Tournament.tsx | 11→11 lines | ~178 |
+| 09:38 | Edited frontend/src/pages/Tournament.tsx | added 2 condition(s) | ~1362 |
+| 09:39 | Edited frontend/src/pages/Tournament.tsx | added nullish coalescing | ~442 |
+| 09:39 | Session end: 64 writes across 35 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 81 reads | ~149484 tok |
+| 09:40 | Edited frontend/src/pages/Tournament.tsx | "暂无考察/冠军策略, 点击上方" → "暂无考察/冠军策略, 点击上方「晋升验证」开始" | ~27 |
+| 09:44 | Session end: 65 writes across 35 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 81 reads | ~149511 tok |
+
+## Session: 2026-06-21 ML 自我迭代闭环 (锦标赛→反馈→重训→晋级)
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| - | 核实两个锦标赛系统 | tournament_system.py(死码)/tournament_manager.py(活) | 修正误判: 活的是 TournamentManager | ~3k |
+| - | 阶段1 真反馈 | tournament/tournament_runner.py, tournament_manager.record_result, /run-backtest, Tournament.tsx 按钮 | 排行榜真实回测, 下线5负夏普策略 | ~4k |
+| - | 阶段2 晋升闸门 | core/adaptive/promotion_gate.py, /tournament/promote | walk-forward 样本外+市态分组, 正确拒绝过拟合 | ~3k |
+| - | 阶段3 触发式重训 | core/adaptive/retrain_orchestrator.py, /intelligence/retrain/cycle | 参数层贝叶斯真优化+因子/模型层 | ~3k |
+| - | 阶段4 Champion/Challenger | core/adaptive/champion_challenger.py, /tournament/{lifecycle,graduate,retire-champion} | 生命周期+人工毕业闸门 | ~3k |
+| - | 前端 Tournament 接 phase2-4 | Tournament.tsx 晋升验证按钮+生命周期面板+毕业弹窗, api/client.ts | tsc 0 错 | ~2k |
+| - | 修 HMM inf/NaN bug | promotion_gate._detect_regime | buglog bug-? 已记 | ~0.5k |
+| - | 测试 | tests/unit/test_{tournament_runner,promotion_gate,retrain_orchestrator,champion_challenger}.py | +42 测试, 全量 1158 passed/5 skipped | ~2k |
+| 09:51 | Session end: 65 writes across 35 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 81 reads | ~149511 tok |
+| 09:53 | Session end: 65 writes across 35 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 81 reads | ~149511 tok |
+| 09:55 | Edited core/adaptive/promotion_gate.py | modified to_dict() | ~137 |
+| 09:55 | Edited core/adaptive/promotion_gate.py | expanded (+7 lines) | ~223 |
+| 09:56 | Edited core/adaptive/promotion_gate.py | modified _append_history() | ~413 |
+| 09:56 | Edited core/adaptive/promotion_gate.py | added 1 import(s) | ~34 |
+| 09:56 | Edited core/adaptive/retrain_orchestrator.py | modified _append_retrain_history() | ~388 |
+| 09:57 | Edited core/adaptive/retrain_orchestrator.py | 8→8 lines | ~56 |
+| 09:57 | Edited core/adaptive/retrain_orchestrator.py | "pathlib" → "data" | ~28 |
+| 09:57 | Edited core/adaptive/parameter_store.py | modified list_versions() | ~135 |
+| 09:58 | Edited api/routes/intelligence_routes.py | modified _read_json() | ~874 |
+| 09:58 | Edited api/routes/intelligence_routes.py | 4→3 lines | ~44 |
+| 09:59 | Edited frontend/src/api/client.ts | added nullish coalescing | ~270 |
+| 10:00 | Created frontend/src/pages/IterationMonitor.tsx | — | ~1291 |
+| 10:00 | Edited frontend/src/pages/IterationMonitor.tsx | added optional chaining | ~1684 |
+| 10:01 | Edited frontend/src/App.tsx | 2→3 lines | ~56 |
+| 10:01 | Edited frontend/src/App.tsx | 1→2 lines | ~41 |
+| 10:01 | Edited frontend/src/components/Layout.tsx | 1→2 lines | ~38 |
+| 10:01 | Edited frontend/src/components/Layout.tsx | 3→4 lines | ~24 |
+
+## Session: 2026-06-21 智能迭代监控页 (训练过程可视化)
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| - | 捕获被丢弃的训练过程 | promotion_gate(每窗口IS/OOS明细+promotion_history.json), retrain_orchestrator(retrain_history.json), parameter_store.list_strategies | 之前一闪而过的明细落盘 | ~2k |
+| - | 聚合端点 | intelligence_routes /iteration/{overview,param-versions,promotion-history,retrain-history} | overview 200, 显示2调优策略/7反馈 | ~2k |
+| - | 监控页 | pages/IterationMonitor.tsx (自动化状态+计数+参数演化+walk-forward窗口明细+重训历史), App/Layout 加"智能迭代"菜单, api/client.ts | tsc 0错, 代理可达 | ~3k |
+| - | 回归 | 26 迭代单测通过 | 无回归 | ~0.5k |
+| 10:08 | Session end: 82 writes across 37 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 82 reads | ~158305 tok |
+| 10:13 | Created core/adaptive/auto_iteration.py | — | ~1328 |
+| 10:13 | Edited main.py | modified _loop() | ~470 |
+| 10:14 | Edited api/routes/intelligence_routes.py | modified iteration_retrain_history() | ~330 |
+| 10:15 | Edited frontend/src/api/client.ts | expanded (+12 lines) | ~195 |
+| 10:16 | Edited frontend/src/pages/IterationMonitor.tsx | added 2 condition(s) | ~2880 |
+| 10:17 | Edited frontend/src/components/Layout.tsx | 3→2 lines | ~38 |
+| 10:17 | Edited frontend/src/components/Layout.tsx | inline fix | ~20 |
+| 10:17 | Edited frontend/src/components/Layout.tsx | 4→3 lines | ~18 |
+| 10:18 | Edited frontend/src/App.tsx | 3→2 lines | ~34 |
+| 10:19 | Edited frontend/src/App.tsx | 3→2 lines | ~39 |
+| 10:24 | Created tests/unit/test_auto_iteration.py | — | ~610 |
+
+## Session: 2026-06-21 智能中心合并 + B阶段自动迭代
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| - | 核实 ML 页是 404 mock | ML.tsx 调 /ml/models(不存在), 真实是 /api/v1/models(5统计模型) | 确认可合并 | ~1k |
+| - | 合并 ML→智能中心 | IterationMonitor.tsx 改 Tab(迭代监控+ML模型接真实/api/v1/models), 删 ML.tsx, 移除 ml 菜单/路由, RobotOutlined 清理 | tsc 0错 | ~3k |
+| - | B 自动迭代后端 | core/adaptive/auto_iteration.py(配置/日志/run_safe_cycle/should_run_now), main.py 后台线程加 hourly-check | 安全周期=回测+参数重优化, 不自动毕业 | ~2k |
+| - | 自动化 API | intelligence_routes /automation/{config GET/POST, run-now} | 端到端: 立即执行 68.7s, 回测35策略+参数优化7个 | ~1k |
+| - | 自动化 UI | IterationMonitor 自动化控制面板(开关/周期/立即执行/运行日志) | 默认 off, UI 可切换 | ~2k |
+| - | 测试 | tests/unit/test_auto_iteration.py 7 通过 | 全量回归见下 | ~1k |
+| 10:29 | Session end: 93 writes across 39 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 86 reads | ~170185 tok |
+| 12:05 | Created analysis/chan_pro.py | — | ~1169 |
+| 12:06 | Created vendor/chanpy/DataAPI/chan_df_api.py | — | ~412 |
+| 12:07 | Session end: 95 writes across 41 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 145 reads | ~177275 tok |
+| 12:13 | Edited vendor/chanpy/Combiner/KLine_Combiner.py | 1→5 lines | ~54 |
+| 12:13 | Edited vendor/chanpy/Seg/Eigen.py | 1→5 lines | ~40 |
+| 12:14 | Edited vendor/chanpy/Seg/Seg.py | 1→5 lines | ~46 |
+| 12:15 | Edited vendor/chanpy/DataAPI/chan_df_api.py | inline fix | ~14 |
+| 12:16 | Created signals/strategies/chan_strategies.py | — | ~783 |
+| 12:17 | Edited analysis/chan_pro.py | get_bsp() → get_latest_bsp() | ~34 |
+| 12:17 | Edited analysis/chan_pro.py | 2→2 lines | ~29 |
+| 12:17 | Edited analysis/chan_pro.py | inline fix | ~10 |
+| 12:18 | Edited analysis/chan_pro.py | 2→2 lines | ~33 |
+| 12:19 | Created tests/unit/test_chan_pro.py | — | ~689 |
+| 12:21 | Session end: 105 writes across 46 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 149 reads | ~180417 tok |
+| 12:28 | Created backtest/risk_metrics_ext.py | — | ~715 |
+| 12:28 | Edited tournament/tournament_runner.py | modified get() | ~325 |
+| 12:29 | Created tests/unit/test_risk_metrics_ext.py | — | ~372 |
+| 12:31 | Edited pyproject.toml | 3→4 lines | ~21 |
+| 12:32 | Created core/ump/judges.py | — | ~1111 |
+| 12:33 | Edited core/ump/judges.py | modified predict_block() | ~972 |
+| 12:33 | Created core/ump/training.py | — | ~573 |
+| 12:33 | Created core/ump/__init__.py | — | ~96 |
+| 12:35 | Created core/ump/service.py | — | ~1213 |
+| 12:35 | Edited api/routes/intelligence_routes.py | modified automation_run_now() | ~220 |
+| 12:36 | Created tests/unit/test_ump.py | — | ~931 |
+| 12:38 | Session end: 116 writes across 53 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 151 reads | ~188818 tok |
+| 12:43 | Created news/fetchers/eastmoney_guba.py | — | ~738 |
+| 12:43 | Edited news/fetchers/__init__.py | added 1 import(s) | ~48 |
+| 12:44 | Edited api/routes/macro_news_routes.py | modified get_macro_dashboard() | ~224 |
+| 12:44 | Created tests/unit/test_eastmoney_guba.py | — | ~421 |
+| 12:52 | Session end: 120 writes across 55 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 152 reads | ~190249 tok |
+
+## Session: 2026-06-21 外部项目能力移植 (chan.py/empyrical/UMP/东财舆情)
+
+| Time | Action | File(s) | Outcome | ~Tokens |
+|------|--------|---------|---------|--------|
+| - | 勘察3个GitHub项目 | chan.py-main(MIT), abu(GPL), ai_quant_trade(Apache) | 只有chan真金, abu需重写规避GPL | ~3k |
+| - | chan.py买卖点引擎 | vendor/chanpy/(整簇), analysis/chan_pro.py, vendor/chanpy/DataAPI/chan_df_api.py, signals/strategies/chan_strategies.py | chan_bsp成第55策略, 真实买卖点接共振 | ~4k |
+| - | empyrical指标体系 | 装Apache上游(numpy2.0 shim), backtest/risk_metrics_ext.py, 接tournament_runner | Sortino/Calmar/Omega/VaR等全套 | ~2k |
+| - | UMP裁判机制(重写非拷GPL) | core/ump/{judges,training,service}.py | GMM主裁+相似边裁, 真实kline训练RB2510=31笔64.5%胜率2坏簇 | ~4k |
+| - | 东财股吧舆情 | news/fetchers/eastmoney_guba.py, /macro-news/guba端点 | 个股公告+中文情绪, 实测中国平安5条 | ~2k |
+| - | 测试 | 4个新测试文件21测试 | 全量1186 passed/5 skipped无回归 | ~2k |
+| 13:03 | Session end: 120 writes across 55 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 152 reads | ~190249 tok |
+| 13:18 | Session end: 120 writes across 55 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 152 reads | ~190249 tok |
+| 13:22 | Edited .gitignore | 6→9 lines | ~35 |
+| 13:24 | Session end: 121 writes across 56 files (Layout.tsx, App.tsx, watchlist.py, sentiment.py, cls.py) | 153 reads | ~190380 tok |
