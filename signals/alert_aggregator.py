@@ -102,36 +102,17 @@ class AlertAggregator:
         score += min(abs(resonance) / 5.0, 1.0) * 1.5   # 最多 1.5 星
         return max(1, min(5, round(score)))
 
-    def _scan_product(self, product: str) -> Optional[AlertSignal]:
+    def _scan_product(self, product: str, news_items: Optional[List[Dict]] = None) -> Optional[AlertSignal]:
         contract = _main_contract(product)
         df = self._load_kline(contract)
         if df.empty or len(df) < 30:
             return None
-        engine = self._get_engine()
-        signals = engine.compute_all(df, symbol=contract)
-        if not signals:
-            return None
 
-        # 共振综合
-        from core.resonance.engine_v2 import ResonanceEngineV2
-        reso = ResonanceEngineV2().calculate(contract, signals, regime="RANGING")
-
-        # 方向投票: 多数信号方向 (Direction 继承 str, 直接比较)
-        buys = [s for s in signals if s.direction == "BUY"]
-        sells = [s for s in signals if s.direction == "SELL"]
-        if reso.direction != "HOLD":
-            direction = reso.direction
-        elif len(buys) > len(sells):
-            direction = "BUY"
-        elif len(sells) > len(buys):
-            direction = "SELL"
-        else:
-            direction = "WATCH"
-
-        side_signals = buys if direction == "BUY" else sells if direction == "SELL" else signals
-        if not side_signals:
-            side_signals = signals
-        avg_conf = sum(s.confidence for s in side_signals) / len(side_signals)
+        # 多 agent 委员会决策 (技术/因子/ML/缠论/宏观消息 综合)
+        from signals.agents import get_committee
+        verdict = get_committee().deliberate(df, contract, product, news_items=news_items)
+        direction = verdict["direction"]
+        agents = verdict["agents"]
         last_close = float(df["close"].iloc[-1])
 
         # 止盈止损 (ATR 近似: 用近 14 日波幅)
@@ -141,9 +122,12 @@ class AlertAggregator:
         else:
             entry, sl, tp = last_close, last_close - 2 * atr, last_close + 4 * atr
 
-        strat_names = [s.strategy_name for s in side_signals][:8]
-        star = self._star_rating(len(side_signals), avg_conf, reso.final_score)
-        reason = side_signals[0].reason if side_signals[0].reason else f"{len(side_signals)} 个策略共振"
+        # 理由: 主导 agent (同向且置信最高)
+        same_dir = [a for a in agents if a["direction"] == direction]
+        lead = max(same_dir, key=lambda a: a["confidence"], default=None) if same_dir else None
+        reason = (f"{lead['name_cn']}主导: {lead['reason']}" if lead
+                  else f"{verdict['n_agents']}个agent综合 → {direction}")
+        strat_names = [a["name_cn"] for a in agents if a["direction"] == direction]
 
         sig = AlertSignal(
             id=f"{datetime.now():%Y%m%d%H%M}_{contract}_{direction}",
@@ -151,33 +135,35 @@ class AlertAggregator:
             symbol=contract, product=product.upper(), product_name=_name_cn(product),
             direction=direction, entry_price=round(entry, 2),
             stop_loss=round(sl, 2), take_profit=round(tp, 2),
-            confidence=round(avg_conf, 3), star_rating=star, reason=reason,
-            source="共振引擎", strategy_names=strat_names, factor_names=[],
+            confidence=verdict["confidence"], star_rating=verdict["star_rating"], reason=reason,
+            source="多agent委员会", strategy_names=strat_names, factor_names=[],
             detail={
-                "resonance": {
-                    "final_score": round(reso.final_score, 3),
-                    "score_G": round(reso.score_G, 3), "score_C": round(reso.score_C, 3),
-                    "score_T": round(reso.score_T, 3), "confidence": round(reso.confidence, 3),
+                "committee": {
+                    "net_score": verdict["net_score"], "agreement": verdict["agreement"],
+                    "n_agents": verdict["n_agents"],
                 },
-                "strategies": [
-                    {"name": s.strategy_name, "direction": s.direction.value,
-                     "confidence": round(s.confidence, 3), "reason": s.reason}
-                    for s in side_signals[:10]
-                ],
+                "agents": agents,
+                "llm_comment": verdict.get("llm_comment"),
                 "macro_linkage": linkage_for_product(product),
-                "n_total_signals": len(signals),
                 "last_close": last_close, "atr14": round(atr, 2),
             },
         )
         return sig
 
     def run_once(self, products: List[str] | None = None) -> List[AlertSignal]:
-        """一次完整信号收集周期。"""
+        """一次完整信号收集周期 (多 agent 委员会)。"""
         products = products or WATCHLIST_PRODUCTS
+        # 取一次新闻供宏观消息 agent 按品种聚合情绪
+        news_items: List[Dict] = []
+        try:
+            from news.pipeline import get_pipeline
+            news_items = get_pipeline().get_cached(limit=120).get("items", [])
+        except Exception as e:
+            logger.warning(f"[alert] news fetch for macro agent failed: {e}")
         out: List[AlertSignal] = []
         for p in products:
             try:
-                sig = self._scan_product(p)
+                sig = self._scan_product(p, news_items=news_items)
                 if sig:
                     out.append(sig)
             except Exception as e:

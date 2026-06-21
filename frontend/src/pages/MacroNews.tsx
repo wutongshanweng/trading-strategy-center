@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   Card, Row, Col, Tag, Typography, Spin, Empty, Statistic, Button,
-  Timeline, Space, message, Tooltip, Divider, Modal, InputNumber, Form,
+  Timeline, Space, message, Tooltip, Divider, Modal, InputNumber, Form, Popover,
 } from "antd";
 import {
   ReloadOutlined, BellOutlined, ThunderboltOutlined, FundOutlined,
@@ -62,7 +62,7 @@ export default function MacroNews() {
     loadSignals();
     loadWatch();
     const t1 = setInterval(loadDash, 3600000);   // 1h
-    const t2 = setInterval(loadSignals, 900000);  // 15min
+    const t2 = setInterval(loadSignals, 300000);  // 5min (交易信号)
     return () => { clearInterval(t1); clearInterval(t2); };
   }, [loadDash, loadSignals, loadWatch]);
 
@@ -134,7 +134,25 @@ export default function MacroNews() {
                   color: n.label === "🟢" ? "green" : n.label === "🔴" ? "red" : "gold",
                   children: (
                     <div style={{ background: SENTI_BG[n.label] || "transparent", padding: "4px 8px", borderRadius: 4 }}>
-                      <Text style={{ fontSize: 13 }}>{n.label} {n.title}</Text>
+                      <Popover
+                        title={<span>{n.label} {n.title}</span>}
+                        overlayStyle={{ maxWidth: 420 }}
+                        content={
+                          <div style={{ maxWidth: 400 }}>
+                            <Paragraph style={{ marginBottom: 8, whiteSpace: "pre-wrap" }}>
+                              {n.content || "(无内容概述)"}
+                            </Paragraph>
+                            <Space wrap size={4}>
+                              <Tag color={n.label === "🟢" ? "green" : n.label === "🔴" ? "red" : "gold"}>
+                                {n.sentiment} {n.sentiment_score != null ? `(${n.sentiment_score})` : ""}
+                              </Tag>
+                              {(n.products || []).map((p: string) => <Tag key={p} color="blue">{p}</Tag>)}
+                              <Text type="secondary" style={{ fontSize: 11 }}>{n.source}</Text>
+                            </Space>
+                          </div>
+                        }>
+                        <Text style={{ fontSize: 13, cursor: "pointer" }}>{n.label} {n.title}</Text>
+                      </Popover>
                       <div>
                         <Text type="secondary" style={{ fontSize: 11 }}>
                           {n.timestamp?.slice(5, 16)?.replace("T", " ")} · {n.source}

@@ -62,7 +62,7 @@ def _start_background_refresh():
 
     def _loop():
         time.sleep(20)  # 启动后稍等, 避免与首批请求争抢
-        news_every, scan_every = 1800, 900
+        news_every, scan_every = 1800, 300  # 新闻30min / 信号扫描5min
         auto_check_every = 3600  # 每小时检查一次是否到自动迭代周期
         last_news = last_scan = last_auto = 0.0
         while True:

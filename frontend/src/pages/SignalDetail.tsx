@@ -42,8 +42,8 @@ export default function SignalDetail() {
 
   const cfg = DIR_CFG[sig.direction] || DIR_CFG.WATCH;
   const d = sig.detail || {};
-  const reso = d.resonance || {};
-  const strategies = d.strategies || [];
+  const committee = d.committee || {};
+  const agents = d.agents || [];
   const macroLink = d.macro_linkage || {};
   const slPct = sig.entry_price ? ((sig.stop_loss - sig.entry_price) / sig.entry_price * 100).toFixed(1) : "0";
   const tpPct = sig.entry_price ? ((sig.take_profit - sig.entry_price) / sig.entry_price * 100).toFixed(1) : "0";
@@ -77,37 +77,50 @@ export default function SignalDetail() {
           </Card>
         </Col>
 
-        {/* 共振值 */}
+        {/* 委员会综合 */}
         <Col xs={24} md={12}>
-          <Card size="small" title={<><ThunderboltOutlined /> 共振分析</>} style={{ marginBottom: 16 }}>
+          <Card size="small" title={<><ThunderboltOutlined /> 多 agent 委员会裁决</>} style={{ marginBottom: 16 }}>
             <Row gutter={16}>
-              <Col span={6}><Statistic title="综合" value={reso.final_score ?? "—"} valueStyle={{ color: cfg.color }} /></Col>
-              <Col span={6}><Statistic title="观山(G)" value={reso.score_G ?? "—"} /></Col>
-              <Col span={6}><Statistic title="楚风(C)" value={reso.score_C ?? "—"} /></Col>
-              <Col span={6}><Statistic title="听海(T)" value={reso.score_T ?? "—"} /></Col>
+              <Col span={8}><Statistic title="综合净分" value={committee.net_score ?? "—"} valueStyle={{ color: cfg.color }} /></Col>
+              <Col span={8}><Statistic title="一致性" value={committee.agreement != null ? `${(committee.agreement * 100).toFixed(0)}%` : "—"} /></Col>
+              <Col span={8}><Statistic title="参与agent" value={committee.n_agents ?? agents.length} /></Col>
             </Row>
             <Paragraph type="secondary" style={{ fontSize: 12, marginTop: 8 }}>
-              共振置信度 {reso.confidence ?? "—"} · 共 {d.n_total_signals ?? strategies.length} 个策略产出信号
+              净分区间 [-1,1], 越偏离0方向越明确; 一致性=同向agent占比。来源: {sig.source}
             </Paragraph>
+            {d.llm_comment && (
+              <Paragraph style={{ fontSize: 13, marginTop: 4, background: "#f6f6f6", padding: 8, borderRadius: 4 }}>
+                🤖 {d.llm_comment}
+              </Paragraph>
+            )}
           </Card>
         </Col>
       </Row>
 
-      {/* 触发策略 */}
-      <Card size="small" title={<><ThunderboltOutlined /> 触发策略 ({strategies.length} 个)</>} style={{ marginBottom: 16 }}>
-        {strategies.length === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
-          <Space direction="vertical" style={{ width: "100%" }} size={6}>
-            {strategies.map((s: any, i: number) => {
-              const sc = DIR_CFG[s.direction] || DIR_CFG.WATCH;
+      {/* agent 各维度意见 */}
+      <Card size="small" title={<><ThunderboltOutlined /> 各 agent 分析意见 ({agents.length})</>} style={{ marginBottom: 16 }}>
+        {agents.length === 0 ? <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} /> :
+          <Space direction="vertical" style={{ width: "100%" }} size={10}>
+            {agents.map((a: any, i: number) => {
+              const sc = DIR_CFG[a.direction] || DIR_CFG.WATCH;
               return (
-                <div key={i} style={{ borderLeft: `3px solid ${sc.color}`, paddingLeft: 10 }}>
-                  <Space>
-                    <Tag color={s.direction === "BUY" ? "green" : s.direction === "SELL" ? "red" : "default"}>{s.direction}</Tag>
-                    <Text strong>{s.name}</Text>
-                    <Text type="secondary">置信 {s.confidence}</Text>
-                  </Space>
-                  {s.reason && <div><Text type="secondary" style={{ fontSize: 12 }}>{s.reason}</Text></div>}
-                </div>
+                <Card key={i} size="small" type="inner"
+                  style={{ borderLeft: `4px solid ${sc.color}` }}
+                  styles={{ body: { padding: "8px 12px" } }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Space>
+                      <Text strong style={{ fontSize: 14 }}>{a.name_cn}</Text>
+                      <Tag color={a.direction === "BUY" ? "green" : a.direction === "SELL" ? "red" : "default"}>
+                        {a.direction === "BUY" ? "做多" : a.direction === "SELL" ? "做空" : a.direction === "HOLD" ? "持有" : "观望"}
+                      </Tag>
+                    </Space>
+                    <Space>
+                      <Text type="secondary">置信</Text>
+                      <Progress percent={Math.round((a.confidence || 0) * 100)} size="small" style={{ width: 100 }} />
+                    </Space>
+                  </div>
+                  <Text type="secondary" style={{ fontSize: 12 }}>{a.reason}</Text>
+                </Card>
               );
             })}
           </Space>}
