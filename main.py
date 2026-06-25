@@ -32,6 +32,12 @@ from api.routes.simulated_trading_routes import router as simulated_trading_rout
 from api.websocket.trading_stream import router as ws_router, start_periodic_updates
 from data_center.api import router as data_center_router
 from data_center.api.warehouse import router as warehouse_router
+from api.routes.fundamental_routes import router as fundamental_router
+from api.routes.news_routes import router as news_router
+from api.routes.market_intelligence_routes import router as market_intelligence_router
+from api.routes.vstock_routes import router as vstock_router
+from api.routes.vibe_routes import router as vibe_router
+from api.routes.china_finance_routes import router as china_finance_router
 
 
 @asynccontextmanager
@@ -40,6 +46,17 @@ async def lifespan(app: FastAPI):
     setup_logger(debug=settings.debug)
     logger.info("Trading Strategy Center starting...")
     _start_background_refresh()
+    # 触发数据库引擎初始化（延迟加载）
+    from core.db.session import get_engine
+    get_engine()
+    # 启动时自动抓取新闻 (在后台线程执行, 避免 GIL 问题)
+    try:
+        import asyncio
+        from api.routes.news_routes import bootstrap_news
+        asyncio.create_task(bootstrap_news())
+        logger.info("[bootstrap] 新闻抓取已启动")
+    except Exception as e:
+        logger.warning(f"[bootstrap] 新闻抓取失败: {e}")
     # 实时同步调度器: 若上次为运行态则自动恢复 (重启自恢复)
     try:
         from data_center.api import _scheduler
@@ -48,7 +65,8 @@ async def lifespan(app: FastAPI):
         logger.warning(f"实时同步自启失败: {e}")
     yield
     from core.db.session import async_engine
-    await async_engine.dispose()
+    if async_engine is not None:
+        await async_engine.dispose()
     logger.info("Shutting down.")
 
 
@@ -137,6 +155,12 @@ app.include_router(simulated_trading_router)
 app.include_router(ws_router)
 app.include_router(data_center_router)
 app.include_router(warehouse_router)
+app.include_router(fundamental_router)
+app.include_router(news_router)
+app.include_router(market_intelligence_router)
+app.include_router(vstock_router)
+app.include_router(vibe_router)
+app.include_router(china_finance_router)
 
 
 if __name__ == "__main__":

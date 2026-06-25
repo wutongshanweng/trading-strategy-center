@@ -7,6 +7,43 @@
 
 ## [Unreleased]
 
+### 2026-06-25 — 新闻宏观仪表盘修复
+
+#### 新增 (Added)
+- **手动刷新API** (`api/routes/macro_news_routes.py`): `POST /api/v1/macro-news/news/refresh` 强制刷新新闻缓存，绕过30分钟间隔。
+- **前端刷新按钮** (`MacroNews.tsx`): 点击"刷新全部"先调用后端强制刷新API，再重新加载数据。
+
+#### 修复 (Fixed)
+- **GIL崩溃修复** (`main.py`): 启动时 `bootstrap_news` 改用 `asyncio.create_task()` 异步执行，避免同步I/O在异步上下文中阻塞导致崩溃。
+- **时区显示修复**: 所有时间显示改用北京时间 (`Asia/Shanghai`)，包括快讯、Table列、Popover等。
+- **前端轮询间隔**: 仪表盘轮询从1小时改为5分钟，与快讯/信号同步。
+
+#### 改进 (Changed)
+- **订阅管理位置**: 从页面底部移至新闻流Tab内显示。
+- **重复内容清理**: 删除新闻流Tab与仪表盘之间的重复舆情统计/情绪分布卡片。
+
+### 2026-06-23 — PyTorch 加速升级
+
+#### 新增 (Added)
+- **PyTorch 网络层** (`core/rl/deep/torch_networks.py`): DQNTorchNet, GaussianActorTorch, TwinCriticTorch, soft_update — 基于 PyTorch 2.0+，GPU 自动加速。
+- **PPO PyTorch 版** (`core/rl/agents.py`): TorchPPO + NumpyPPO 双后端，backend="torch" 时用 TorchMLP + 自动微分训练；backend="numpy" 时纯 NumPy 无依赖。
+- **SAC PyTorch 版** (`core/rl/advanced/sac.py`): TorchSAC 自动微分版 + NumpySAC 纯 NumPy 版，支持 GPU 加速。
+- **TD3 PyTorch 版** (`core/rl/advanced/td3.py`): TorchTD3 自动微分版 + NumpyTD3 纯 NumPy 版，支持 GPU 加速。
+- **DQN Trainer 双后端** (`core/rl/deep/trainers.py`): PyTorch 优先，torch 不可用时自动降级 NumPy，无需改代码。
+
+#### 改进 (Changed)
+- **双后端自动切换**: 所有 RL 算法默认 `backend="torch"`，torch 不可用自动降级 NumPy，无缝兼容无 PyTorch 环境。
+- **NumPy 后端独立**: `core/rl/deep/trainers_numpy.py` 抽离为独立文件，torch 缺失时导入使用。
+- **GPU 支持**: CUDA 12.1 兼容，GTX 1650 及以上显卡自动使用 GPU 加速训练（需单独安装 torch CUDA 版）。
+
+#### 依赖变更
+- `pyproject.toml` 新增 `torch>=2.0` 到 `[ml]` 可选依赖。
+- `Dockerfile` 新增安装 `[ml]` 依赖，确保容器内 PyTorch 可用。
+
+#### 说明
+- 纯 NumPy 后端完全保留，所有算法在无 PyTorch 环境下继续正常运行。
+- Windows / Ubuntu 双平台验证通过。
+
 ### 2026-06-19 — 因子研究 Phase 2
 
 #### 新增 (Added)

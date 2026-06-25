@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Query
@@ -18,6 +19,14 @@ async def get_news(limit: int = Query(80, le=200), product: Optional[str] = None
     """新闻列表 (可按品种过滤)。"""
     from news.pipeline import get_pipeline
     return get_pipeline().get_cached(limit=limit, product=product)
+
+
+@router.post("/news/refresh")
+async def refresh_news(limit: int = Query(80, le=200)):
+    """强制刷新新闻缓存（绕过30min间隔）。"""
+    from news.pipeline import get_pipeline
+    items = get_pipeline().refresh(limit=limit)
+    return {"refreshed": len(items), "updated_at": datetime.now().isoformat()}
 
 
 @router.get("/news/detail")

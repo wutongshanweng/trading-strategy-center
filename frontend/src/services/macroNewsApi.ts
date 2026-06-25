@@ -77,6 +77,10 @@ export const macroNewsApi = {
     const r = await axios.get(`${API}/macro-news/dashboard`, { timeout: 60000 });
     return r.data;
   },
+  async refreshNews(limit = 80) {
+    const r = await axios.post(`${API}/macro-news/news/refresh`, {}, { params: { limit }, timeout: 30000 });
+    return r.data as { refreshed: number; updated_at: string };
+  },
   async news(limit = 80, product?: string) {
     const r = await axios.get(`${API}/macro-news/news`, { params: { limit, product }, timeout: 60000 });
     return r.data as { updated_at: string; count: number; items: NewsItem[] };
