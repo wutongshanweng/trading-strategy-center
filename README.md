@@ -51,7 +51,9 @@ git clone https://github.com/wutongshanweng/trading-strategy-center.git
 cd trading-strategy-center
 
 # 2. 依赖
-pip install -e .
+pip install -e .                        # 基础依赖
+pip install -e ".[ml]"                  # ML 依赖 (PyTorch/XGBoost/LightGBM 等)
+pip install torch --index-url https://download.pytorch.org/whl/cu121  # GPU 加速 (CUDA 12.1)
 cd frontend && npm install && cd ..
 
 # 3. 配置 (复制后填入你的 key, 全部可选)

@@ -570,11 +570,38 @@ async def full_analysis(req: FullAnalysisRequest) -> Dict[str, Any]:
 
 @router.get("/factors/descriptions")
 async def factor_descriptions() -> Dict[str, Any]:
-    """返回 101 个因子的中文描述字典 (中文名/公式/值高低含义/适用场景)。"""
+    """返回所有因子的描述字典 (中文名/公式/值高低含义/适用场景)。
+
+    包含:
+    - Alpha101 因子: 完整中文描述 (从 factor_descriptions.py)
+    - GTJA 因子: 使用英文公式作为描述
+    - 其他因子: 动态获取基本信息
+    """
     from core.alpha.alpha101.factor_descriptions import (
         ALPHA101_DESCRIPTIONS, CATEGORIES)
-    return {"success": True, "count": len(ALPHA101_DESCRIPTIONS),
-            "descriptions": ALPHA101_DESCRIPTIONS, "categories": CATEGORIES}
+    from core.alpha.alpha101 import FactorRegistry
+
+    # 合并: 静态中文描述 + 动态获取的因子
+    all_descriptions = dict(ALPHA101_DESCRIPTIONS)
+
+    # 确保因子库已初始化, 并动态添加所有因子
+    FactorRegistry.ensure_initialized()
+    for name in FactorRegistry.list_all():
+        if name not in all_descriptions:
+            cls = FactorRegistry.get(name)
+            if cls:
+                inst = cls()
+                all_descriptions[name] = {
+                    "chinese_name": getattr(inst, 'name', name),
+                    "formula": getattr(inst, 'description', ''),
+                    "interpretation": "",
+                    "use_case": getattr(inst, 'category', ''),
+                    "signal_logic": "",
+                    "source": "dynamic",  # 标记为动态获取
+                }
+
+    return {"success": True, "count": len(all_descriptions),
+            "descriptions": all_descriptions, "categories": CATEGORIES}
 
 
 class NeutralizeRequest(BaseModel):

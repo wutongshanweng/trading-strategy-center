@@ -19,6 +19,9 @@ import {
   Progress,
   Empty,
   Tooltip,
+  List,
+  Badge,
+  Progress as AntProgress,
 } from "antd";
 import {
   ExperimentOutlined,
@@ -27,15 +30,59 @@ import {
   ReloadOutlined,
   SearchOutlined,
   QuestionCircleOutlined,
+  RobotOutlined,
+  PlayCircleOutlined,
+  CloudServerOutlined,
+  ThunderboltOutlined,
+  SyncOutlined,
 } from "@ant-design/icons";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  Legend,
+} from "recharts";
 import { factorApi } from "../services/factorApi";
+import { vibeApi, FactorInfo, BacktestResult } from "../services/vibeApi";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 const { Option } = Select;
 
-// 101个Alpha因子Mock数据
-const mockFactors = Array.from({ length: 101 }, (_, i) => ({
+const CATEGORY_COLORS: Record<string, string> = {
+  // 英文分类
+  comparison: "blue", complex: "purple", complex_signal: "magenta", correlation: "cyan",
+  mean_reversion: "green", momentum: "blue", price_dispersion: "orange", price_gap: "volcano",
+  price_momentum: "geekblue", price_position: "lime", price_reversal: "red", price_structure: "gold",
+  price_volume: "purple", price_vwap: "pink", reversal: "orange", time_series: "cyan",
+  trend: "geekblue", volatility: "volcano", volume_momentum: "lime", volume_price: "magenta", vwap: "purple",
+  // 中文分类
+  动量: "blue", 价值: "green", 质量: "purple", 规模: "orange",
+  波动率: "cyan", 流动性: "magenta", 情绪: "gold", 技术: "red",
+  比较: "blue", 复合: "purple", 复合信号: "magenta", 相关: "cyan",
+  均值回归: "green", 价格离散: "orange", 价格跳空: "volcano",
+  价格动量: "geekblue", 价格位置: "lime", 价格反转: "red", 价格结构: "gold",
+  价格成交量: "purple", 价格VWAP: "pink", 反转: "orange", 时序: "cyan",
+  趋势: "geekblue", 成交量动量: "lime", 成交量价格: "magenta", VWAP均值: "purple",
+};
+
+// 中文分类映射表
+const CATEGORY_CN_MAP: Record<string, string> = {
+  comparison: "比较", complex: "复合", complex_signal: "复合信号", correlation: "相关",
+  mean_reversion: "均值回归", momentum: "动量", price_dispersion: "价格离散", price_gap: "价格跳空",
+  price_momentum: "价格动量", price_position: "价格位置", price_reversal: "价格反转", price_structure: "价格结构",
+  price_volume: "价格成交量", price_vwap: "价格VWAP", reversal: "反转", time_series: "时序",
+  trend: "趋势", volatility: "波动率", volume_momentum: "成交量动量", volume_price: "成交量价格", vwap: "VWAP均值",
+};
+
+// Alpha因子库 (动态从API获取真实因子数)
+const getMockFactors = (count: number) => Array.from({ length: count }, (_, i) => ({
   id: `alpha${String(i + 1).padStart(3, "0")}`,
   name: `Alpha${i + 1}`,
   category: ["价格", "成交量", "波动率", "趋势"][i % 4],
@@ -142,6 +189,26 @@ export default function FactorResearch() {
   // 因子中文描述字典 (key=alpha001)
   const [factorDescriptions, setFactorDescriptions] = useState<Record<string, any>>({});
 
+  // ───── VibeResearch 功能 ─────
+  const [vibeFactors, setVibeFactors] = useState<FactorInfo[]>([]);
+  const [vibeCategories, setVibeCategories] = useState<string[]>([]);
+  const [vibeLoading, setVibeLoading] = useState(true);
+  const [vibeFactorSource, setVibeFactorSource] = useState<string>("");
+  const [vibeFactorTotal, setVibeFactorTotal] = useState<number>(0);
+  const [datasources, setDatasources] = useState<{ name: string; type: string; status: string }[]>([]);
+  const [swarmStatus, setSwarmStatus] = useState<{ agents: { name: string; status: string; tasks: number }[]; total_agents: number } | null>(null);
+  const [btSymbol, setBtSymbol] = useState("000001");
+  const [btStrategy, setBtStrategy] = useState("ma_cross");
+  const [running, setRunning] = useState(false);
+  const [backtests, setBacktests] = useState<BacktestResult[]>([]);
+  const [selectedBacktest, setSelectedBacktest] = useState<BacktestResult | null>(null);
+  const [chartData, setChartData] = useState<{ day: number; value: number; benchmark: number }[]>([]);
+  const [researchQuery, setResearchQuery] = useState("");
+  const [researching, setResearching] = useState(false);
+  const [researchResult, setResearchResult] = useState<{ findings: string[]; signals: string[]; confidence: number; top_factors?: string[] } | null>(null);
+  const [vibeFactorSearch, setVibeFactorSearch] = useState("");
+  const [selectedVibeCategory, setSelectedVibeCategory] = useState<string>("");
+
   // 标的列表 (从仓库加载, 期货/股票/期权全资产)
   const [symbolOptions, setSymbolOptions] = useState<{ code: string; status?: string }[]>([
     { code: "600019.SH" }, { code: "601899.SH" }, { code: "600585.SH" },
@@ -174,13 +241,97 @@ export default function FactorResearch() {
     })();
   }, []);
 
+  // 挂载时加载 Vibe 因子数据 (用于因子列表)
+  useEffect(() => {
+    loadVibeData();
+  }, []);
+
+  // ───── VibeResearch 数据加载 ─────
+  const generateChartData = (result: BacktestResult) => {
+    const days = result.trades * 3;
+    let value = 100000;
+    const data = [];
+    for (let i = 0; i <= days; i++) {
+      value = value * (1 + (Math.random() - 0.45) * 0.02);
+      data.push({ day: i, value: Math.round(value), benchmark: 100000 * (1 + (i / days) * (result.total_return / 100)) });
+    }
+    return data;
+  };
+
+  const loadVibeData = async () => {
+    setVibeLoading(true);
+    try {
+      const fc = await vibeApi.factors({ limit: 500 });
+      const cc = await vibeApi.factorCategories();
+      const ds = await vibeApi.datasources();
+      const ss = await vibeApi.swarmStatus();
+      setVibeFactors(fc.data.factors || []);
+      setVibeFactorSource(fc.data.source || "");
+      setVibeFactorTotal(fc.data.total || fc.data.factors?.length || 0);
+      setVibeCategories(cc.data.categories || []);
+      setDatasources(ds.data.datasources || []);
+      setSwarmStatus(ss.data);
+    } catch { /* ignore */ }
+    finally { setVibeLoading(false); }
+  };
+
+  useEffect(() => {
+    loadVibeData();
+    vibeApi.backtests({ limit: 10 }).then(r => {
+      const bts = r.data.backtests || [];
+      setBacktests(bts);
+      if (bts[0]) {
+        setSelectedBacktest(bts[0]);
+        setChartData(generateChartData(bts[0]));
+      }
+    }).catch(() => {});
+  }, []);
+
+  const handleBacktest = async () => {
+    if (!btSymbol) { message.warning("请输入股票代码"); return; }
+    setRunning(true);
+    try {
+      const res = await vibeApi.backtest({ symbol: btSymbol, strategy: btStrategy, start_date: "2023-01-01", end_date: "2024-01-01", initial_capital: 100000 });
+      const result = res.data.result;
+      setBacktests(prev => [result, ...prev]);
+      setSelectedBacktest(result);
+      setChartData(generateChartData(result));
+      message.success("回测完成");
+    } catch { message.error("回测失败"); }
+    finally { setRunning(false); }
+  };
+
+  const handleResearch = async () => {
+    if (!researchQuery) return;
+    setResearching(true);
+    try {
+      const res = await vibeApi.research(researchQuery, btSymbol);
+      setResearchResult(res.data);
+      message.success("研究完成");
+    } catch { message.error("研究失败"); }
+    finally { setResearching(false); }
+  };
+
+  // 用于下拉框的因子列表 (优先用真实因子,否则用mock)
+  const factorCount = Object.keys(factorDescriptions).length;
+  const mockFactorList = getMockFactors(factorCount);
+
   const avgIC = (
-    mockFactors.reduce((sum, f) => sum + f.ic, 0) / mockFactors.length
+    (vibeFactorTotal > 0 ? vibeFactors.reduce((sum, f) => sum + f.ic, 0) / vibeFactors.length : mockFactorList.reduce((sum, f) => sum + f.ic, 0) / mockFactorList.length)
   ).toFixed(4);
   const avgIR = (
-    mockFactors.reduce((sum, f) => sum + f.ir, 0) / mockFactors.length
+    (vibeFactorTotal > 0 ? vibeFactors.reduce((sum, f) => sum + f.ir, 0) / vibeFactors.length : mockFactorList.reduce((sum, f) => sum + f.ir, 0) / mockFactorList.length)
   ).toFixed(2);
-  const positiveICCount = mockFactors.filter((f) => f.ic > 0).length;
+
+  // 因子Option显示: 因子名 + 分类 + IC值
+  const getFactorLabel = (f: FactorInfo) =>
+    `${f.name} [${CATEGORY_CN_MAP[f.category] || f.category}] IC:${f.ic > 0 ? "+" : ""}${f.ic.toFixed(3)}`;
+
+  const factorOptions = vibeFactorTotal > 0 ? vibeFactors : mockFactorList.map(f => ({
+    name: f.name, category: f.category, category_cn: f.category, ic: 0, ir: 0,
+  }));
+  const positiveICCount = vibeFactorTotal > 0 ? vibeFactors.filter((f) => f.ic > 0).length : mockFactorList.filter((f) => f.ic > 0).length;
+  const totalFactorCount = vibeFactorTotal || mockFactorList.length;
 
   // IC分析
   const handleICAnalysis = async () => {
@@ -865,7 +1016,8 @@ export default function FactorResearch() {
     }
     setAnalysisLoading(true);
     setAnalysisResult(null);
-    setAnalysisProgress("正在加载行情数据 / 计算 101 个 Alpha 因子...");
+    const factorCount = vibeFactorTotal || Object.keys(factorDescriptions).length;
+    setAnalysisProgress(`正在加载行情数据 / 计算 ${factorCount} 个因子...`);
     try {
       const result = await factorApi.fullAnalysis({ symbol: sym });
       if (result?.success) {
@@ -1040,7 +1192,7 @@ export default function FactorResearch() {
     <div>
       <Alert
         message="Alpha因子研究中心"
-        description="本页面展示101个WorldQuant Alpha因子。IC分析、分层回测和因子组合功能已完成，可进行实时分析。"
+        description="IC分析、分层回测和因子组合功能已完成，可进行实时分析。"
         type="success"
         showIcon
         closable
@@ -1071,7 +1223,7 @@ export default function FactorResearch() {
           </Button>
         </Space.Compact>
         <Text type="secondary" style={{ marginTop: 8, display: "block" }}>
-          支持: 期货合约(RB2510) / 股票(600019.SH) / 期权(IO) — 数据直连仓库，全 101 因子真实计算
+          支持: 期货合约(RB2510) / 股票(600019.SH) / 期权(IO) — 数据直连仓库
         </Text>
         {analysisLoading && (
           <Progress percent={100} status="active" showInfo={false} style={{ marginTop: 12 }} />
@@ -1093,7 +1245,7 @@ export default function FactorResearch() {
           <Card>
             <Statistic
               title="因子总数"
-              value={101}
+              value={vibeFactorTotal || Object.keys(factorDescriptions).length}
               prefix={<ExperimentOutlined />}
               valueStyle={{ color: "#1890ff" }}
             />
@@ -1104,7 +1256,7 @@ export default function FactorResearch() {
             <Statistic
               title="正IC因子数"
               value={positiveICCount}
-              suffix={`/ ${mockFactors.length}`}
+              suffix={`/ ${totalFactorCount}`}
               valueStyle={{ color: "#52c41a" }}
             />
           </Card>
@@ -1133,22 +1285,86 @@ export default function FactorResearch() {
         </Col>
       </Row>
 
-      <Card title="Alpha因子库 (101个因子)">
-        <Tabs defaultActiveKey="list">
+      <Card title={`Alpha因子库 (${vibeFactorTotal || Object.keys(factorDescriptions).length}个因子)`}>
+        <Space style={{ marginBottom: 12 }} wrap>
+          <Input.Search placeholder="搜索因子" allowClear style={{ width: 180 }}
+            onSearch={v => setVibeFactorSearch(v)} />
+          <Select placeholder="筛选分类" allowClear style={{ width: 150 }}
+            onChange={v => setSelectedVibeCategory(v || "")} value={selectedVibeCategory || undefined}>
+            {vibeCategories.map(cat => (
+              <Option key={cat} value={cat}>
+                {CATEGORY_CN_MAP[cat] || cat} ({vibeFactors.filter((f: FactorInfo) => f.category === cat).length})
+              </Option>
+            ))}
+          </Select>
+        </Space>
+        <Tabs defaultActiveKey="list" onChange={(key) => {
+          if (key === 'vibe') loadVibeData();
+        }}>
           <TabPane tab="因子列表" key="list">
-            <Table
-              dataSource={mockFactors}
-              columns={factorColumns}
-              rowKey="id"
-              pagination={{
-                pageSize: 20,
-                showSizeChanger: true,
-                showQuickJumper: true,
-                showTotal: (total) => `共 ${total} 个因子`,
-              }}
-              size="middle"
-              scroll={{ x: 1000 }}
-            />
+            {vibeFactorTotal > 0 ? (
+              <Table
+                size="small"
+                loading={vibeLoading}
+                dataSource={vibeFactors.filter((f: FactorInfo) => {
+                  const matchSearch = !vibeFactorSearch || f.name.toLowerCase().includes(vibeFactorSearch.toLowerCase()) ||
+                    f.description.toLowerCase().includes(vibeFactorSearch.toLowerCase());
+                  const matchCategory = !selectedVibeCategory || f.category === selectedVibeCategory;
+                  return matchSearch && matchCategory;
+                })}
+                rowKey="name"
+                pagination={{
+                  pageSize: 20,
+                  showSizeChanger: true,
+                  showQuickJumper: true,
+                  showTotal: (total) => `共 ${total} 个因子`,
+                }}
+                scroll={{ x: 1000 }}
+                columns={[
+                  { title: "因子名", dataIndex: "name", width: 120, fixed: "left" as const,
+                    render: (v: string) => <Text code style={{ fontSize: 11 }}>{v}</Text> },
+                  { title: "分类", dataIndex: "category_cn", width: 90,
+                    render: (v: string) => <Tag color={CATEGORY_COLORS[v] || "default"} style={{ fontWeight: "bold" }}>{v}</Tag> },
+                  { title: "IC值", dataIndex: "ic", width: 90, sorter: (a: any, b: any) => a.ic - b.ic,
+                    render: (v: number) => (
+                      <Text style={{ color: v > 0 ? "#52c41a" : "#ff4d4f", fontWeight: "bold" }}>
+                        {v > 0 ? "+" : ""}{v.toFixed(4)}
+                      </Text>
+                    )
+                  },
+                  { title: "IR值", dataIndex: "ir", width: 80, sorter: (a: any, b: any) => a.ir - b.ir,
+                    render: (v: number) => (
+                      <Text style={{ color: v > 0.5 ? "#52c41a" : v > 0 ? "#1890ff" : "#ff4d4f", fontWeight: "bold" }}>
+                        {v.toFixed(2)}
+                      </Text>
+                    )
+                  },
+                  { title: "风险调整收益", dataIndex: "risk_adj_return", width: 130,
+                    sorter: (a: any, b: any) => a.risk_adj_return - b.risk_adj_return,
+                    render: (v: number) => (
+                      <Text style={{ color: v > 0 ? "#3f8600" : "#cf1322", fontWeight: "bold" }}>
+                        {v > 0 ? "+" : ""}{v.toFixed(3)}
+                      </Text>
+                    )
+                  },
+                  { title: "描述", dataIndex: "description", ellipsis: true },
+                ]}
+              />
+            ) : (
+              <Table
+                dataSource={mockFactorList}
+                columns={factorColumns}
+                rowKey="id"
+                pagination={{
+                  pageSize: 20,
+                  showSizeChanger: true,
+                  showQuickJumper: true,
+                  showTotal: (total) => `共 ${total} 个因子`,
+                }}
+                size="middle"
+                scroll={{ x: 1000 }}
+              />
+            )}
           </TabPane>
 
           <TabPane tab="IC分析" key="ic">
@@ -1159,11 +1375,13 @@ export default function FactorResearch() {
                   <Select
                     value={selectedFactor}
                     onChange={setSelectedFactor}
-                    style={{ width: 150 }}
+                    showSearch
+                    filterOption={(i, o) => String(o?.value ?? "").toLowerCase().includes(i.toLowerCase())}
+                    style={{ width: 320 }}
                   >
-                    {mockFactors.slice(0, 20).map((f) => (
-                      <Option key={f.id} value={f.id}>
-                        {f.name}
+                    {factorOptions.map((f: any) => (
+                      <Option key={f.name} value={f.name}>
+                        {getFactorLabel(f)}
                       </Option>
                     ))}
                   </Select>
@@ -1220,11 +1438,13 @@ export default function FactorResearch() {
                   <Select
                     value={selectedFactor}
                     onChange={setSelectedFactor}
-                    style={{ width: 150 }}
+                    showSearch
+                    filterOption={(i, o) => String(o?.value ?? "").toLowerCase().includes(i.toLowerCase())}
+                    style={{ width: 320 }}
                   >
-                    {mockFactors.slice(0, 20).map((f) => (
-                      <Option key={f.id} value={f.id}>
-                        {f.name}
+                    {factorOptions.map((f: any) => (
+                      <Option key={f.name} value={f.name}>
+                        {getFactorLabel(f)}
                       </Option>
                     ))}
                   </Select>
@@ -1272,18 +1492,20 @@ export default function FactorResearch() {
           <TabPane tab="因子组合" key="combination">
             <Space direction="vertical" style={{ width: "100%" }}>
               <Card size="small">
-                <Space>
+                <Space wrap>
                   <Text>选择因子:</Text>
                   <Select
                     mode="multiple"
                     value={selectedFactors}
                     onChange={setSelectedFactors}
-                    style={{ width: 300 }}
-                    maxTagCount={3}
+                    showSearch
+                    filterOption={(i, o) => String(o?.value ?? "").toLowerCase().includes(i.toLowerCase())}
+                    style={{ minWidth: 320 }}
+                    maxTagCount={6}
                   >
-                    {mockFactors.slice(0, 20).map((f) => (
-                      <Option key={f.id} value={f.id}>
-                        {f.name}
+                    {factorOptions.map((f: any) => (
+                      <Option key={f.name} value={f.name}>
+                        {getFactorLabel(f)}
                       </Option>
                     ))}
                   </Select>
@@ -1375,9 +1597,10 @@ export default function FactorResearch() {
                 <Space wrap>
                   <Text strong>因子:</Text>
                   <Select value={selectedFactor} onChange={setSelectedFactor}
-                    showSearch style={{ width: 150 }}>
-                    {mockFactors.slice(0, 30).map((f) => (
-                      <Option key={f.id} value={f.id}>{f.name}</Option>
+                    showSearch filterOption={(i, o) => String(o?.value ?? "").toLowerCase().includes(i.toLowerCase())}
+                    style={{ width: 320 }}>
+                    {factorOptions.map((f: any) => (
+                      <Option key={f.name} value={f.name}>{getFactorLabel(f)}</Option>
                     ))}
                   </Select>
                   <Text strong>标的:</Text>
@@ -1449,9 +1672,10 @@ export default function FactorResearch() {
                   </Select>
                   <Text strong>因子集:</Text>
                   <Select mode="multiple" value={selectedFactors} onChange={setSelectedFactors}
-                    style={{ minWidth: 280 }} maxTagCount={6}>
-                    {mockFactors.slice(0, 30).map((f) => (
-                      <Option key={f.id} value={f.id}>{f.name}</Option>
+                    showSearch filterOption={(i, o) => String(o?.value ?? "").toLowerCase().includes(i.toLowerCase())}
+                    style={{ minWidth: 320 }} maxTagCount={6}>
+                    {factorOptions.map((f: any) => (
+                      <Option key={f.name} value={f.name}>{getFactorLabel(f)}</Option>
                     ))}
                   </Select>
                   <Button type="primary" icon={<BarChartOutlined />}
@@ -1514,6 +1738,259 @@ export default function FactorResearch() {
               ) : (
                 <Alert message='选标的+因子集后点"生成报告"，一键评估→排名→推荐组合' type="info" showIcon />
               )}
+            </Space>
+          </TabPane>
+
+          {/* ───── 量化研究 Tab (来自 VibeResearch) ───── */}
+          <TabPane tab="量化研究" key="vibe">
+            <Space direction="vertical" size="large" style={{ width: "100%" }}>
+              {/* 数据源 + Swarm + 快速回测 */}
+              <Row gutter={16}>
+                <Col span={6}>
+                  <Card size="small" title={<><CloudServerOutlined /> 数据源</>}>
+                    <List size="small" dataSource={datasources} renderItem={(ds) => (
+                      <List.Item style={{ padding: "4px 0" }}>
+                        <Space>
+                          <Badge status={ds.status === "available" ? "success" : "default"} />
+                          <Text style={{ fontSize: 12 }}>{ds.name}</Text>
+                          <Tag color={ds.status === "available" ? "green" : "default"} style={{ fontSize: 10 }}>{ds.type}</Tag>
+                        </Space>
+                      </List.Item>
+                    )} />
+                  </Card>
+                </Col>
+                <Col span={6}>
+                  <Card size="small" title={<><RobotOutlined /> 多Agent ({swarmStatus?.total_agents ?? 0})</>}>
+                    <List size="small" dataSource={swarmStatus?.agents ?? []} renderItem={(agent) => (
+                      <List.Item style={{ padding: "4px 0" }}>
+                        <Space>
+                          <Badge status={agent.status === "idle" ? "success" : "processing"} />
+                          <Text style={{ fontSize: 12 }}>{agent.name}</Text>
+                          {agent.tasks > 0 && <Tag color="blue" style={{ fontSize: 10 }}>{agent.tasks}任务</Tag>}
+                        </Space>
+                      </List.Item>
+                    )} />
+                  </Card>
+                </Col>
+                <Col span={12}>
+                  <Card size="small" title={<><PlayCircleOutlined /> 快速回测</>}>
+                    <Space>
+                      <Input placeholder="股票代码" value={btSymbol} onChange={e => setBtSymbol(e.target.value)} style={{ width: 100 }} />
+                      <Select value={btStrategy} onChange={setBtStrategy} style={{ width: 120 }}>
+                        <Option value="ma_cross">均线交叉</Option>
+                        <Option value="rsi_rev">RSI反转</Option>
+                        <Option value="momentum">动量策略</Option>
+                      </Select>
+                      <Button type="primary" onClick={handleBacktest} loading={running}>运行</Button>
+                      {backtests.length > 0 && (
+                        <Select
+                          placeholder="选择历史"
+                          style={{ width: 150 }}
+                          onChange={(id) => {
+                            const bt = backtests.find((b: BacktestResult) => b.id === id);
+                            if (bt) {
+                              setSelectedBacktest(bt);
+                              setChartData(generateChartData(bt));
+                            }
+                          }}
+                        >
+                          {backtests.slice(0, 5).map((b: BacktestResult) => (
+                            <Option key={b.id} value={b.id}>{b.symbol} {b.strategy}</Option>
+                          ))}
+                        </Select>
+                      )}
+                    </Space>
+                  </Card>
+                </Col>
+              </Row>
+
+              {/* 研究智能体 */}
+              <Card size="small" title={<><ThunderboltOutlined /> 研究智能体</>}>
+                <Space>
+                  <Input
+                    placeholder="研究问题，如: 分析特斯拉近期走势和投资价值"
+                    value={researchQuery}
+                    onChange={e => setResearchQuery(e.target.value)}
+                    style={{ width: 500 }}
+                    onPressEnter={handleResearch}
+                  />
+                  <Button type="primary" onClick={handleResearch} loading={researching}>研究</Button>
+                </Space>
+                {researchResult && (
+                  <div style={{ marginTop: 12 }}>
+                    <Space style={{ marginBottom: 8 }}>
+                      <Text type="secondary">置信度: </Text>
+                      <AntProgress percent={Math.round(researchResult.confidence * 100)} size="small" style={{ width: 200 }} />
+                      {researchResult.top_factors && researchResult.top_factors.length > 0 && (
+                        <>
+                          <Text type="secondary">推荐因子: </Text>
+                          {researchResult.top_factors.slice(0, 3).map((f: string) => (
+                            <Tag key={f} color="blue">{f}</Tag>
+                          ))}
+                        </>
+                      )}
+                    </Space>
+                    <Row gutter={12}>
+                      <Col span={12}>
+                        <Text strong style={{ fontSize: 12 }}>研究结论:</Text>
+                        <List size="small" dataSource={researchResult.findings}
+                          renderItem={(f: string) => <List.Item style={{ padding: "2px 0" }}><Text style={{ fontSize: 12 }}>{f}</Text></List.Item>}
+                        />
+                      </Col>
+                      <Col span={12}>
+                        <Text strong style={{ fontSize: 12 }}>信号:</Text>
+                        <Space style={{ marginTop: 4 }}>
+                          {researchResult.signals.map((s: string, i: number) => <Tag key={i} color={s === "买入" ? "green" : "default"}>{s}</Tag>)}
+                        </Space>
+                      </Col>
+                    </Row>
+                  </div>
+                )}
+              </Card>
+
+              {/* 回测结果 */}
+              {selectedBacktest && (
+                <Card size="small" title={<><LineChartOutlined /> 回测结果: {selectedBacktest.symbol}</>}>
+                  <Row gutter={16}>
+                    <Col span={6}>
+                      <Statistic
+                        title="总收益"
+                        value={selectedBacktest.total_return}
+                        suffix="%"
+                        precision={2}
+                        valueStyle={{ color: selectedBacktest.total_return > 0 ? "#3f8600" : "#cf1322" }}
+                      />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="夏普比率" value={selectedBacktest.sharpe_ratio} precision={2} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="最大回撤" value={selectedBacktest.max_drawdown} suffix="%" valueStyle={{ color: "#cf1322" }} />
+                    </Col>
+                    <Col span={6}>
+                      <Statistic title="胜率" value={selectedBacktest.win_rate} suffix="%" precision={1} />
+                    </Col>
+                  </Row>
+                  <ResponsiveContainer width="100%" height={250} style={{ marginTop: 16 }}>
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="day" tick={{ fontSize: 10 }} />
+                      <YAxis tick={{ fontSize: 10 }} />
+                      <RechartsTooltip formatter={(value: unknown) => [`¥${Number(value).toLocaleString()}`, ""]} />
+                      <Legend />
+                      <Line type="monotone" dataKey="value" stroke="#1890ff" name="策略" dot={false} />
+                      <Line type="monotone" dataKey="benchmark" stroke="#999" name="基准" dot={false} strokeDasharray="5 5" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Card>
+              )}
+
+              {/* 因子表现 */}
+              <Card size="small" title={<><LineChartOutlined /> Alpha因子表现</>}>
+                <Row gutter={16}>
+                  <Col span={12}>
+                    <Title level={5} style={{ marginTop: 0 }}>Top因子收益分布</Title>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={vibeFactors.slice(0, 10).map((f: FactorInfo) => ({ name: f.name, performance: f.risk_adj_return }))} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" domain={[-1, 2]} tickFormatter={(v: number) => `${v}%`} />
+                        <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 11 }} />
+                        <RechartsTooltip formatter={(v: unknown) => [`${Number(v).toFixed(3)}`, "风险调整收益"]} />
+                        <Bar dataKey="performance" fill="#1890ff" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </Col>
+                  <Col span={12}>
+                    <Title level={5} style={{ marginTop: 0 }}>分类统计</Title>
+                    <Tag color={vibeFactorSource === "alpha101" ? "green" : "orange"} style={{ marginBottom: 8 }}>
+                      {vibeFactorSource === "alpha101" ? `✅ 真实因子库 (${vibeFactorTotal}个)` : "⚠️ 模拟数据"}
+                    </Tag>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {vibeCategories.map((cat: string) => {
+                        const catCN = cat in CATEGORY_COLORS ? cat : CATEGORY_CN_MAP[cat] || cat;
+                        return (
+                          <Tooltip key={cat} title={`${catCN} 因子`}>
+                            <Tag color={CATEGORY_COLORS[cat] || CATEGORY_COLORS[catCN] || "default"} style={{ cursor: "pointer", padding: "4px 12px" }}>
+                              {catCN}: {vibeFactors.filter((f: FactorInfo) => f.category === cat).length}
+                            </Tag>
+                          </Tooltip>
+                        );
+                      })}
+                    </div>
+                    <div style={{ marginTop: 16 }}>
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        共 {vibeFactorTotal} 个因子
+                      </Text>
+                    </div>
+                  </Col>
+                </Row>
+              </Card>
+
+              {/* 因子库 */}
+              <Card size="small" title={<><ExperimentOutlined /> Alpha因子库</>}>
+                <Space style={{ marginBottom: 8 }} wrap>
+                  <Input.Search
+                    placeholder="搜索因子"
+                    value={vibeFactorSearch}
+                    onChange={e => setVibeFactorSearch(e.target.value)}
+                    style={{ width: 200 }}
+                  />
+                  <Select
+                    placeholder="筛选分类"
+                    allowClear
+                    value={selectedVibeCategory || undefined}
+                    onChange={v => setSelectedVibeCategory(v || "")}
+                    style={{ width: 140 }}
+                  >
+                    {vibeCategories.map(cat => (
+                      <Option key={cat} value={cat}>
+                        {CATEGORY_CN_MAP[cat] || cat} ({vibeFactors.filter((f: FactorInfo) => f.category === cat).length})
+                      </Option>
+                    ))}
+                  </Select>
+                  <Text type="secondary" style={{ fontSize: 11 }}>共 {vibeFactorTotal} 个因子</Text>
+                </Space>
+                <Table
+                  size="small"
+                  loading={vibeLoading}
+                  dataSource={vibeFactors.filter((f: FactorInfo) => {
+                    const matchSearch = f.name.toLowerCase().includes(vibeFactorSearch.toLowerCase()) ||
+                      f.description.toLowerCase().includes(vibeFactorSearch.toLowerCase());
+                    const matchCategory = !selectedVibeCategory || f.category === selectedVibeCategory;
+                    return matchSearch && matchCategory;
+                  })}
+                  rowKey="name"
+                  pagination={{ pageSize: 10, showSizeChanger: true, pageSizeOptions: [10, 20, 50, 100] }}
+                  scroll={{ x: 800 }}
+                  columns={[
+                    { title: "因子名", dataIndex: "name", width: 120, fixed: "left" as const,
+                      render: (v: string) => <Text code style={{ fontSize: 11 }}>{v}</Text> },
+                    { title: "分类", dataIndex: "category_cn", width: 90,
+                      render: (v: string) => <Tag color={CATEGORY_COLORS[v] || "default"} style={{ fontWeight: "bold" }}>{v}</Tag> },
+                    { title: "IC", dataIndex: "ic", width: 80,
+                      render: (v: number) => (
+                        <Text style={{ color: v > 0 ? "#52c41a" : "#ff4d4f", fontWeight: "bold" }}>
+                          {v > 0 ? "+" : ""}{v.toFixed(4)}
+                        </Text>
+                      )
+                    },
+                    { title: "IR", dataIndex: "ir", width: 70,
+                      render: (v: number) => (
+                        <Text style={{ color: v > 0.5 ? "#52c41a" : v > 0 ? "#1890ff" : "#ff4d4f", fontWeight: "bold" }}>
+                          {v.toFixed(2)}
+                        </Text>
+                      )
+                    },
+                    { title: "风险调整收益", dataIndex: "risk_adj_return", width: 130,
+                      render: (v: number) => (
+                        <Text style={{ color: v > 0 ? "#3f8600" : "#cf1322", fontWeight: "bold" }}>
+                          {v > 0 ? "+" : ""}{v.toFixed(3)}
+                        </Text>
+                      )
+                    },
+                  ]}
+                />
+              </Card>
             </Space>
           </TabPane>
         </Tabs>

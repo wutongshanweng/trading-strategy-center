@@ -141,3 +141,219 @@ def bool_to_float(cond: pd.Series, *inputs: pd.Series, sign: float = 1.0) -> pd.
             mask = mask | inp.isna()
         res[mask] = np.nan
     return res
+
+
+# ===== 国泰君安因子额外操作符 =====
+
+def sma(x: pd.Series, d: int, e: int) -> pd.Series:
+    """Exponential moving average (exponentially weighted moving average).
+
+    Args:
+        x: Input series
+        d: Span/lookback period
+        e: Not used in EMA, kept for compatibility
+    """
+    return x.ewm(span=d, adjust=False).mean()
+
+
+def wma(x: pd.Series, d: int) -> pd.Series:
+    """Weighted moving average - linear weighting."""
+    weights = np.arange(1, d + 1, dtype=float)
+    weights /= weights.sum()
+
+    def _weighted(s):
+        n = len(s)
+        w = weights[-n:] if n < d else weights
+        return np.dot(s, w) if len(s) > 0 else np.nan
+    return x.rolling(d, min_periods=1).apply(_weighted, raw=True)
+
+
+def sme(s: pd.Series, window: int, min_periods: int = 1) -> pd.Series:
+    """Smoothed moving average."""
+    return s.ewm(alpha=0.2, adjust=False).mean().rolling(window, min_periods=min_periods).mean()
+
+
+def std(x: pd.Series, d: int) -> pd.Series:
+    """Rolling standard deviation."""
+    return x.rolling(d, min_periods=max(1, d // 2)).std()
+
+
+def mean(x: pd.Series, d: int) -> pd.Series:
+    """Rolling mean."""
+    return x.rolling(d, min_periods=max(1, d // 2)).mean()
+
+
+def vwap(data: pd.DataFrame, d: int = None) -> pd.Series:
+    """Volume Weighted Average Price."""
+    if d is None:
+        return (data["close"] * data["volume"]).cumsum() / data["volume"].cumsum()
+    return ((data["close"] * data["volume"]).rolling(d).sum() /
+            data["volume"].rolling(d).sum())
+
+
+def covi(x: pd.Series, y: pd.Series, d: int) -> pd.Series:
+    """Rolling covariance (COVIANCE alias)."""
+    return x.rolling(d, min_periods=max(1, d // 2)).cov(y)
+
+
+def sequence(d: int) -> pd.Series:
+    """Sequence of integers 1 to d."""
+    return pd.Series(np.arange(1, d + 1))
+
+
+def tsmin(x: pd.Series, d: int) -> pd.Series:
+    """Time-series minimum alias."""
+    return ts_min(x, d)
+
+
+def tsmax(x: pd.Series, d: int) -> pd.Series:
+    """Time-series maximum alias."""
+    return ts_max(x, d)
+
+
+def count(cond: pd.Series, d: int) -> pd.Series:
+    """Count of True values in rolling window."""
+    return cond.rolling(d, min_periods=max(1, d // 2)).sum()
+
+
+def regbeta(y: pd.Series, x: pd.Series, d: int = None) -> pd.Series:
+    """Rolling regression beta (slope).
+
+    If x is a sequence, performs OLS. Otherwise uses rolling covariance.
+    """
+    if d is None:
+        d = len(x) if isinstance(x, pd.Series) else 20
+    if isinstance(x, pd.Series) and len(x) == d:
+        # Fixed-window regression using sequence
+        cov = y.rolling(d).cov(x)
+        var = x.rolling(d).var()
+        return cov / (var + 1e-8)
+    return y.rolling(d).cov(x) / (x.rolling(d).var() + 1e-8)
+
+
+def retr(data: pd.DataFrame) -> pd.Series:
+    """Daily returns."""
+    return data["close"].pct_change()
+
+
+def tsr(x: pd.Series, d: int) -> pd.Series:
+    """Time series rank alias for ts_rank."""
+    return ts_rank(x, d)
+
+
+def lowday(x: pd.Series, d: int) -> pd.Series:
+    """Days since lowest value in window."""
+    def _lowday(s):
+        if len(s) == 0:
+            return 0
+        return len(s) - 1 - np.argmin(s[::-1])
+    return x.rolling(d).apply(_lowday, raw=True)
+
+
+def highday(x: pd.Series, d: int) -> pd.Series:
+    """Days since highest value in window."""
+    def _highday(s):
+        if len(s) == 0:
+            return 0
+        return len(s) - 1 - np.argmax(s[::-1])
+    return x.rolling(d).apply(_highday, raw=True)
+
+
+def amount(data: pd.DataFrame) -> pd.Series:
+    """Trading amount (money volume)."""
+    if "amount" in data.columns:
+        return data["amount"]
+    return data["close"] * data["volume"]
+
+
+def product(x: pd.Series, d: int) -> pd.Series:
+    """Rolling product."""
+    return ts_product(x, d)
+
+
+def sign(x: pd.Series) -> pd.Series:
+    """Sign of values."""
+    return np.sign(x)
+
+
+def sumif(cond: pd.Series, d: int, col: pd.Series) -> pd.Series:
+    """Sum where condition is true in rolling window."""
+    return cond.rolling(d).apply(lambda s: col.iloc[-len(s):][s > 0].sum() if s.sum() > 0 else 0, raw=False)
+
+
+def _cond_sum(cond: pd.Series, val: pd.Series, d: int) -> pd.Series:
+    """Conditional rolling sum."""
+    return cond.rolling(d).apply(
+        lambda s: val.iloc[-len(s):][s > 0].sum() if len(s) > 0 else 0,
+        raw=False
+    )
+
+
+def tsargmax(x: pd.Series, d: int) -> pd.Series:
+    """Time-series argmax alias."""
+    return ts_argmax(x, d)
+
+
+def tsargmin(x: pd.Series, d: int) -> pd.Series:
+    """Time-series argmin alias."""
+    return ts_argmin(x, d)
+
+
+def cci(high: pd.Series, low: pd.Series, close: pd.Series, d: int) -> pd.Series:
+    """Commodity Channel Index."""
+    tp = (high + low + close) / 3
+    sma = tp.rolling(d).mean()
+    mad = tp.rolling(d).apply(lambda x: np.abs(x - x.mean()).mean(), raw=True)
+    return (tp - sma) / (0.015 * mad + 1e-8)
+
+
+def obv(close: pd.Series, volume: pd.Series) -> pd.Series:
+    """On Balance Volume."""
+    return (np.sign(close.diff()) * volume).fillna(0).cumsum()
+
+
+def tr(high: pd.Series, low: pd.Series, close: pd.Series) -> pd.Series:
+    """True Range."""
+    h_diff = high - low
+    h_close = (high - close.shift(1)).abs()
+    l_close = (low - close.shift(1)).abs()
+    return pd.concat([h_diff, h_close, l_close], axis=1).max(axis=1)
+
+
+def ld_hd(high: pd.Series, low: pd.Series, close: pd.Series) -> tuple:
+    """LD (plus) and HD (minus) for directional movement."""
+    high_diff = high.diff()
+    low_diff = -low.diff()
+    plus_dm = high_diff.where((high_diff > low_diff) & (high_diff > 0), 0)
+    minus_dm = low_diff.where((low_diff > high_diff) & (low_diff > 0), 0)
+    return plus_dm, minus_dm
+
+
+def sumac(x: pd.Series) -> pd.Series:
+    """Sum accumulation (cumulative sum)."""
+    return x.cumsum()
+
+
+def abs(x: pd.Series) -> pd.Series:
+    """Absolute value."""
+    return np.abs(x)
+
+
+def log(x: pd.Series) -> pd.Series:
+    """Natural logarithm."""
+    return np.log(x.clip(lower=1e-8))
+
+
+def min(a: pd.Series, b: pd.Series) -> pd.Series:
+    """Element-wise minimum."""
+    return np.minimum(a, b)
+
+
+def max(a: pd.Series, b: pd.Series) -> pd.Series:
+    """Element-wise maximum."""
+    return np.maximum(a, b)
+
+
+def if_else(cond: pd.Series, then: float, else_: float) -> pd.Series:
+    """Conditional replacement."""
+    return cond.where(cond > 0, else_).where(cond <= 0, then)

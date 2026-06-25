@@ -729,6 +729,1351 @@ ALPHA101_DESCRIPTIONS: Dict[str, dict] = {
         "use_case": "最直观的当日多空力量对比",
         "signal_logic": "值高 → 做多; 值低 → 做空",
     },
+    # =========================================================
+    # Alpha 102-191 (新增 — 来自 docs/因子.md 中文部分)
+    # =========================================================
+    "alpha102": {
+        "chinese_name": "成交量变动率-正偏量",
+        "formula": "成交量变动率6日SMA(正偏部分)",
+        "interpretation": "值高: 成交量持续放大 → 市场活跃度提升\n"
+                          "值低: 成交量缩减 → 市场活跃度下降",
+        "use_case": "衡量成交量增长动量",
+    },
+    "alpha103": {
+        "chinese_name": "低价距-20日低点距离",
+        "formula": "(20-LOWDAY(LOW,20))/20*100",
+        "interpretation": "值高: 接近20日最低点 → 低位支撑区\n"
+                          "值低: 距低点较远 → 价格已脱离底部",
+        "use_case": "判断价格相对历史低点的位置",
+    },
+    "alpha104": {
+        "chinese_name": "量价相关变动-波动调整",
+        "formula": "-1 * delta(corr(HIGH,VOLUME,5),5) * rank(std(CLOSE,20))",
+        "interpretation": "值高: 量价相关性下降且波动率低 → 趋势减弱\n"
+                          "值低: 量价相关稳定 → 趋势持续",
+        "use_case": "捕捉量价关系的变化",
+    },
+    "alpha105": {
+        "chinese_name": "开盘-成交量排名相关",
+        "formula": "-1 * corr(rank(OPEN), rank(VOLUME), 10)",
+        "interpretation": "值高: 开盘高时成交量偏低 → 上涨乏力\n"
+                          "值低: 开盘与量同步 → 方向确认",
+        "use_case": "验证开盘方向是否有量能支撑",
+    },
+    "alpha106": {
+        "chinese_name": "收盘-20日变动",
+        "formula": "CLOSE - DELAY(CLOSE, 20)",
+        "interpretation": "值高: 价格高于20日前 → 20日趋势向上\n"
+                          "值低: 价格低于20日前 → 20日趋势向下",
+        "use_case": "中期趋势跟踪",
+    },
+    "alpha107": {
+        "chinese_name": "开盘价-极值偏离复合",
+        "formula": "((OPEN-DELAY(HIGH,1))*(OPEN-DELAY(CLOSE,1))*(OPEN-DELAY(LOW,1)))取负排名",
+        "interpretation": "值高: 开盘处于近期高价区 → 偏空\n"
+                          "值低: 开盘处于低价区 → 偏多",
+        "use_case": "开盘位置的极值信号",
+    },
+    "alpha108": {
+        "chinese_name": "高价突破-量能加权",
+        "formula": "((RANK((HIGH-MIN(HIGH,2)))^RANK(CORR(VWAP,MEAN(VOLUME,120),6)))*-1",
+        "interpretation": "值高: 突破力度强且量能配合 → 强势\n"
+                          "值低: 突破无量 → 假突破风险",
+        "use_case": "突破信号的质量验证",
+    },
+    "alpha109": {
+        "chinese_name": "日内波幅-标准差比率",
+        "formula": "SMA(HIGH-LOW,10,2)/SMA(SMA(HIGH-LOW,10,2),10,2)",
+        "interpretation": "值高: 波幅放大且有持续性 → 趋势明确\n"
+                          "值低: 波幅收缩 → 盘整或趋势减弱",
+        "use_case": "衡量波动率的稳定性",
+    },
+    "alpha110": {
+        "chinese_name": "上涨/下跌能量比",
+        "formula": "SUM(MAX(0,HIGH-DELAY(CLOSE,1)),20)/SUM(MAX(0,DELAY(CLOSE,1)-LOW),20)*100",
+        "interpretation": "值高: 上涨能量强于下跌 → 多头占优\n"
+                          "值低: 下跌能量强于上涨 → 空头占优",
+        "use_case": "多空能量对比",
+    },
+    "alpha111": {
+        "chinese_name": "加权价量变化-价差动量",
+        "formula": "SMA(VOL*(CLOSE-LOW-(HIGH-CLOSE))/(HIGH-LOW),11,2)-SMA(VOL*(CLOSE-LOW-(HIGH-CLOSE))/(HIGH-LOW),4,2)",
+        "interpretation": "值高: 近期价差动量上升 → 短期偏多\n"
+                          "值低: 价差动量下降 → 短期偏空",
+        "use_case": "加权价差动量变化",
+    },
+    "alpha112": {
+        "chinese_name": "涨跌成交量净比",
+        "formula": "(上涨量-下跌量)/(上涨量+下跌量)*100",
+        "interpretation": "值高: 上涨时成交量更大 → 多头主导\n"
+                          "值低: 下跌时成交量更大 → 空头主导",
+        "use_case": "量能主导方向",
+    },
+    "alpha113": {
+        "chinese_name": "持仓量-均线偏离复合",
+        "formula": "-1 * (rank(sum(DELAY(CLOSE,5),20)/20)*corr(CLOSE,VOLUME,2))*rank(corr(sum(CLOSE,5),sum(CLOSE,20),2))",
+        "interpretation": "值高: 价格与量背离且中期走弱 → 偏空\n"
+                          "值低: 价格量配合良好 → 偏多",
+        "use_case": "价量与均线偏离综合信号",
+    },
+    "alpha114": {
+        "chinese_name": "波幅-成交量结构比",
+        "formula": "rank((HIGH-LOW)/(SUM(CLOSE,5)/5))*rank(VOLUME)/((HIGH-LOW)/(SUM(CLOSE,5)/5)/(VWAP-CLOSE))",
+        "interpretation": "值高: 高波幅+高成交量+价格低于VWAP → 偏空\n"
+                          "值低: 波幅适中+价格高于VWAP → 偏多",
+        "use_case": "波幅与成交量的结构分析",
+    },
+    "alpha115": {
+        "chinese_name": "价量相关-时序排名复合",
+        "formula": "rank(corr((HIGH*0.9+CLOSE*0.1),mean(VOLUME,30),10))^rank(corr(TSRANK((HIGH+LOW)/2,4),TSRANK(VOLUME,10),7))",
+        "interpretation": "值高: 价量相关强且时序排名靠前 → 趋势确认\n"
+                          "值低: 相关性弱 → 趋势不明",
+        "use_case": "价量时序复合信号",
+    },
+    "alpha116": {
+        "chinese_name": "收盘价-线性回归斜率",
+        "formula": "REGBETA(CLOSE,SEQUENCE,20)",
+        "interpretation": "值高: 20日线性趋势向上 → 偏多\n"
+                          "值低: 趋势向下 → 偏空",
+        "use_case": "线性趋势强度",
+    },
+    "alpha117": {
+        "chinese_name": "量排名-价格位置-收益复合",
+        "formula": "TSRANK(VOLUME,32)*(1-TSRANK((CLOSE+HIGH-LOW),16))*(1-TSRANK(RET,32))",
+        "interpretation": "值高: 放量+价格位置低+收益为负 → 超卖反弹可能\n"
+                          "值低: 缩量+价格位置高 → 偏空",
+        "use_case": "量价位三维度复合",
+    },
+    "alpha118": {
+        "chinese_name": "上影线/下影线比率",
+        "formula": "SUM(HIGH-OPEN,20)/SUM(OPEN-LOW,20)*100",
+        "interpretation": "值高: 上影线长 → 冲高回落，偏空\n"
+                          "值低: 下影线长 → 探底回升，偏多",
+        "use_case": "日内多空争夺判断",
+    },
+    "alpha119": {
+        "chinese_name": "VWAP-量能相关-衰减复合",
+        "formula": "rank(decay_linear(corr(VWAP,sum(mean(VOLUME,5),26),5),7))-rank(decay_linear(TSRANK(MIN(corr(rank(OPEN),rank(mean(VOLUME,15)),21),9),7),8))",
+        "interpretation": "值高: VWAP量价关系强于开盘量价 → 偏多\n"
+                          "值低: 反之 → 偏空",
+        "use_case": "VWAP与开盘量能衰减差",
+    },
+    "alpha120": {
+        "chinese_name": "VWAP-收盘价比率",
+        "formula": "rank((VWAP-CLOSE))/(VWAP+CLOSE)",
+        "interpretation": "值高: 收盘价低于VWAP → 偏空\n"
+                          "值低: 收盘价高于VWAP → 偏多",
+        "use_case": "收盘价相对VWAP位置",
+    },
+    "alpha121": {
+        "chinese_name": "VWAP偏离-量能相关复合",
+        "formula": "(rank((VWAP-MIN(VWAP,12)))^TSRANK(corr(TSRANK(VWAP,20),TSRANK(mean(VOLUME,60),2),18),3))*-1",
+        "interpretation": "值高: VWAP下方且量能萎缩 → 偏空\n"
+                          "值低: VWAP上方且量能配合 → 偏多",
+        "use_case": "VWAP偏离与量能复合",
+    },
+    "alpha122": {
+        "chinese_name": "对数收盘价-三次平滑差分",
+        "formula": "三重SMA(log(CLOSE),13,2)的一阶差分",
+        "interpretation": "值高: 对数价格加速上升 → 动能增强\n"
+                          "值低: 对数价格减速或下降 → 动能减弱",
+        "use_case": "对数价格动量的高阶平滑",
+    },
+    "alpha123": {
+        "chinese_name": "中价量能相关-低价相关对比",
+        "formula": "(rank(corr(sum((HIGH+LOW)/2,20),sum(mean(VOLUME,60),20),9))<rank(corr(LOW,VOLUME,6)))*-1",
+        "interpretation": "值高: 低价量价相关更强 → 底部支撑\n"
+                          "值低: 中价量价更相关 → 偏空",
+        "use_case": "量价支撑来源分析",
+    },
+    "alpha124": {
+        "chinese_name": "VWAP基差-波动调整",
+        "formula": "(CLOSE-VWAP)/decay_linear(rank(TSMAX(CLOSE,30)),2)",
+        "interpretation": "值高: 收盘高于VWAP且波动调整后仍高 → 偏多\n"
+                          "值低: 收盘低于VWAP → 偏空",
+        "use_case": "VWAP基差的波动调整",
+    },
+    "alpha125": {
+        "chinese_name": "VWAP量价相关-价变动量对比",
+        "formula": "rank(decay_linear(corr(VWAP,mean(VOLUME,80),17),20))/rank(decay_linear(delta(CLOSE*0.5+VWAP*0.5,3),16))",
+        "interpretation": "值高: 量价相关强于价变动量 → 偏多\n"
+                          "值低: 价变动量更强 → 偏空",
+        "use_case": "VWAP量价与价变动量对比",
+    },
+    "alpha126": {
+        "chinese_name": "典型价格",
+        "formula": "(CLOSE+HIGH+LOW)/3",
+        "interpretation": "值高: 典型价格高 → 当日均价偏强\n"
+                          "值低: 典型价格低 → 当日均价偏弱",
+        "use_case": "最基础的均价计算",
+    },
+    "alpha127": {
+        "chinese_name": "收盘偏离-12日最高",
+        "formula": "mean((100*(CLOSE-MAX(CLOSE,12))/(MAX(CLOSE,12)))^2)^0.5",
+        "interpretation": "值高: 收盘远离12日最高 → 超买\n"
+                          "值低: 收盘接近12日最高 → 强势",
+        "use_case": "价格相对近期高点偏离度",
+    },
+    "alpha128": {
+        "chinese_name": "典型价格动量振荡器",
+        "formula": "100/(1+SUM(典型价格>前日?量*典型价格:0,14)/SUM(典型价格<前日?量*典型价格:0,14))",
+        "interpretation": "值高: 上涨日量能更强 → 多头动能\n"
+                          "值低: 下跌日量能更强 → 空头动能",
+        "use_case": "量能加权动量振荡器",
+    },
+    "alpha129": {
+        "chinese_name": "下跌幅度累加",
+        "formula": "SUM(|CLOSE-DELAY(CLOSE,1)|,12) 下行部分",
+        "interpretation": "值高: 累计下跌幅度大 → 下跌趋势强\n"
+                          "值低: 下跌幅度小 → 下跌有限",
+        "use_case": "下跌动量累加",
+    },
+    "alpha130": {
+        "chinese_name": "中价量价相关-排名比",
+        "formula": "rank(decay_linear(corr((HIGH+LOW)/2,mean(VOLUME,40),9),10))/rank(decay_linear(corr(rank(VWAP),rank(VOLUME),7),3))",
+        "interpretation": "值高: 中价量价关系强于VWAP量价 → 偏多\n"
+                          "值低: VWAP量价更相关 → 偏空",
+        "use_case": "量价相关来源对比",
+    },
+    "alpha131": {
+        "chinese_name": "VWAP变动-量能相关复合",
+        "formula": "rank(delta(VWAP,1))^TSRANK(corr(CLOSE,mean(VOLUME,50),18),18)",
+        "interpretation": "值高: VWAP上升且量价配合 → 偏多\n"
+                          "值低: VWAP下降 → 偏空",
+        "use_case": "VWAP变动与量价相关复合",
+    },
+    "alpha132": {
+        "chinese_name": "成交额均线",
+        "formula": "mean(AMOUNT,20)",
+        "interpretation": "值高: 成交额高于均量 → 市场活跃\n"
+                          "值低: 成交额低于均量 → 市场冷清",
+        "use_case": "绝对成交金额趋势",
+    },
+    "alpha133": {
+        "chinese_name": "高价/低价日位置差",
+        "formula": "((20-HIGHDAY(HIGH,20))/20)*100-((20-LOWDAY(LOW,20))/20)*100",
+        "interpretation": "值高: 距高价更近 → 偏空\n"
+                          "值低: 距低价更近 → 偏多",
+        "use_case": "价格区间位置对比",
+    },
+    "alpha134": {
+        "chinese_name": "量加权价格变动",
+        "formula": "(CLOSE-DELAY(CLOSE,12))/DELAY(CLOSE,12)*VOLUME",
+        "interpretation": "值高: 价格上涨且放量 → 强势\n"
+                          "值低: 价格下跌且放量 → 弱势",
+        "use_case": "量能加权的价格变动",
+    },
+    "alpha135": {
+        "chinese_name": "收盘价延迟-平滑",
+        "formula": "SMA(DELAY(CLOSE/DELAY(CLOSE,20),1),20,1)",
+        "interpretation": "值高: 20日收益率平滑值上升 → 偏多\n"
+                          "值低: 收益率平滑值下降 → 偏空",
+        "use_case": "延迟收益率的平滑跟踪",
+    },
+    "alpha136": {
+        "chinese_name": "收益变动-开盘量相关",
+        "formula": "(-1*rank(delta(RET,3)))*corr(OPEN,VOLUME,10)",
+        "interpretation": "值高: 收益变动与开盘量正相关 → 偏多\n"
+                          "值低: 负相关 → 偏空",
+        "use_case": "收益变动与开盘量能的关系",
+    },
+    "alpha137": {
+        "chinese_name": "价差加权成交量变化",
+        "formula": "16*(CLOSE-DELAY(CLOSE,1)+(CLOSE-OPEN)/2+DELAY(CLOSE,1)-DELAY(OPEN,1))/典型价格波动量 * MAX波动",
+        "interpretation": "值高: 上涨日成交量加权更多 → 偏多\n"
+                          "值低: 下跌日量加权更多 → 偏空",
+        "use_case": "典型价差成交量变化",
+    },
+    "alpha138": {
+        "chinese_name": "低价量价相关-衰减复合",
+        "formula": "(rank(decay_linear(delta(((LOW*0.7+VWAP*0.3)),3),20))-TSRANK(decay_linear(TSRANK(corr(TSRANK(LOW,8),TSRANK(mean(VOLUME,60),17),5),19),16),7))*-1",
+        "interpretation": "值高: 低价量价关系改善 → 底部支撑增强\n"
+                          "值低: 低价量价恶化 → 底部破位风险",
+        "use_case": "低价区量价关系",
+    },
+    "alpha139": {
+        "chinese_name": "开盘-成交量相关",
+        "formula": "-1*corr(OPEN,VOLUME,10)",
+        "interpretation": "值高: 开盘高时量能跟不上 → 偏空\n"
+                          "值低: 开盘高时放量 → 偏多",
+        "use_case": "开盘方向与量能配合",
+    },
+    "alpha140": {
+        "chinese_name": "开盘收盘极值-低价相关复合",
+        "formula": "min(rank(decay_linear(((rank(OPEN)+rank(LOW))-(rank(HIGH)+rank(CLOSE))),8)),TSRANK(decay_linear(corr(TSRANK(CLOSE,8),TSRANK(mean(VOLUME,60),20),8),7),3))",
+        "interpretation": "值高: 低价量价关系相对强 → 底部支撑\n"
+                          "值低: 高价量价相对强 → 偏空",
+        "use_case": "价量结构综合分析",
+    },
+    "alpha141": {
+        "chinese_name": "高价-成交量排名相关",
+        "formula": "rank(corr(rank(HIGH),rank(mean(VOLUME,15)),9))*-1",
+        "interpretation": "值高: 高价时量能跟不上 → 偏空\n"
+                          "值低: 高价时放量 → 偏多",
+        "use_case": "高价区量能验证",
+    },
+    "alpha142": {
+        "chinese_name": "价格变动加速度-量复合",
+        "formula": "(((-1*rank(TSRANK(CLOSE,10)))*rank(delta(delta(CLOSE,1),1)))*rank(TSRANK((VOLUME/mean(VOLUME,20)),5)))",
+        "interpretation": "值高: 价格加速度为负且量能缩 → 加速下跌\n"
+                          "值低: 价格加速度为正 → 偏多",
+        "use_case": "价格变动加速度与量能",
+    },
+    "alpha143": {
+        "chinese_name": "条件累计收益",
+        "formula": "CLOSE>DELAY(CLOSE,1)?累计收益:SELF",
+        "interpretation": "值高: 持续上涨 → 累计正收益\n"
+                          "值低: 持续下跌 → 偏空",
+        "use_case": "趋势跟踪条件累计",
+    },
+    "alpha144": {
+        "chinese_name": "下跌日量加权价变化均值",
+        "formula": "SUMIF(|CLOSE/DELAY(CLOSE,1)-1|/AMOUNT,20,CLOSE<DELAY(CLOSE,1))/COUNT(CLOSE<DELAY(CLOSE,1),20)",
+        "interpretation": "值高: 下跌日单位成交额带来更大价跌 → 空头强\n"
+                          "值低: 下跌效率低 → 空头弱",
+        "use_case": "下跌效率分析",
+    },
+    "alpha145": {
+        "chinese_name": "成交量均线差值",
+        "formula": "(mean(VOLUME,9)-mean(VOLUME,26))/mean(VOLUME,12)*100",
+        "interpretation": "值高: 短期均量高于长期 → 放量趋势\n"
+                          "值低: 短期均量低于长期 → 缩量趋势",
+        "use_case": "量能趋势判断",
+    },
+    "alpha146": {
+        "chinese_name": "收益偏离-波动调整",
+        "formula": "mean(RET-SMA(RET,61,2),20)*(RET-SMA(RET,61,2))/SMA((RET-SMA(RET,61,2))^2,60)",
+        "interpretation": "值高: 收益持续偏离均值 → 趋势持续\n"
+                          "值低: 收益回归均值 → 趋势减弱",
+        "use_case": "均值回归与趋势持续判断",
+    },
+    "alpha147": {
+        "chinese_name": "收盘价回归斜率-12日",
+        "formula": "REGBETA(mean(CLOSE,12),SEQUENCE(12))",
+        "interpretation": "值高: 12日趋势向上 → 偏多\n"
+                          "值低: 趋势向下 → 偏空",
+        "use_case": "中期线性趋势",
+    },
+    "alpha148": {
+        "chinese_name": "开盘-量能相关-低价排名复合",
+        "formula": "(rank(corr((OPEN),sum(mean(VOLUME,60),9),6))<rank((OPEN-TSMIN(OPEN,14))))*-1",
+        "interpretation": "值高: 开盘低位且量价相关弱 → 反弹可能\n"
+                          "值低: 开盘高位 → 偏空",
+        "use_case": "开盘位置与量价综合",
+    },
+    "alpha149": {
+        "chinese_name": "相对大盘-收益回归",
+        "formula": "REGBETA(个股收益/大盘收益,大盘收益,252)",
+        "interpretation": "值高: 个股强于大盘 → 偏多\n"
+                          "值低: 个股弱于大盘 → 偏空",
+        "use_case": "相对强弱分析",
+    },
+    "alpha150": {
+        "chinese_name": "典型价格成交额",
+        "formula": "(CLOSE+HIGH+LOW)/3*VOLUME",
+        "interpretation": "值高: 价高且量大 → 主力参与度高\n"
+                          "值低: 价低且量小 → 参与度低",
+        "use_case": "主力活跃度指标",
+    },
+    "alpha151": {
+        "chinese_name": "20日收盘价变动平滑",
+        "formula": "SMA(CLOSE-DELAY(CLOSE,20),20,1)",
+        "interpretation": "值高: 20日变动均值为正 → 趋势向上\n"
+                          "值低: 趋势向下 → 偏空",
+        "use_case": "20日趋势平滑",
+    },
+    "alpha152": {
+        "chinese_name": "价量均线差值-双平滑",
+        "formula": "SMA(mean(delay(SMA(CLOSE/DELAY(CLOSE,9),9,1),1),12)-mean(delay(SMA(CLOSE/DELAY(CLOSE,9),9,1),1),26),9,1)",
+        "interpretation": "值高: 短期均线上穿长期 → 偏多\n"
+                          "值低: 短期均线下穿 → 偏空",
+        "use_case": "MACD类量价信号",
+    },
+    "alpha153": {
+        "chinese_name": "多重均线均值",
+        "formula": "(mean(CLOSE,3)+mean(CLOSE,6)+mean(CLOSE,12)+mean(CLOSE,24))/4",
+        "interpretation": "值高: 多周期均线均向上 → 偏多\n"
+                          "值低: 多周期均线均向下 → 偏空",
+        "use_case": "多周期均线共振",
+    },
+    "alpha154": {
+        "chinese_name": "VWAP偏离-量能条件",
+        "formula": "(VWAP-MIN(VWAP,16))<corr(VWAP,mean(VOLUME,180),18)",
+        "interpretation": "值高: VWAP下方+量价背离 → 超卖反弹\n"
+                          "值低: VWAP上方 → 偏多",
+        "use_case": "VWAP超卖信号",
+    },
+    "alpha155": {
+        "chinese_name": "成交量MACD",
+        "formula": "SMA(VOLUME,13,2)-SMA(VOLUME,27,2)-SMA(SMA(VOLUME,13,2)-SMA(VOLUME,27,2),10,2)",
+        "interpretation": "值高: 成交量均线金叉 → 量能增加\n"
+                          "值低: 死叉 → 量能减少",
+        "use_case": "量能趋势转变",
+    },
+    "alpha156": {
+        "chinese_name": "价格变动-量能双重确认",
+        "formula": "(max(rank(decay_linear(delta(VWAP,5),3)),rank(decay_linear(delta(((OPEN*0.15+LOW*0.85)),2)/((OPEN*0.15+LOW*0.85))*-1,3)))*-1)",
+        "interpretation": "值高: 量价双重确认上升 → 偏多\n"
+                          "值低: 双重确认下跌 → 偏空",
+        "use_case": "量价双重确认信号",
+    },
+    "alpha157": {
+        "chinese_name": "复合收益排名-延迟调整",
+        "formula": "MIN(PROD(rank(rank(LOG(SUM(TSMIN(rank(rank((-1*rank(delta((CLOSE-1),5))))),2),1)))),1),5)+TSRANK(delay((-1*RET),6),5)",
+        "interpretation": "值高: 多周期排名靠前 → 偏多\n"
+                          "值低: 排名靠后 → 偏空",
+        "use_case": "多周期排名复合",
+    },
+    "alpha158": {
+        "chinese_name": "价格偏离-波动调整",
+        "formula": "((HIGH-SMA(CLOSE,15,2))-(LOW-SMA(CLOSE,15,2)))/CLOSE",
+        "interpretation": "值高: 价格上轨偏离大于下轨 → 偏空\n"
+                          "值低: 下轨偏离更大 → 偏多",
+        "use_case": "布林带类偏离分析",
+    },
+    "alpha159": {
+        "chinese_name": "VWAP-KC叠加",
+        "formula": "VWAP-Keltner Channel复合计算",
+        "interpretation": "值高: 突破KC上轨 → 偏多\n"
+                          "值低: 跌破下轨 → 偏空",
+        "use_case": "Keltner通道信号",
+    },
+    "alpha160": {
+        "chinese_name": "下跌日波动率",
+        "formula": "SMA(CLOSE<=DELAY(CLOSE,1)?STD(CLOSE,20):0,20,1)",
+        "interpretation": "值高: 下跌日波动更大 → 空头强\n"
+                          "值低: 下跌日波动小 → 空头弱",
+        "use_case": "下跌波动分析",
+    },
+    "alpha161": {
+        "chinese_name": "真实波幅均值",
+        "formula": "mean(MAX(MAX((HIGH-LOW),ABS(DELAY(CLOSE,1)-HIGH)),ABS(DELAY(CLOSE,1)-LOW)),12)",
+        "interpretation": "值高: 波动加大 → 趋势可能形成\n"
+                          "值低: 波动收窄 → 盘整",
+        "use_case": "平均真实波幅",
+    },
+    "alpha162": {
+        "chinese_name": "RSI类振荡器-标准化",
+        "formula": "(RSI12-MIN(RSI12,12))/(MAX(RSI12,12)-MIN(RSI12,12))",
+        "interpretation": "值高: RSI处于超买区 → 警惕回调\n"
+                          "值低: RSI超卖 → 反弹可能",
+        "use_case": "RSI标准化区间",
+    },
+    "alpha163": {
+        "chinese_name": "收益-量-价复合",
+        "formula": "rank((((-1*RET)*mean(VOLUME,20))*VWAP)*(HIGH-CLOSE))",
+        "interpretation": "值高: 下跌+放量+高价 → 主力出货\n"
+                          "值低: 上涨+缩量 → 偏多",
+        "use_case": "主力行为识别",
+    },
+    "alpha164": {
+        "chinese_name": "倒数动量振荡器",
+        "formula": "SMA(((CLOSE>DELAY(CLOSE,1))?1/(CLOSE-DELAY(CLOSE,1)):1)-MIN(...)/(HIGH-LOW)*100,13,2)",
+        "interpretation": "值高: 上涨日倒数动量强 → 偏多\n"
+                          "值低: 下跌日动量强 → 偏空",
+        "use_case": "倒数动量分析",
+    },
+    "alpha165": {
+        "chinese_name": "累积波动幅度",
+        "formula": "(MAX(SUMAC(CLOSE-MEAN(CLOSE,48)))-MIN(SUMAC(CLOSE-MEAN(CLOSE,48))))/STD(CLOSE,48)",
+        "interpretation": "值高: 波动范围大且趋势强 → 偏空\n"
+                          "值低: 波动收窄 → 盘整",
+        "use_case": "累积波动范围",
+    },
+    "alpha166": {
+        "chinese_name": "收益率偏度",
+        "formula": "-20*(20-1)^1.5*SUM(RET-MEAN(RET,20),20)/((20-1)*(20-2)*STD(RET,20)^1.5)",
+        "interpretation": "值高: 正偏度 → 右尾肥 → 上涨概率大\n"
+                          "值低: 负偏度 → 左尾肥 → 下跌概率大",
+        "use_case": "收益率分布偏度",
+    },
+    "alpha167": {
+        "chinese_name": "上涨幅度累加",
+        "formula": "SUM(CLOSE>DELAY(CLOSE,1)?CLOSE-DELAY(CLOSE,1):0,12)",
+        "interpretation": "值高: 累计涨幅大 → 偏多\n"
+                          "值低: 涨幅有限 → 偏空",
+        "use_case": "上涨动量累加",
+    },
+    "alpha168": {
+        "chinese_name": "量能倒数",
+        "formula": "-VOLUME/mean(VOLUME,20)",
+        "interpretation": "值高: 缩量 → 观望\n"
+                          "值低: 放量 → 活跃",
+        "use_case": "量能反向指标",
+    },
+    "alpha169": {
+        "chinese_name": "收益率均线差值-MACD",
+        "formula": "SMA(mean(delay(SMA(CLOSE-DELAY(CLOSE,1),9,1),1),12)-mean(delay(SMA(CLOSE-DELAY(CLOSE,1),9,1),1),26),10,1)",
+        "interpretation": "值高: MACD柱为正 → 偏多\n"
+                          "值低: MACD柱为负 → 偏空",
+        "use_case": "收益率MACD",
+    },
+    "alpha170": {
+        "chinese_name": "量价位置复合",
+        "formula": "(((rank((1/CLOSE))*VOLUME/mean(VOLUME,20))*((HIGH*rank(HIGH-CLOSE))/(sum(HIGH,5)/5)))-rank((VWAP-delay(VWAP,5))))",
+        "interpretation": "值高: 低价+缩量+高价强势 → 偏多\n"
+                          "值低: 高价+放量+VWAP下滑 → 偏空",
+        "use_case": "量价位置综合",
+    },
+    "alpha171": {
+        "chinese_name": "高低价比倒数",
+        "formula": "(-1*((LOW-CLOSE)*(OPEN^5)))/((CLOSE-HIGH)*(CLOSE^5))",
+        "interpretation": "值高: 下影线长+开盘低 → 偏多\n"
+                          "值低: 上影线长+开盘高 → 偏空",
+        "use_case": "K线形态分析",
+    },
+    "alpha172": {
+        "chinese_name": "StochRSI类指标",
+        "formula": "mean(ABS(SUM(LD>0?LD:0,14)*100/SUM(TR,14)-SUM(HD>0?HD:0,14)*100/SUM(TR,14))/...,6)",
+        "interpretation": "值高: 多头能量强 → 偏多\n"
+                          "值低: 空头能量强 → 偏空",
+        "use_case": "随机RSI类",
+    },
+    "alpha173": {
+        "chinese_name": "三次指数平滑-复合",
+        "formula": "3*SMA(CLOSE,13,2)-2*SMA(SMA(CLOSE,13,2),13,2)+SMA(SMA(SMA(LOG(CLOSE),13,2),13,2),13,2)",
+        "interpretation": "值高: 价格三重平滑上升 → 偏多\n"
+                          "值低: 平滑下降 → 偏空",
+        "use_case": "三重平滑趋势",
+    },
+    "alpha174": {
+        "chinese_name": "上涨日波动率",
+        "formula": "SMA(CLOSE>DELAY(CLOSE,1)?STD(CLOSE,20):0,20,1)",
+        "interpretation": "值高: 上涨日波动大 → 偏多\n"
+                          "值低: 上涨日波动小 → 偏空",
+        "use_case": "上涨波动分析",
+    },
+    "alpha175": {
+        "chinese_name": "波幅均值-短期",
+        "formula": "mean(MAX(MAX((HIGH-LOW),ABS(DELAY(CLOSE,1)-HIGH)),ABS(DELAY(CLOSE,1)-LOW)),6)",
+        "interpretation": "值高: 短期波动加大 → 趋势形成\n"
+                          "值低: 波动收窄 → 盘整",
+        "use_case": "短期波动",
+    },
+    "alpha176": {
+        "chinese_name": "RSV-量相关",
+        "formula": "corr(rank((CLOSE-TSMIN(LOW,12))/(TSMAX(HIGH,12)-TSMIN(LOW,12))),rank(VOLUME),6)",
+        "interpretation": "值高: 超卖时放量 → 反弹信号\n"
+                          "值低: 超买时缩量 → 偏空",
+        "use_case": "RSV量价相关",
+    },
+    "alpha177": {
+        "chinese_name": "高价距-20日高点",
+        "formula": "((20-HIGHDAY(HIGH,20))/20)*100",
+        "interpretation": "值高: 接近20日最高 → 强势\n"
+                          "值低: 距高点远 → 偏弱",
+        "use_case": "价格相对高点位置",
+    },
+    "alpha178": {
+        "chinese_name": "量加权收益率",
+        "formula": "(CLOSE-DELAY(CLOSE,1))/DELAY(CLOSE,1)*VOLUME",
+        "interpretation": "值高: 上涨放量 → 偏多\n"
+                          "值低: 下跌放量 → 偏空",
+        "use_case": "量能加权收益",
+    },
+    "alpha179": {
+        "chinese_name": "VWAP-量排名-低价量排名复合",
+        "formula": "rank(corr(VWAP,VOLUME,4))*rank(corr(rank(LOW),rank(mean(VOLUME,50)),12))",
+        "interpretation": "值高: VWAP量价+低价量价同步 → 底部支撑\n"
+                          "值低: 背离 → 偏空",
+        "use_case": "双量价相关复合",
+    },
+    "alpha180": {
+        "chinese_name": "放量-价格变动条件",
+        "formula": "(mean(VOLUME,20)<VOLUME)?((-1*TSRANK(abs(delta(CLOSE,7)),60))*sign(delta(CLOSE,7))):(-1*VOLUME)",
+        "interpretation": "值高: 放量+价格上涨 → 偏多\n"
+                          "值低: 缩量+价格下跌 → 偏空",
+        "use_case": "量能条件价格变动",
+    },
+    "alpha181": {
+        "chinese_name": "超额收益波动",
+        "formula": "SUM(((RET-MEAN(RET,20))-(BENCHMARK-MEAN(BENCHMARK,20)))^2,20)/SUM((BENCHMARK-MEAN(BENCHMARK,20))^3)",
+        "interpretation": "值高: 超额收益波动大 → Alpha不稳定\n"
+                          "值低: Alpha稳定 → 有Alpha",
+        "use_case": "Alpha稳定性",
+    },
+    "alpha182": {
+        "chinese_name": "同向波动计数比",
+        "formula": "COUNT((CLOSE>OPEN&BENCHMARK>OPEN)OR(CLOSE<OPEN&BENCHMARK<OPEN),20)/20",
+        "interpretation": "值高: 与大盘同向次数多 → Beta高\n"
+                          "值低: 与大盘不同步 → 有Alpha",
+        "use_case": "与大盘同步性",
+    },
+    "alpha183": {
+        "chinese_name": "累积偏差幅度-24日",
+        "formula": "(MAX(SUMAC(CLOSE-MEAN(CLOSE,24)))-MIN(SUMAC(CLOSE-MEAN(CLOSE,24))))/STD(CLOSE,24)",
+        "interpretation": "值高: 累积偏差大 → 趋势强\n"
+                          "值低: 偏差小 → 盘整",
+        "use_case": "24日累积偏差",
+    },
+    "alpha184": {
+        "chinese_name": "延迟价差-排名",
+        "formula": "rank(corr(delay((OPEN-CLOSE),1),CLOSE,200))+rank((OPEN-CLOSE))",
+        "interpretation": "值高: 价差扩大+历史200日相关 → 趋势确认\n"
+                          "值低: 价差收窄 → 盘整",
+        "use_case": "延迟价差趋势",
+    },
+    "alpha185": {
+        "chinese_name": "开盘收盘偏离-平方",
+        "formula": "rank((-1*((1-(OPEN/CLOSE))^2)))",
+        "interpretation": "值高: 开盘收盘偏离大 → 日内波动大\n"
+                          "值低: 偏离小 → 日内平稳",
+        "use_case": "日内波动强度",
+    },
+    "alpha186": {
+        "chinese_name": "StochRSI平滑",
+        "formula": "mean(StochRSI,6)+delay(mean(StochRSI,6),6)的一半",
+        "interpretation": "值高: 多头信号持续 → 偏多\n"
+                          "值低: 空头信号 → 偏空",
+        "use_case": "StochRSI平滑",
+    },
+    "alpha187": {
+        "chinese_name": "高开缺口累加",
+        "formula": "SUM(OPEN<=DELAY(OPEN,1)?0:MAX((HIGH-OPEN),(OPEN-DELAY(OPEN,1))),20)",
+        "interpretation": "值高: 高开缺口多 → 多头强势\n"
+                          "值低: 低开缺口多 → 空头强势",
+        "use_case": "缺口分析",
+    },
+    "alpha188": {
+        "chinese_name": "波幅偏离率",
+        "formula": "(HIGH-LOW-SMA(HIGH-LOW,11,2))/SMA(HIGH-LOW,11,2)*100",
+        "interpretation": "值高: 波幅超出历史均值 → 趋势形成\n"
+                          "值低: 波幅低于均值 → 盘整",
+        "use_case": "波幅异常检测",
+    },
+    "alpha189": {
+        "chinese_name": "收盘价偏离均值",
+        "formula": "mean(ABS(CLOSE-MEAN(CLOSE,6)),6)",
+        "interpretation": "值高: 偏离6日均值大 → 趋势或背离\n"
+                          "值低: 贴近均值 → 盘整",
+        "use_case": "均值偏离度",
+    },
+    "alpha190": {
+        "chinese_name": "收益分布偏离-复杂统计",
+        "formula": "LOG((COUNT(RET>日化收益,20)-1)*SUMIF((RET-日化收益)^2,...)/...)",
+        "interpretation": "值高: 收益分布正偏 → 偏多\n"
+                          "值低: 负偏 → 偏空",
+        "use_case": "收益分布形态",
+    },
+    "alpha191": {
+        "chinese_name": "低价量价-中价复合",
+        "formula": "(corr(mean(VOLUME,20),LOW,5)+((HIGH+LOW)/2)-CLOSE)",
+        "interpretation": "值高: 低价量价关系强+中价支撑 → 偏多\n"
+                          "值低: 收盘远离中价 → 偏空",
+        "use_case": "低价量价与中价支撑复合",
+    },
+    # =========================================================
+    # Alpha_EN 001-101 (新增 — 来自 docs/因子.md 英文部分 Alpha#)
+    # 这些是不同于 Alpha 1-101 的独立公式
+    # =========================================================
+    "alpha_en001": {
+        "chinese_name": "波动率加权-时序排名",
+        "formula": "rank(Ts_ArgMax(SignedPower((收益<0?stddev(收益,20):close),2),5))-0.5",
+        "interpretation": "值高: 低波动时价格高位 → 偏多\n"
+                          "值低: 高波动时价格低位 → 偏空",
+        "use_case": "波动率加权动量",
+    },
+    "alpha_en002": {
+        "chinese_name": "成交量变化-涨跌相关",
+        "formula": "-1*correlation(rank(delta(log(volume),2)),rank((close-open)/open),6)",
+        "interpretation": "值高: 上涨时缩量 → 偏空\n"
+                          "值低: 价量同步 → 偏多",
+        "use_case": "量价背离检测",
+    },
+    "alpha_en003": {
+        "chinese_name": "开盘-成交量排名相关",
+        "formula": "-1*correlation(rank(open),rank(volume),10)",
+        "interpretation": "值高: 开盘高时量小 → 偏空\n"
+                          "值低: 开盘与量同向 → 偏多",
+        "use_case": "开盘量能验证",
+    },
+    "alpha_en004": {
+        "chinese_name": "低价时序排名",
+        "formula": "-1*Ts_Rank(rank(low),9)",
+        "interpretation": "值高: 低价排名靠前 → 偏多\n"
+                          "值低: 低价排名靠后 → 偏空",
+        "use_case": "低价位置",
+    },
+    "alpha_en005": {
+        "chinese_name": "开盘-VWAP偏离复合",
+        "formula": "rank(open-sum(vwap,10)/10)*(-1*abs(rank(close-vwap)))",
+        "interpretation": "值高: 开盘高+收盘VWAP背离 → 偏空\n"
+                          "值低: 开盘低+VWAP支撑 → 偏多",
+        "use_case": "开盘VWAP综合",
+    },
+    "alpha_en006": {
+        "chinese_name": "开盘-成交量相关",
+        "formula": "-1*correlation(open,volume,10)",
+        "interpretation": "值高: 开盘高时量小 → 偏空\n"
+                          "值低: 开盘高时量大 → 偏多",
+        "use_case": "开盘量价",
+    },
+    "alpha_en007": {
+        "chinese_name": "放量条件价格变动",
+        "formula": "(adv20<volume)?((-1*ts_rank(abs(delta(close,7)),60))*sign(delta(close,7))):(-1*1)",
+        "interpretation": "值高: 放量上涨 → 偏多\n"
+                          "值低: 放量下跌或缩量 → 偏空",
+        "use_case": "量能条件信号",
+    },
+    "alpha_en008": {
+        "chinese_name": "开盘收益乘积动量",
+        "formula": "-1*rank((sum(open,5)*sum(returns,5))-delay((sum(open,5)*sum(returns,5)),10))",
+        "interpretation": "值高: 乘积动量下降 → 偏空\n"
+                          "值低: 乘积动量上升 → 偏多",
+        "use_case": "开盘收益动量",
+    },
+    "alpha_en009": {
+        "chinese_name": "条件价格变动",
+        "formula": "(0<ts_min(delta(close,1),5))?delta(close,1):((ts_max(delta(close,1),5)<0)?delta(close,1):(-1*delta(close,1)))",
+        "interpretation": "值高: 持续上涨 → 偏多\n"
+                          "值低: 持续下跌 → 偏空",
+        "use_case": "条件趋势跟随",
+    },
+    "alpha_en010": {
+        "chinese_name": "条件价格排名",
+        "formula": "rank((0<ts_min(delta(close,1),4))?delta(close,1):((ts_max(delta(close,1),4)<0)?delta(close,1):(-1*delta(close,1))))",
+        "interpretation": "值高: 上涨趋势靠前 → 偏多\n"
+                          "值低: 下跌趋势靠前 → 偏空",
+        "use_case": "横截面条件排名",
+    },
+    "alpha_en011": {
+        "chinese_name": "VWAP极值-量复合",
+        "formula": "(rank(ts_max((vwap-close),3))+rank(ts_min((vwap-close),3)))*rank(delta(volume,3))",
+        "interpretation": "值高: VWAP偏离大+量能增加 → 偏多\n"
+                          "值低: 偏离小+缩量 → 偏空",
+        "use_case": "VWAP极值量能",
+    },
+    "alpha_en012": {
+        "chinese_name": "量变动-价格变动符号",
+        "formula": "sign(delta(volume,1))*(-1*delta(close,1))",
+        "interpretation": "值高: 缩量上涨 → 偏多\n"
+                          "值低: 放量下跌 → 偏空",
+        "use_case": "量价变动方向",
+    },
+    "alpha_en013": {
+        "chinese_name": "收盘-成交量排名协方差",
+        "formula": "-1*rank(covariance(rank(close),rank(volume),5))",
+        "interpretation": "值高: 收盘高时量小 → 偏多\n"
+                          "值低: 收盘高时量大 → 偏空",
+        "use_case": "收盘量价协方差",
+    },
+    "alpha_en014": {
+        "chinese_name": "收益变动-开盘量相关",
+        "formula": "(-1*rank(delta(returns,3)))*correlation(open,volume,10)",
+        "interpretation": "值高: 收益变动与开盘量正相关 → 偏多\n"
+                          "值低: 负相关 → 偏空",
+        "use_case": "收益变动量能",
+    },
+    "alpha_en015": {
+        "chinese_name": "高价-成交量排名相关-3日累加",
+        "formula": "-1*sum(rank(correlation(rank(high),rank(volume),3)),3)",
+        "interpretation": "值高: 高价时量小 → 偏空\n"
+                          "值低: 高价时量大 → 偏多",
+        "use_case": "高价量能3日累积",
+    },
+    "alpha_en016": {
+        "chinese_name": "高价-成交量排名协方差",
+        "formula": "-1*rank(covariance(rank(high),rank(volume),5))",
+        "interpretation": "值高: 高价时量小 → 偏空\n"
+                          "值低: 高价时量大 → 偏多",
+        "use_case": "高价量能协方差",
+    },
+    "alpha_en017": {
+        "chinese_name": "收盘时序排名-量复合",
+        "formula": "((-1*rank(ts_rank(close,10)))*rank(delta(delta(close,1),1)))*rank(ts_rank((volume/adv20),5))",
+        "interpretation": "值高: 价格上涨减速+缩量 → 偏空\n"
+                          "值低: 价格上涨加速+放量 → 偏多",
+        "use_case": "价量加速度复合",
+    },
+    "alpha_en018": {
+        "chinese_name": "波动价差-相关复合",
+        "formula": "-1*rank(((stddev(abs((close-open)),5)+(close-open))+correlation(close,open,10)))",
+        "interpretation": "值高: 波动大+价跌 → 偏空\n"
+                          "值低: 波动适中+价涨 → 偏多",
+        "use_case": "波动价差综合",
+    },
+    "alpha_en019": {
+        "chinese_name": "收益-量能复合",
+        "formula": "(-1*sign((close-delay(close,7))+delta(close,7)))*(1+rank(1+sum(returns,250)))",
+        "interpretation": "值高: 价涨+长期收益正 → 偏多\n"
+                          "值低: 价跌+长期收益负 → 偏空",
+        "use_case": "长短期收益复合",
+    },
+    "alpha_en020": {
+        "chinese_name": "开盘-极值偏离复合",
+        "formula": "((-1*rank((open-delay(high,1))))*rank((open-delay(close,1))))*rank((open-delay(low,1))))",
+        "interpretation": "值高: 开盘处于高价区 → 偏空\n"
+                          "值低: 开盘处于低价区 → 偏多",
+        "use_case": "开盘极值位置",
+    },
+    "alpha_en021": {
+        "chinese_name": "均值-波动条件",
+        "formula": "(((sum(close,8)/8)+stddev(close,8))<(sum(close,2)/2))?(-1*1):(((sum(close,2)/2)<((sum(close,8)/8)-stddev(close,8)))?1:((1<(volume/adv20))?1:(-1*1)))",
+        "interpretation": "值高: 收盘高于均线+放量 → 偏多\n"
+                          "值低: 收盘低于均线 → 偏空",
+        "use_case": "均值偏离条件",
+    },
+    "alpha_en022": {
+        "chinese_name": "量价相关变动-波动调整",
+        "formula": "-1*(delta(correlation(high,volume,5),5)*rank(stddev(close,20)))",
+        "interpretation": "值高: 量价相关下降+波动低 → 偏空\n"
+                          "值低: 量价相关上升 → 偏多",
+        "use_case": "量价相关变化",
+    },
+    "alpha_en023": {
+        "chinese_name": "高价条件变动",
+        "formula": "(((sum(high,20)/20)<high)?(-1*delta(high,2)):0)",
+        "interpretation": "值高: 价格创20日新高 → 偏多\n"
+                          "值低: 未创新高 → 中性",
+        "use_case": "新高检测",
+    },
+    "alpha_en024": {
+        "chinese_name": "长期偏离条件",
+        "formula": "(((delta((sum(close,100)/100),100)/delay(close,100))<0.05)?(-1*(close-ts_min(close,100))):(-1*delta(close,3)))",
+        "interpretation": "值高: 长期低估+短期反弹 → 偏多\n"
+                          "值低: 长期高估+短期下跌 → 偏空",
+        "use_case": "长期低估反弹",
+    },
+    "alpha_en025": {
+        "chinese_name": "VWAP量能收益复合",
+        "formula": "rank((((-1*returns)*adv20)*vwap)*(high-close))",
+        "interpretation": "值高: 下跌+放量+高价 → 主力出货\n"
+                          "值低: 上涨+缩量 → 偏多",
+        "use_case": "主力行为",
+    },
+    "alpha_en026": {
+        "chinese_name": "量排名相关-时序最大",
+        "formula": "-1*ts_max(correlation(ts_rank(volume,5),ts_rank(high,5),5),3)",
+        "interpretation": "值高: 量价背离累积 → 偏空\n"
+                          "值低: 量价同步 → 偏多",
+        "use_case": "量价背离时序",
+    },
+    "alpha_en027": {
+        "chinese_name": "量价排名相关-条件",
+        "formula": "((0.5<rank((sum(correlation(rank(volume),rank(vwap),6),2)/2.0)))?(-1*1):1)",
+        "interpretation": "值高: 量价相关高于阈值 → 偏多\n"
+                          "值低: 低于阈值 → 偏空",
+        "use_case": "量价相关阈值",
+    },
+    "alpha_en028": {
+        "chinese_name": "低价量价相关-中价",
+        "formula": "scale(((correlation(adv20,low,5)+((high+low)/2))-close))",
+        "interpretation": "值高: 低价量价+中价支撑强 → 偏多\n"
+                          "值低: 收盘远离 → 偏空",
+        "use_case": "低价量价中价复合",
+    },
+    "alpha_en029": {
+        "chinese_name": "复合排名-延迟调整",
+        "formula": "min(product(rank(rank(scale(log(sum(ts_min(rank(rank((-1*rank(delta((close-1),5))))),2),1))))),1),5)+ts_rank(delay((-1*returns),6),5)",
+        "interpretation": "值高: 多周期排名靠前 → 偏多\n"
+                          "值低: 排名靠后 → 偏空",
+        "use_case": "多周期复合排名",
+    },
+    "alpha_en030": {
+        "chinese_name": "符号变化-量能加权",
+        "formula": "(((1-rank(((sign((close-delay(close,1)))+sign((delay(close,1)-delay(close,2))))+sign((delay(close,2)-delay(close,3)))))))*sum(volume,5))/sum(volume,20)",
+        "interpretation": "值高: 持续上涨+放量 → 偏多\n"
+                          "值低: 持续下跌 → 偏空",
+        "use_case": "符号变化量能",
+    },
+    "alpha_en031": {
+        "chinese_name": "排名复合-延迟",
+        "formula": "(rank(rank(rank(decay_linear((-1*rank(rank(delta(close,10)))),10))))+rank((-1*delta(close,3))))+sign(scale(correlation(adv20,low,12))))",
+        "interpretation": "值高: 排名上升+低价量价正 → 偏多\n"
+                          "值低: 排名下降 → 偏空",
+        "use_case": "多维排名复合",
+    },
+    "alpha_en032": {
+        "chinese_name": "均值偏离-VWAP相关复合",
+        "formula": "scale(((sum(close,7)/7)-close))+(20*scale(correlation(vwap,delay(close,5),230))))",
+        "interpretation": "值高: 价格低+VWAP长期正相关 → 偏多\n"
+                          "值低: 价格高 → 偏空",
+        "use_case": "均值偏离VWAP复合",
+    },
+    "alpha_en033": {
+        "chinese_name": "涨跌比平方",
+        "formula": "rank((-1*((1-(open/close))^1)))",
+        "interpretation": "值高: 实体大(涨跌明显) → 日内方向明确\n"
+                          "值低: 实体小 → 日内震荡",
+        "use_case": "涨跌实体强度",
+    },
+    "alpha_en034": {
+        "chinese_name": "波动率比-变动复合",
+        "formula": "rank((1-rank((stddev(returns,2)/stddev(returns,5))))+rank((-1*delta(close,1))))",
+        "interpretation": "值高: 短期波动高+价格上升 → 偏多\n"
+                          "值低: 波动低+价格下降 → 偏空",
+        "use_case": "波动率变动复合",
+    },
+    "alpha_en035": {
+        "chinese_name": "量排名-价位置-收益复合",
+        "formula": "(Ts_Rank(volume,32)*(1-Ts_Rank(((close+high)-low),16)))*(1-Ts_Rank(returns,32))",
+        "interpretation": "值高: 缩量+低价+下跌 → 超卖反弹\n"
+                          "值低: 放量+高价+上涨 → 偏空",
+        "use_case": "量价位收益复合",
+    },
+    "alpha_en036": {
+        "chinese_name": "多因子复合",
+        "formula": "((((2.21*rank(correlation((close-open),delay(volume,1),15)))+(0.7*rank((open-close))))+(0.73*rank(Ts_Rank(delay((-1*returns),6),5))))+rank(abs(correlation(vwap,adv20,6))))+(0.6*rank((((sum(close,200)/200)-open)*(close-open)))))",
+        "interpretation": "值高: 多因子综合偏多 → 强偏多\n"
+                          "值低: 多因子综合偏空 → 强偏空",
+        "use_case": "多因子综合",
+    },
+    "alpha_en037": {
+        "chinese_name": "延迟价差-200日相关",
+        "formula": "rank(correlation(delay((open-close),1),close,200))+rank((open-close))",
+        "interpretation": "值高: 价差扩大+长期正相关 → 趋势确认\n"
+                          "值低: 价差收窄 → 盘整",
+        "use_case": "长期价差趋势",
+    },
+    "alpha_en038": {
+        "chinese_name": "收盘时序排名-涨跌幅",
+        "formula": "((-1*rank(ts_rank(close,10)))*rank((close/open)))",
+        "interpretation": "值高: 收盘排名高+上涨 → 偏多\n"
+                          "值低: 收盘排名低+下跌 → 偏空",
+        "use_case": "收盘时序涨跌幅",
+    },
+    "alpha_en039": {
+        "chinese_name": "价格变动-量能衰减复合",
+        "formula": "(-1*rank((delta(close,7)*(1-rank(decay_linear((volume/adv20),9))))))*(1+rank(sum(returns,250)))",
+        "interpretation": "值高: 价格下跌+量能衰减 → 偏空\n"
+                          "值低: 价格下跌+量能增加 → 偏多",
+        "use_case": "量能衰减复合",
+    },
+    "alpha_en040": {
+        "chinese_name": "高价波动-量相关",
+        "formula": "((-1*rank(stddev(high,10)))*correlation(high,volume,10))",
+        "interpretation": "值高: 高价时波动低+量相关强 → 偏多\n"
+                          "值低: 高价时波动高 → 偏空",
+        "use_case": "高价波动量相关",
+    },
+    "alpha_en041": {
+        "chinese_name": "典型价差",
+        "formula": "(((high*low)^0.5)-vwap)",
+        "interpretation": "值高: 收盘高于典型价 → 偏多\n"
+                          "值低: 收盘低于 → 偏空",
+        "use_case": "典型价差",
+    },
+    "alpha_en042": {
+        "chinese_name": "VWAP比率",
+        "formula": "rank((vwap-close))/(vwap+close)",
+        "interpretation": "值高: 收盘低于VWAP → 偏空\n"
+                          "值低: 收盘高于VWAP → 偏多",
+        "use_case": "VWAP比率",
+    },
+    "alpha_en043": {
+        "chinese_name": "量排名-价变动时序排名复合",
+        "formula": "ts_rank((volume/adv20),20)*ts_rank((-1*delta(close,7)),8)",
+        "interpretation": "值高: 放量+价格下跌 → 超卖反弹可能\n"
+                          "值低: 缩量+价格上涨 → 偏空",
+        "use_case": "量价时序复合",
+    },
+    "alpha_en044": {
+        "chinese_name": "高价-量排名相关",
+        "formula": "-1*correlation(high,rank(volume),5)",
+        "interpretation": "值高: 高价时量小 → 偏空\n"
+                          "值低: 高价时量大 → 偏多",
+        "use_case": "高价量能",
+    },
+    "alpha_en045": {
+        "chinese_name": "延迟价格-量相关复合",
+        "formula": "-1*((rank((sum(delay(close,5),20)/20))*correlation(close,volume,2))*rank(correlation(sum(close,5),sum(close,20),2))))",
+        "interpretation": "值高: 价格高于延迟均线+量价背离 → 偏空\n"
+                          "值低: 配合良好 → 偏多",
+        "use_case": "延迟均线量价复合",
+    },
+    "alpha_en046": {
+        "chinese_name": "长期偏离-短期条件",
+        "formula": "((0.25<(((delay(close,20)-delay(close,10))/10)-((delay(close,10)-close)/10)))?(-1*1):(((((delay(close,20)-delay(close,10))/10)-((delay(close,10)-close)/10))<0)?1:((-1*1)*(close-delay(close,1)))))",
+        "interpretation": "值高: 短期下跌加速 → 偏空\n"
+                          "值低: 短期反弹 → 偏多",
+        "use_case": "长短期偏离条件",
+    },
+    "alpha_en047": {
+        "chinese_name": "量价位置复合",
+        "formula": "((((rank((1/close))*volume)/adv20)*((high*rank((high-close)))/(sum(high,5)/5)))-rank((vwap-delay(vwap,5))))",
+        "interpretation": "值高: 低价+缩量+高价强势 → 偏多\n"
+                          "值低: 高价+放量+VWAP下滑 → 偏空",
+        "use_case": "多维位置复合",
+    },
+    "alpha_en048": {
+        "chinese_name": "行业中性收益",
+        "formula": "indneutralize(((correlation(delta(close,1),delta(delay(close,1),1),250)*delta(close,1))/close),IndClass.subindustry)/sum(((delta(close,1)/delay(close,1))^2),250)",
+        "interpretation": "值高: 行业中性Alpha正 → 偏多\n"
+                          "值低: Alpha负 → 偏空",
+        "use_case": "行业中性Alpha",
+    },
+    "alpha_en049": {
+        "chinese_name": "长期偏离条件-5%阈值",
+        "formula": "(((((delay(close,20)-delay(close,10))/10)-((delay(close,10)-close)/10))<-0.1)?1:((-1*1)*(close-delay(close,1)))",
+        "interpretation": "值高: 长期低估 → 反弹\n"
+                          "值低: 长期高估 → 偏空",
+        "use_case": "5%阈值偏离",
+    },
+    "alpha_en050": {
+        "chinese_name": "VWAP量排名-时序最大",
+        "formula": "-1*ts_max(rank(correlation(rank(volume),rank(vwap),5)),5)",
+        "interpretation": "值高: VWAP量排名最大时下跌 → 偏空\n"
+                          "值低: VWAP量排名最大时上涨 → 偏多",
+        "use_case": "VWAP量排名极值",
+    },
+    "alpha_en051": {
+        "chinese_name": "长期偏离条件-3%阈值",
+        "formula": "(((((delay(close,20)-delay(close,10))/10)-((delay(close,10)-close)/10))<-0.05)?1:((-1*1)*(close-delay(close,1)))",
+        "interpretation": "值高: 轻微低估 → 偏多\n"
+                          "值低: 轻微高估 → 偏空",
+        "use_case": "3%阈值偏离",
+    },
+    "alpha_en052": {
+        "chinese_name": "低价极值-收益复合",
+        "formula": "((((-1*ts_min(low,5))+delay(ts_min(low,5),5))*rank(((sum(returns,240)-sum(returns,20))/220)))*ts_rank(volume,5))",
+        "interpretation": "值高: 低价极值反弹+量能配合 → 偏多\n"
+                          "值低: 低价破位 → 偏空",
+        "use_case": "低价极值反弹",
+    },
+    "alpha_en053": {
+        "chinese_name": "RSI类指标",
+        "formula": "-1*delta((((close-low)-(high-close))/(close-low)),9)",
+        "interpretation": "值高: RSI下降 → 偏空\n"
+                          "值低: RSI上升 → 偏多",
+        "use_case": "RSI变化",
+    },
+    "alpha_en054": {
+        "chinese_name": "高低价比倒数",
+        "formula": "(-1*((low-close)*(open^5)))/((low-high)*(close^5))",
+        "interpretation": "值高: 下影线长+开盘低 → 偏多\n"
+                          "值低: 上影线长 → 偏空",
+        "use_case": "K线形态",
+    },
+    "alpha_en055": {
+        "chinese_name": "RSV-量相关",
+        "formula": "-1*correlation(rank(((close-ts_min(low,12))/(ts_max(high,12)-ts_min(low,12)))),rank(volume),6)",
+        "interpretation": "值高: 超卖时放量 → 反弹\n"
+                          "值低: 超买时缩量 → 偏空",
+        "use_case": "RSV量价",
+    },
+    "alpha_en056": {
+        "chinese_name": "收益市值复合",
+        "formula": "0-(1*(rank((sum(returns,10)/sum(sum(returns,2),3)))*rank((returns*cap))))",
+        "interpretation": "值高: 小市值+正收益 → 偏多\n"
+                          "值低: 大市值+负收益 → 偏空",
+        "use_case": "市值收益复合",
+    },
+    "alpha_en057": {
+        "chinese_name": "VWAP基差-延迟最大复合",
+        "formula": "0-(1*((close-vwap)/decay_linear(rank(ts_argmax(close,30)),2)))",
+        "interpretation": "值高: 收盘高于VWAP → 偏多\n"
+                          "值低: 收盘低于VWAP → 偏空",
+        "use_case": "VWAP基差延迟",
+    },
+    "alpha_en058": {
+        "chinese_name": "行业中性VWAP量价",
+        "formula": "-1*Ts_Rank(decay_linear(correlation(IndNeutralize(vwap,IndClass.sector),volume,3.92795),7.89291),5.50322)",
+        "interpretation": "值高: 行业中性VWAP量价正 → 偏多\n"
+                          "值低: 负 → 偏空",
+        "use_case": "行业中性VWAP",
+    },
+    "alpha_en059": {
+        "chinese_name": "行业中性价量",
+        "formula": "-1*Ts_Rank(decay_linear(correlation(IndNeutralize(((vwap*0.728317)+(vwap*(1-0.728317))),IndClass.industry),volume,4.25197),16.2289),8.19648)",
+        "interpretation": "值高: 行业中性价量正 → 偏多\n"
+                          "值低: 负 → 偏空",
+        "use_case": "行业中性价量",
+    },
+    "alpha_en060": {
+        "chinese_name": "价量标准化排名",
+        "formula": "0-(1*((2*scale(rank(((((close-low)-(high-close))/(high-low))*volume))))-scale(rank(ts_argmax(close,10)))))",
+        "interpretation": "值高: 放量上涨+突破 → 偏多\n"
+                          "值低: 缩量+不突破 → 偏空",
+        "use_case": "标准化价量",
+    },
+    "alpha_en061": {
+        "chinese_name": "VWAP偏离-量相关条件",
+        "formula": "rank((vwap-ts_min(vwap,16.1219)))<rank(correlation(vwap,adv180,17.9282))",
+        "interpretation": "值高: VWAP下方+量价背离 → 偏多\n"
+                          "值低: VWAP上方 → 偏空",
+        "use_case": "VWAP偏离条件",
+    },
+    "alpha_en062": {
+        "chinese_name": "VWAP相关-价位置复合",
+        "formula": "(rank(correlation(vwap,sum(adv20,22.4101),9.91009))<rank(((rank(open)+rank(open))<(rank(((high+low)/2))+rank(high)))))*-1",
+        "interpretation": "值高: 量价相关弱+高价强势 → 偏多\n"
+                          "值低: 量价相关强 → 偏空",
+        "use_case": "量价位置复合",
+    },
+    "alpha_en063": {
+        "chinese_name": "行业中性价格变动",
+        "formula": "(rank(decay_linear(delta(IndNeutralize(close,IndClass.industry),2.25164),8.22237))-rank(decay_linear(correlation(((vwap*0.318108)+(open*(1-0.318108))),sum(adv180,37.2467),13.557),12.2883)))*-1",
+        "interpretation": "值高: 行业中性价格上涨 → 偏多\n"
+                          "值低: 价格下跌 → 偏空",
+        "use_case": "行业中性价格",
+    },
+    "alpha_en064": {
+        "chinese_name": "中价量相关-价格变动复合",
+        "formula": "(rank(correlation(sum(((open*0.178404)+(low*(1-0.178404))),12.7054),sum(adv120,12.7054),16.6208))<rank(delta(((((high+low)/2)*0.178404)+(vwap*(1-0.178404))),3.69741)))*-1",
+        "interpretation": "值高: 量价相关弱+价格上涨 → 偏多\n"
+                          "值低: 量价相关强 → 偏空",
+        "use_case": "中价量价复合",
+    },
+    "alpha_en065": {
+        "chinese_name": "VWAP开盘相关-低价排名",
+        "formula": "(rank(correlation(((open*0.00817205)+(vwap*(1-0.00817205))),sum(adv60,8.6911),6.40374))<rank((open-ts_min(open,13.635))))*-1",
+        "interpretation": "值高: VWAP开盘相关低+低价 → 偏多\n"
+                          "值低: 高价 → 偏空",
+        "use_case": "VWAP低价复合",
+    },
+    "alpha_en066": {
+        "chinese_name": "VWAP变动-低价复合",
+        "formula": "(rank(decay_linear(delta(vwap,3.51013),7.23052))+Ts_Rank(decay_linear(((((low*0.96633)+(low*(1-0.96633)))-vwap)/(open-((high+low)/2))),11.4157),6.72611))*-1",
+        "interpretation": "值高: VWAP上升+低价支撑 → 偏多\n"
+                          "值低: VWAP下降 → 偏空",
+        "use_case": "VWAP低价复合",
+    },
+    "alpha_en067": {
+        "chinese_name": "高价突破-行业中性量价",
+        "formula": "(rank((high-ts_min(high,2.14593)))^rank(correlation(IndNeutralize(vwap,IndClass.sector),IndNeutralize(adv20,IndClass.subindustry),6.02936)))*-1",
+        "interpretation": "值高: 突破+行业中性量价正 → 偏多\n"
+                          "值低: 突破失败 → 偏空",
+        "use_case": "突破量价验证",
+    },
+    "alpha_en068": {
+        "chinese_name": "高价量排名-价格变动",
+        "formula": "(Ts_Rank(correlation(rank(high),rank(adv15),8.91644),13.9333)<rank(delta(((close*0.518371)+(low*(1-0.518371))),1.06157)))*-1",
+        "interpretation": "值高: 高价量排名低+价格下跌 → 偏空\n"
+                          "值低: 价格反弹 → 偏多",
+        "use_case": "高价量价",
+    },
+    "alpha_en069": {
+        "chinese_name": "VWAP变动-行业中性相关",
+        "formula": "(rank(ts_max(delta(IndNeutralize(vwap,IndClass.industry),2.72412),4.79344))^Ts_Rank(correlation(((close*0.490655)+(vwap*(1-0.490655))),adv20,4.92416),9.0615))*-1",
+        "interpretation": "值高: VWAP上升+行业正相关 → 偏多\n"
+                          "值低: VWAP下降 → 偏空",
+        "use_case": "行业VWAP复合",
+    },
+    "alpha_en070": {
+        "chinese_name": "VWAP变动-收益相关复合",
+        "formula": "(rank(delta(vwap,1.29456))^Ts_Rank(correlation(IndNeutralize(close,IndClass.industry),adv50,17.8256),17.9171))*-1",
+        "interpretation": "值高: VWAP上升+行业正收益 → 偏多\n"
+                          "值低: VWAP下降 → 偏空",
+        "use_case": "VWAP收益复合",
+    },
+    "alpha_en071": {
+        "chinese_name": "双时序排名复合",
+        "formula": "max(Ts_Rank(decay_linear(correlation(Ts_Rank(close,3.43976),Ts_Rank(adv180,12.0647),18.0175),4.20501),15.6948),Ts_Rank(decay_linear((rank(((low+open)-(vwap+vwap)))^2),16.4662),4.4388))",
+        "interpretation": "值高: 收盘排名+VWAP偏离排名高 → 偏多\n"
+                          "值低: 排名低 → 偏空",
+        "use_case": "双时序排名",
+    },
+    "alpha_en072": {
+        "chinese_name": "中价量相关-排名比",
+        "formula": "rank(decay_linear(correlation(((high+low)/2),adv40,8.93345),10.1519))/rank(decay_linear(correlation(Ts_Rank(vwap,3.72469),Ts_Rank(volume,18.5188),6.86671),2.95011)))",
+        "interpretation": "值高: 中价量相关强于VWAP量相关 → 偏多\n"
+                          "值低: 反之 → 偏空",
+        "use_case": "量价相关对比",
+    },
+    "alpha_en073": {
+        "chinese_name": "VWAP变动-低价复合-时序最大",
+        "formula": "(max(rank(decay_linear(delta(vwap,4.72775),2.91864)),Ts_Rank(decay_linear(((delta(((open*0.147155)+(low*(1-0.147155))),2.03608)/((open*0.147155)+(low*(1-0.147155))))*-1),3.33829),16.7411))*-1",
+        "interpretation": "值高: VWAP下降+低价下跌 → 偏空\n"
+                          "值低: VWAP上升 → 偏多",
+        "use_case": "VWAP低价双重",
+    },
+    "alpha_en074": {
+        "chinese_name": "收盘量相关-低价复合",
+        "formula": "(rank(correlation(close,sum(adv30,37.4843),15.1365))<rank(correlation(rank(((high*0.0261661)+(vwap*(1-0.0261661)))),rank(volume),11.4791)))*-1",
+        "interpretation": "值高: 收盘量相关弱+低价量相关强 → 偏多\n"
+                          "值低: 反之 → 偏空",
+        "use_case": "收盘低价复合",
+    },
+    "alpha_en075": {
+        "chinese_name": "VWAP量相关-低价相关对比",
+        "formula": "rank(correlation(vwap,volume,4.24304))<rank(correlation(rank(low),rank(adv50),12.4413))",
+        "interpretation": "值高: 低价量相关更强 → 底部支撑\n"
+                          "值低: VWAP量相关更强 → 偏空",
+        "use_case": "量相关来源",
+    },
+    "alpha_en076": {
+        "chinese_name": "VWAP变动-低价排名复合",
+        "formula": "(max(rank(decay_linear(delta(vwap,1.24383),11.8259)),Ts_Rank(decay_linear(Ts_Rank(correlation(IndNeutralize(low,IndClass.sector),adv81,8.14941),19.569),17.1543),19.383))*-1",
+        "interpretation": "值高: VWAP下方+低价量价正 → 偏多\n"
+                          "值低: VWAP上方 → 偏空",
+        "use_case": "VWAP低价",
+    },
+    "alpha_en077": {
+        "chinese_name": "中价极值-量相关复合",
+        "formula": "min(rank(decay_linear(((((high+low)/2)+high)-(vwap+high)),20.0451)),rank(decay_linear(correlation(((high+low)/2),adv40,3.1614),5.64125)))",
+        "interpretation": "值高: 高价+中价量价正 → 偏多\n"
+                          "值低: 中价量价负 → 偏空",
+        "use_case": "中价极值",
+    },
+    "alpha_en078": {
+        "chinese_name": "中价量相关-VWAP排名复合",
+        "formula": "rank(correlation(sum(((low*0.352233)+(vwap*(1-0.352233))),19.7428),sum(adv40,19.7428),6.83313))^rank(correlation(rank(vwap),rank(volume),5.77492))",
+        "interpretation": "值高: 中价量价+VWAP量价同向 → 偏多\n"
+                          "值低: 背离 → 偏空",
+        "use_case": "多量价相关复合",
+    },
+    "alpha_en079": {
+        "chinese_name": "行业中性价格变动-排名",
+        "formula": "rank(delta(IndNeutralize(((close*0.60733)+(open*(1-0.60733))),IndClass.sector),1.23438))<rank(correlation(Ts_Rank(vwap,3.60973),Ts_Rank(adv150,9.18637),14.6644))",
+        "interpretation": "值高: 行业中性价涨+VWAP量价正 → 偏多\n"
+                          "值低: 价跌 → 偏空",
+        "use_case": "行业中性价量",
+    },
+    "alpha_en080": {
+        "chinese_name": "高价突破-行业中性",
+        "formula": "((rank(Sign(delta(IndNeutralize(((open*0.868128)+(high*(1-0.868128))),IndClass.industry),4.04545)))^Ts_Rank(correlation(high,adv10,5.11456),5.53756))*-1",
+        "interpretation": "值高: 高价突破+行业量价正 → 偏多\n"
+                          "值低: 突破失败 → 偏空",
+        "use_case": "突破行业验证",
+    },
+    "alpha_en081": {
+        "chinese_name": "VWAP相关-量排名复合",
+        "formula": "(rank(Log(product(rank((rank(correlation(vwap,sum(adv10,49.6054),8.47743))^4)),14.9655)))<rank(correlation(rank(vwap),rank(volume),5.07914)))*-1",
+        "interpretation": "值高: VWAP量价排名靠前 → 偏多\n"
+                          "值低: 量价排名靠后 → 偏空",
+        "use_case": "对数量价复合",
+    },
+    "alpha_en082": {
+        "chinese_name": "开盘变动-量相关复合",
+        "formula": "min(rank(decay_linear(delta(open,1.46063),14.8717)),Ts_Rank(decay_linear(correlation(IndNeutralize(volume,IndClass.sector),((open*0.634196)+(open*(1-0.634196))),17.4842),6.92131),13.4283))*-1",
+        "interpretation": "值高: 开盘上涨+量价正 → 偏多\n"
+                          "值低: 开盘下跌 → 偏空",
+        "use_case": "开盘量价",
+    },
+    "alpha_en083": {
+        "chinese_name": "波幅-成交量结构",
+        "formula": "(rank(delay(((high-low)/(sum(close,5)/5)),2))*rank(rank(volume)))/(((high-low)/(sum(close,5)/5))/(vwap-close))",
+        "interpretation": "值高: 波幅大+量高+VWAP下方 → 偏空\n"
+                          "值低: 波幅适中 → 偏多",
+        "use_case": "波幅结构",
+    },
+    "alpha_en084": {
+        "chinese_name": "VWAP偏离-时序最大",
+        "formula": "SignedPower(Ts_Rank((vwap-ts_max(vwap,15.3217)),20.7127),delta(close,4.96796))",
+        "interpretation": "值高: VWAP偏离增大+价格上涨 → 偏多\n"
+                          "值低: VWAP偏离减小 → 偏空",
+        "use_case": "VWAP偏离动量",
+    },
+    "alpha_en085": {
+        "chinese_name": "价量时序排名相关",
+        "formula": "rank(correlation(((high*0.876703)+(close*(1-0.876703))),adv30,9.61331))^rank(correlation(Ts_Rank(((high+low)/2),3.70596),Ts_Rank(volume,10.1595),7.11408))",
+        "interpretation": "值高: 价量时序排名靠前 → 偏多\n"
+                          "值低: 排名靠后 → 偏空",
+        "use_case": "时序排名复合",
+    },
+    "alpha_en086": {
+        "chinese_name": "收盘VWAP相关-价位置",
+        "formula": "((Ts_Rank(correlation(close,sum(adv20,14.7444),6.00049),20.4195)<rank(((open+close)-(vwap+open))))*-1",
+        "interpretation": "值高: 收盘量价相关低+价高 → 偏空\n"
+                          "值低: 价低 → 偏多",
+        "use_case": "收盘VWAP",
+    },
+    "alpha_en087": {
+        "chinese_name": "VWAP变动-量相关复合",
+        "formula": "(max(rank(decay_linear(delta(((close*0.369701)+(vwap*(1-0.369701))),1.91233),2.65461)),Ts_Rank(decay_linear(abs(correlation(IndNeutralize(adv81,IndClass.industry),close,13.4132)),4.89768),14.4535))*-1",
+        "interpretation": "值高: VWAP上升+量价正 → 偏多\n"
+                          "值低: VWAP下降 → 偏空",
+        "use_case": "VWAP量相关",
+    },
+    "alpha_en088": {
+        "chinese_name": "开盘低价极值-量相关",
+        "formula": "min(rank(decay_linear(((rank(open)+rank(low))-(rank(high)+rank(close))),8.06882)),Ts_Rank(decay_linear(correlation(Ts_Rank(close,8.44728),Ts_Rank(adv60,20.6966),8.01266),6.65053),2.61957))",
+        "interpretation": "值高: 低价+量价正 → 偏多\n"
+                          "值低: 高价+量价负 → 偏空",
+        "use_case": "开盘低价",
+    },
+    "alpha_en089": {
+        "chinese_name": "低价量相关-时序排名",
+        "formula": "Ts_Rank(decay_linear(correlation(((low*0.967285)+(low*(1-0.967285))),adv10,6.94279),5.51607),3.79744)-Ts_Rank(decay_linear(delta(IndNeutralize(vwap,IndClass.industry),3.48158),10.1466),15.3012)",
+        "interpretation": "值高: 低价量价强-VWAP下降 → 偏多\n"
+                          "值低: 反之 → 偏空",
+        "use_case": "低价量价差",
+    },
+    "alpha_en090": {
+        "chinese_name": "高价偏离-行业量相关",
+        "formula": "((rank((close-ts_max(close,4.66719)))^Ts_Rank(correlation(IndNeutralize(adv40,IndClass.subindustry),low,5.38375),3.21856))*-1",
+        "interpretation": "值高: 高价+行业量价正 → 偏多\n"
+                          "值低: 高价+行业量价负 → 偏空",
+        "use_case": "高价偏离",
+    },
+    "alpha_en091": {
+        "chinese_name": "行业价量-时序复合",
+        "formula": "(Ts_Rank(decay_linear(decay_linear(correlation(IndNeutralize(close,IndClass.industry),volume,9.74928),16.398),3.83219),4.8667)-rank(decay_linear(correlation(vwap,adv30,4.01303),2.6809)))*-1",
+        "interpretation": "值高: 行业价量强-VWAP量价弱 → 偏多\n"
+                          "值低: 反之 → 偏空",
+        "use_case": "行业时序复合",
+    },
+    "alpha_en092": {
+        "chinese_name": "低价条件-时序排名",
+        "formula": "min(Ts_Rank(decay_linear(((((high+low)/2)+close)<(low+open),14.7221),18.8683),Ts_Rank(decay_linear(correlation(rank(low),rank(adv30),7.58555),6.94024),6.80584))",
+        "interpretation": "值高: 低价+量价正 → 偏多\n"
+                          "值低: 高价+量价负 → 偏空",
+        "use_case": "低价条件",
+    },
+    "alpha_en093": {
+        "chinese_name": "VWAP量相关-时序排名比",
+        "formula": "Ts_Rank(decay_linear(correlation(IndNeutralize(vwap,IndClass.industry),adv81,17.4193),19.848),7.54455)/rank(decay_linear(delta(((close*0.524434)+(vwap*(1-0.524434))),2.77377),16.2664))",
+        "interpretation": "值高: VWAP量价强+价上涨 → 偏多\n"
+                          "值低: VWAP量价弱 → 偏空",
+        "use_case": "VWAP时序",
+    },
+    "alpha_en094": {
+        "chinese_name": "VWAP偏离-量相关复合",
+        "formula": "(rank((vwap-ts_min(vwap,11.5783)))^Ts_Rank(correlation(Ts_Rank(vwap,19.6462),Ts_Rank(adv60,4.02992),18.0926),2.70756))*-1",
+        "interpretation": "值高: VWAP下方+量价正 → 偏多\n"
+                          "值低: VWAP上方 → 偏空",
+        "use_case": "VWAP偏离",
+    },
+    "alpha_en095": {
+        "chinese_name": "开盘低价-量相关对比",
+        "formula": "rank((open-ts_min(open,12.4105)))<Ts_Rank((rank(correlation(sum(((high+low)/2),19.1351),sum(adv40,19.1351),12.8742))^5),11.7584)",
+        "interpretation": "值高: 开盘低价+量价正 → 偏多\n"
+                          "值低: 开盘高价 → 偏空",
+        "use_case": "开盘低价",
+    },
+    "alpha_en096": {
+        "chinese_name": "VWAP量排名-时序复合",
+        "formula": "(max(Ts_Rank(decay_linear(correlation(rank(vwap),rank(volume),3.83878),4.16783),8.38151),Ts_Rank(decay_linear(Ts_ArgMax(correlation(Ts_Rank(close,7.45404),Ts_Rank(adv60,4.13242),3.65459),12.6556),14.0365),13.4143))*-1",
+        "interpretation": "值高: VWAP量排名靠前 → 偏多\n"
+                          "值低: 排名靠后 → 偏空",
+        "use_case": "VWAP时序最大",
+    },
+    "alpha_en097": {
+        "chinese_name": "行业低价量价-时序复合",
+        "formula": "(rank(decay_linear(delta(IndNeutralize(((low*0.721001)+(vwap*(1-0.721001))),IndClass.industry),3.3705),20.4523))-Ts_Rank(decay_linear(Ts_Rank(correlation(Ts_Rank(low,7.87871),Ts_Rank(adv60,17.255),4.97547),18.5925),15.7152),6.71659))*-1",
+        "interpretation": "值高: 行业低价量价强 → 偏多\n"
+                          "值低: 行业高价 → 偏空",
+        "use_case": "行业低价",
+    },
+    "alpha_en098": {
+        "chinese_name": "VWAP量相关-延迟相关复合",
+        "formula": "rank(decay_linear(correlation(vwap,sum(adv5,26.4719),4.58418),7.18088))-rank(decay_linear(Ts_Rank(Ts_ArgMin(correlation(rank(open),rank(adv15),20.8187),8.62571),6.95668),8.07206))",
+        "interpretation": "值高: VWAP量相关强-开盘量相关弱 → 偏多\n"
+                          "值低: 反之 → 偏空",
+        "use_case": "VWAP开盘复合",
+    },
+    "alpha_en099": {
+        "chinese_name": "中价量相关-低价量相关对比",
+        "formula": "((rank(correlation(sum(((high+low)/2),19.8975),sum(adv60,19.8975),8.8136))<rank(correlation(low,volume,6.28259)))*-1",
+        "interpretation": "值高: 低价量相关强 → 底部支撑\n"
+                          "值低: 中价量相关强 → 偏空",
+        "use_case": "量相关来源",
+    },
+    "alpha_en100": {
+        "chinese_name": "行业中性价量-标准化",
+        "formula": "0-(1*(((1.5*scale(indneutralize(indneutralize(rank(((((close-low)-(high-close))/(high-low))*volume)),IndClass.subindustry),IndClass.subindustry)))-scale(indneutralize((correlation(close,rank(adv20),5)-rank(ts_argmin(close,30))),IndClass.subindustry)))*(volume/adv20))))",
+        "interpretation": "值高: 行业中性价量标准化高 → 偏多\n"
+                          "值低: 低 → 偏空",
+        "use_case": "行业标准化价量",
+    },
+    "alpha_en101": {
+        "chinese_name": "日内收益率",
+        "formula": "(close-open)/((high-low)+0.001)",
+        "interpretation": "值高: 收盘远高于开盘 → 当日强势\n"
+                          "值低: 收盘低于开盘 → 当日弱势",
+        "use_case": "最直观的日内多空",
+        "signal_logic": "值高 → 做多; 值低 → 做空",
+    },
 }
 
 # 分类中文说明 (对应因子真实 category)

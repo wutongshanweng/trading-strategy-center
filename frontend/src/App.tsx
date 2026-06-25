@@ -26,6 +26,9 @@ const LLMConfig = lazy(() => import("./pages/LLMConfig"));
 const MacroNews = lazy(() => import("./pages/MacroNews"));
 const SignalDetail = lazy(() => import("./pages/SignalDetail"));
 const IterationMonitor = lazy(() => import("./pages/IterationMonitor"));
+const ResearchCenter = lazy(() => import("./pages/ResearchCenter"));
+const VStockAdvisor = lazy(() => import("./pages/VStockAdvisor"));
+const ChinaFinance = lazy(() => import("./pages/ChinaFinance"));
 
 function PageLoading() {
   return (
@@ -90,6 +93,9 @@ export default function App() {
                 <Route path="iteration" element={<IterationMonitor />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="monitoring" element={<Monitoring />} />
+                <Route path="research-center" element={<ResearchCenter />} />
+                <Route path="vstock" element={<VStockAdvisor />} />
+                <Route path="china-finance" element={<ChinaFinance />} />
               </Route>
             </Routes>
           </Suspense>

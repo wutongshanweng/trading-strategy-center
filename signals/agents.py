@@ -22,8 +22,14 @@ import pandas as pd
 from loguru import logger
 
 # agent 权重 (主席加权用; 技术面/共振权重最高, 消息面辅助)
+# 更新后: 基本面 agent 占 25% (与技术面对等权重)
 AGENT_WEIGHTS = {
-    "technical": 0.30, "factor": 0.20, "ml": 0.20, "chan": 0.15, "macro": 0.15,
+    "technical": 0.25,
+    "factor": 0.10,
+    "ml": 0.15,
+    "chan": 0.10,
+    "macro": 0.10,
+    "fundamental": 0.25,  # 基本面 agent: 库存×成本链×季节性×需求
 }
 _DIR_VAL = {"BUY": 1.0, "SELL": -1.0, "HOLD": 0.0, "WATCH": 0.0}
 
@@ -162,6 +168,42 @@ class TradingCommittee:
             logger.warning(f"[committee] macro agent failed: {e}")
             return None
 
+    def _agent_fundamental(self, contract: str) -> Optional[AgentOpinion]:
+        """基本面 agent: 库存 × 成本链 × 季节性 × 需求 四维评分。"""
+        try:
+            from analysis.fundamental.model import analyze_fundamental
+            res = analyze_fundamental(contract)
+            score = res["score"]
+            direction = res["direction"]
+            confidence = res["confidence"]
+            detail = res["detail"]
+
+            # 提取四维分用于 reason
+            scores = detail.get("scores", {})
+            inv = scores.get("inventory", 0)
+            cst = scores.get("cost", 0)
+            sea = scores.get("seasonal", 0)
+            dem = scores.get("demand", 0)
+
+            reason = (f"基本面综合{score:+.2f}({direction}): "
+                      f"库存{inv:+.2f}/成本{cst:+.2f}/季节{sea:+.2f}/需求{dem:+.2f}")
+
+            return AgentOpinion(
+                "fundamental", "基本面", direction, confidence, reason,
+                {
+                    "scores": scores,
+                    "inventory": detail.get("details", {}).get("inventory", ""),
+                    "cost": detail.get("details", {}).get("cost", ""),
+                    "seasonal": detail.get("details", {}).get("seasonal", ""),
+                    "demand": detail.get("details", {}).get("demand", ""),
+                    "data_quality": detail.get("data_quality", "medium"),
+                    "explanation": detail.get("explanation", ""),
+                },
+            )
+        except Exception as e:
+            logger.warning(f"[committee] fundamental agent failed: {e}")
+            return None
+
     # ---- 主席裁决 ----
     def deliberate(self, df: pd.DataFrame, contract: str, product: str,
                    news_items: Optional[List[Dict]] = None,
@@ -180,6 +222,10 @@ class TradingCommittee:
         macro_op = self._agent_macro(product, news_items)
         if macro_op:
             opinions.append(macro_op)
+        # 基本面 agent
+        fundamental_op = self._agent_fundamental(contract)
+        if fundamental_op:
+            opinions.append(fundamental_op)
 
         # 加权投票: sum(w * dir_val * conf)
         weighted, total_w = 0.0, 0.0

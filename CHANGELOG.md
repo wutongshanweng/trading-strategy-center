@@ -7,6 +7,28 @@
 
 ## [Unreleased]
 
+### 2026-06-25 — 因子库扩充 + 新增页面
+
+#### 新增 (Added)
+- **Alpha因子扩展** (`core/alpha/alpha101/alpha102-191.py`): 新增90个扩展Alpha因子。
+- **国泰君安因子库** (`core/alpha/alpha101/gtja_alpha001-191.py`): 191个国泰君安Alpha因子完整实现。
+- **英文Alpha因子** (`core/alpha/alpha101/alpha_en001-101.py`): WorldQuant 101因子英文原版。
+- **函数式算子扩充** (`core/alpha/alpha101/operators.py`): 新增更多算子支持。
+- **因子描述文档** (`core/alpha/alpha101/factor_descriptions.py`): 所有因子公式与说明。
+- **PyTorch 网络层** (`core/rl/deep/torch_networks.py`): DQNTorchNet, GaussianActorTorch, TwinCriticTorch。
+- **NumPy 独立后端** (`core/rl/deep/trainers_numpy.py`): torch 缺失时自动降级。
+- **中国金融页面** (`frontend/src/pages/ChinaFinance.tsx`): 国泰君安研报与宏观分析。
+- **新闻聚合页面** (`frontend/src/pages/NewsAggregator.tsx`): 多源新闻聚合与情感分析。
+- **研究中心的** (`frontend/src/pages/ResearchCenter.tsx`): 综合研究工具。
+- **VStock顾问** (`frontend/src/pages/VStockAdvisor.tsx`): 股票智能投顾。
+- **Vibe研究** (`frontend/src/pages/VibeResearch.tsx`): AI研究助手。
+- **新增API路由**: china_finance, fundamental, market_intelligence, news, vstock, vibe。
+- **新增前端服务**: chinaFinanceApi, fundamentalApi, marketApi, newsApi, vibeApi, vstockApi。
+
+#### 改进 (Changed)
+- **RL双后端**: PPO/SAC/TD3 算法支持 torch/numpy 自动切换。
+- **因子注册表**: `__init__.py` 自动加载所有因子模块。
+
 ### 2026-06-25 — 新闻宏观仪表盘修复
 
 #### 新增 (Added)

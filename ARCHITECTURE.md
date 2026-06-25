@@ -120,8 +120,8 @@
 ├──────────────────────────────────────────────────────────────────────────┤
 │  Layer 3: Analysis & ML                                                   │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌─────────┐        │
-│  │ XGBoost  │ │ HMM      │ │ LSTM     │ │ Stacking │ │ PPO RL  │        │
-│  │ 方向预测  │ │ 状态识别  │ │ 短期预测  │ │ 集成学习  │ │ 强化学习 │        │
+│  │ XGBoost  │ │ HMM      │ │ LSTM     │ │ Stacking │ │ PPO/SAC/TD3│        │
+│  │ 方向预测  │ │ 状态识别  │ │ 短期预测  │ │ 集成学习  │ │ PyTorch+GPU │        │
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘ └─────────┘        │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐                    │
 │  │ 14 量化  │ │ GARCH    │ │ ARIMA    │ │ Alpha101 │                    │
@@ -295,7 +295,7 @@ D:\完整项目\trading-strategy-center\
 │   │   │   ├── ml_quant_lgb.py         # LightGBM
 │   │   │   ├── ml_quant_ensemble.py    # LGBM+LR+SVM
 │   │   │   ├── alpha_layer.py          # ARIMA/GARCH
-│   │   │   ├── ppo_agent.py            # PPO RL
+│   │   │   ├── ppo_agent.py            # PPO RL (PyTorch + NumPy 双后端)
 │   │   │   ├── hmm_state.py            # HMM 状态识别
 │   │   │   ├── lstm_predictor.py       # LSTM 预测
 │   │   │   ├── meta_model.py           # 元模型 Stacking
@@ -818,7 +818,7 @@ class BacktestResult:
 | `ml_quant_lgb.py` | 楚风 | 10 因子 5 日方向预测 |
 | `ml_quant_ensemble.py` | 楚风 | LGBM+LR+SVM 三模型加权投票 |
 | `alpha_layer.py` | 楚风 | ARIMA/SARIMAX + GARCH/EGARCH/TGARCH |
-| `ppo_agent.py` | 楚风 | 纯 numpy PPO (BUY/HOLD/SELL, Sharpe reward) |
+| `ppo_agent.py` | 楚风 | PPO (PyTorch 自动微分 + GPU / NumPy 纯CPU) |
 | `hmm_state.py` | 听海 | 4 状态 HMM (QUIET/BULL/BEAR/STRESS) |
 | `lstm_predictor.py` | 听海 | BiLSTM 4 视野期 (15m/45m/90m/180m) |
 | `meta_model.py` | 听海 | LSTM+XGBoost+Factor 加权融合 |

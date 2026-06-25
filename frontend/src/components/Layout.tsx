@@ -19,6 +19,9 @@ import {
   GithubOutlined,
   BulbOutlined,
   BranchesOutlined,
+  SafetyCertificateOutlined,
+  DollarOutlined,
+  CloudServerOutlined,
 } from "@ant-design/icons";
 
 const { Sider, Header, Content, Footer } = AntLayout;
@@ -26,11 +29,14 @@ const { Text } = Typography;
 
 const menuItems = [
   { key: "/", icon: <DashboardOutlined />, label: "Dashboard" },
-  { key: "/macro-news", icon: <FundOutlined />, label: "新闻宏观" },
+  { key: "/research-center", icon: <ThunderboltOutlined />, label: "研究中枢" },
+  { key: "/macro-news", icon: <FundOutlined />, label: "新闻聚合" },
+  { key: "/vstock", icon: <SafetyCertificateOutlined />, label: "游资分析" },
+  { key: "/factors", icon: <ExperimentOutlined />, label: "因子研究" },
+  { key: "/china-finance", icon: <DollarOutlined />, label: "金融框架" },
   { key: "/trading", icon: <StockOutlined />, label: "模拟交易" },
   { key: "/backtest", icon: <ExperimentOutlined />, label: "回测" },
   { key: "/portfolio", icon: <PieChartOutlined />, label: "组合" },
-  { key: "/factors", icon: <ExperimentOutlined />, label: "因子研究" },
   { key: "/phase3", icon: <ThunderboltOutlined />, label: "ML+期权" },
   { key: "/strategy-library", icon: <AppstoreOutlined />, label: "策略军火库" },
   { key: "/feedback", icon: <SyncOutlined />, label: "反馈闭环" },

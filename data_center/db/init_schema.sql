@@ -200,3 +200,24 @@ CREATE TABLE IF NOT EXISTS cross_market_mapping (
     updated_at      TIMESTAMP DEFAULT now(),
     UNIQUE(product_id_a, product_id_b, relation_type)
 );
+
+-- ============================================================
+-- 2.10 因子性能表 factor_performance (IC/IR实时计算)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS factor_performance (
+    id              INTEGER PRIMARY KEY DEFAULT nextval('seq_symbol_id'),
+    factor_name     VARCHAR NOT NULL,
+    symbol          VARCHAR NOT NULL,
+    calc_date       DATE NOT NULL,
+    ic              DECIMAL(8,4),                  -- 信息系数 (Information Coefficient)
+    ir              DECIMAL(8,4),                  -- 信息比率 (IC均值/IC标准差)
+    ic_series       VARCHAR,                       -- JSON格式的IC时间序列
+    risk_adj_return DECIMAL(10,4),                 -- 风险调整收益
+    ic_mean_short   DECIMAL(8,4),                  -- 近20日IC均值
+    ic_mean_long    DECIMAL(8,4),                  -- 近60日IC均值
+    updated_at      TIMESTAMP DEFAULT now(),
+    UNIQUE(factor_name, symbol, calc_date)
+);
+CREATE INDEX IF NOT EXISTS idx_fp_factor ON factor_performance(factor_name);
+CREATE INDEX IF NOT EXISTS idx_fp_symbol ON factor_performance(symbol);
+CREATE INDEX IF NOT EXISTS idx_fp_date ON factor_performance(calc_date);

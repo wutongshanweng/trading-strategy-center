@@ -5,9 +5,10 @@ import {
 } from "antd";
 import {
   ArrowLeftOutlined, AimOutlined, ThunderboltOutlined, ExperimentOutlined,
-  LinkOutlined, WarningOutlined,
+  LinkOutlined, WarningOutlined, BarChartOutlined,
 } from "@ant-design/icons";
 import { alertApi, type AlertSignal } from "../services/macroNewsApi";
+import { fundamentalApi } from "../services/fundamentalApi";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -25,12 +26,23 @@ export default function SignalDetail() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [sig, setSig] = useState<AlertSignal | null>(null);
+  const [fundamental, setFundamental] = useState<any | null>(null);
+  const [fundLoading, setFundLoading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     alertApi.detail(id).then(setSig).catch(() => setSig(null)).finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!sig?.symbol) return;
+    setFundLoading(true);
+    fundamentalApi.detail(sig.symbol)
+      .then(setFundamental)
+      .catch(() => setFundamental(null))
+      .finally(() => setFundLoading(false));
+  }, [sig?.symbol]);
 
   if (loading) return <div style={{ textAlign: "center", padding: 80 }}><Spin size="large" /></div>;
   if (!sig) return (
@@ -144,6 +156,95 @@ export default function SignalDetail() {
         <Paragraph type="secondary" style={{ fontSize: 12, marginTop: 8 }}>
           正值=该宏观指标与品种正相关(指标走强利多), 负值=负相关。
         </Paragraph>
+      </Card>
+
+      {/* 基本面四维分析 */}
+      <Card
+        size="small"
+        title={<><BarChartOutlined /> 基本面四维分析</>}
+        extra={fundLoading ? <Spin size="small" /> : <Text type="secondary" style={{ fontSize: 12 }}>数据质量: {fundamental?.inventory?.data_quality || "—"}</Text>}
+        style={{ marginBottom: 16 }}
+      >
+        {fundLoading ? (
+          <div style={{ textAlign: "center", padding: 20 }}><Spin size="small" /></div>
+        ) : !fundamental ? (
+          <Text type="secondary">暂无基本面数据</Text>
+        ) : (
+          <>
+            {/* 综合评分 */}
+            <div style={{ textAlign: "center", marginBottom: 16 }}>
+              <Text type="secondary">综合基本面评分</Text>
+              <div style={{
+                fontSize: 32, fontWeight: 700,
+                color: (fundamental.inventory?.score ?? 0) >= 0 ? "#52c41a" : "#ff4d4f"
+              }}>
+                {(fundamental.inventory?.score ?? 0) >= 0 ? "+" : ""}{(fundamental.inventory?.score ?? 0).toFixed(2)}
+              </div>
+              <Tag color={(fundamental.inventory?.score ?? 0) >= 0 ? "green" : "red"}>
+                {(fundamental.inventory?.score ?? 0) >= 0 ? "偏多" : "偏空"}
+              </Tag>
+            </div>
+
+            {/* 四维评分 */}
+            <Row gutter={12}>
+              {[
+                { key: "inventory", label: "库存", icon: "📦", value: fundamental.inventory?.score },
+                { key: "cost", label: "成本", icon: "⛓️", value: fundamental.cost?.score },
+                { key: "seasonal", label: "季节性", icon: "📅", value: fundamental.seasonal?.score },
+                { key: "demand", label: "需求", icon: "📈", value: fundamental.demand?.score },
+              ].map(({ key, label, icon, value }) => (
+                <Col xs={12} sm={6} key={key}>
+                  <Card size="small" style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 18 }}>{icon}</div>
+                    <Text type="secondary" style={{ fontSize: 12 }}>{label}</Text>
+                    <div style={{
+                      fontSize: 20, fontWeight: 600,
+                      color: (value ?? 0) >= 0 ? "#52c41a" : "#ff4d4f"
+                    }}>
+                      {(value ?? 0) >= 0 ? "+" : ""}{(value ?? 0).toFixed(2)}
+                    </div>
+                    <Progress
+                      percent={Math.round(((value ?? 0) + 1) / 2 * 100)}
+                      size="small"
+                      showInfo={false}
+                      strokeColor={(value ?? 0) >= 0 ? "#52c41a" : "#ff4d4f"}
+                    />
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+
+            {/* 详细说明 */}
+            <Divider style={{ margin: "12px 0" }} />
+            <Row gutter={16}>
+              {[
+                { label: "库存", detail: fundamental.inventory?.detail, trend: fundamental.inventory?.trend, pct: fundamental.inventory?.percentile },
+                { label: "成本", detail: fundamental.cost?.detail, pct: fundamental.cost?.total_cost_change },
+                { label: "季节性", detail: fundamental.seasonal?.detail, wr: fundamental.seasonal?.win_rate },
+                { label: "需求", detail: fundamental.demand?.detail, trend: fundamental.demand?.overall_trend },
+              ].map(({ label, detail, trend, pct, wr }) => {
+                const pctVal = pct ?? 0;
+                const pctChange = pctVal * 100;
+                return (
+                  <Col xs={24} sm={12} key={label}>
+                    <Paragraph style={{ fontSize: 12, margin: 0 }}>
+                      <Text strong>{label}: </Text>
+                      <Text type="secondary" style={{ fontSize: 11 }}>{detail || "—"}</Text>
+                      {(trend || pct != null) && (
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          {" | "}{trend ?? `变化: ${pctChange > 0 ? "+" : ""}${pctChange.toFixed(1)}%`}
+                        </Text>
+                      )}
+                      {wr != null && (
+                        <Text type="secondary" style={{ fontSize: 11 }}> | 胜率: {(wr * 100).toFixed(0)}%</Text>
+                      )}
+                    </Paragraph>
+                  </Col>
+                );
+              })}
+            </Row>
+          </>
+        )}
       </Card>
 
       {/* 风险提示 */}
