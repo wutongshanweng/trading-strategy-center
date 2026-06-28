@@ -71,6 +71,190 @@ def collect_futures_product(product: str, year: Optional[int] = None,
     return totals
 
 
+def collect_futures_product_month(product: str, year: int, month: int,
+                                  with_minute: bool = False, sleep: float = 0.3,
+                                  start_date: Optional[str] = None) -> Dict:
+    """采集单个期货品种某年某月的数据。按月处理，断点续传友好。"""
+    fc = FuturesCollector()
+    key = f"fut:{product}:{year}m{month:02d}"
+    ckpt = _read_ckpt()
+    if key in ckpt.get("done", []):
+        logger.info(f"[{key}] 已完成，跳过")
+        return {"D1": 0, "M5": 0, "contracts": 0, "year": year, "month": month}
+    try:
+        res = fc.collect_product_month(product, year, month, with_minute=with_minute,
+                                       sleep=sleep, start_date=start_date)
+        # 保存进度
+        ckpt = _read_ckpt()
+        if key not in ckpt.get("done", []):
+            ckpt.setdefault("done", []).append(key)
+            ckpt["stats"] = ckpt.get("stats", {})
+            ckpt["stats"][key] = {"D1": res.get("D1", 0), "M5": res.get("M5", 0),
+                                   "contracts": res.get("contracts", 0)}
+            _write_ckpt(ckpt)
+        logger.info(f"[{key}] 完成: D1={res.get('D1', 0)}, M5={res.get('M5', 0)}")
+        return {"D1": res.get("D1", 0), "M5": res.get("M5", 0),
+                "contracts": res.get("contracts", 0), "year": year, "month": month}
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[{key}] 采集失败: {e}")
+        ckpt = _read_ckpt()
+        ckpt.setdefault("failures", {})[key] = str(e)
+        _write_ckpt(ckpt)
+        return {"D1": 0, "M5": 0, "contracts": 0, "year": year, "month": month, "error": str(e)}
+
+
+async def run_futures_month(
+    product: str, year: int, month: int,
+    with_minute: bool = False, start_date: Optional[str] = None,
+    reset_checkpoint: bool = False
+) -> Dict:
+    """异步入口: 按月采集期货数据。在线程池运行，不阻塞事件循环。"""
+    if reset_checkpoint:
+        key = f"fut:{product}:{year}m{month:02d}"
+        ckpt = _read_ckpt()
+        ckpt["done"] = [k for k in ckpt.get("done", []) if k != key]
+        _write_ckpt(ckpt)
+    return await asyncio.to_thread(
+        collect_futures_product_month, product, year, month, with_minute, 0.3, start_date
+    )
+
+
+async def run_full_futures_year(
+    product: str, year: int, with_minute: bool = False,
+    start_date: Optional[str] = None, reset_checkpoint: bool = False
+) -> Dict:
+    """异步入口: 按年采集期货数据。最多同步到当前月份。"""
+    if reset_checkpoint:
+        reset_ckpt()
+    max_month = _max_month_for_year(year)
+    if max_month == 0:
+        logger.info(f"[fut] {product} {year}年是未来年份，跳过")
+        return {"D1": 0, "M5": 0, "contracts": 0, "months": [], "note": f"{year}年未到，跳过"}
+    totals = {"D1": 0, "M5": 0, "contracts": 0, "months": []}
+    for month in range(1, max_month + 1):
+        res = await run_futures_month(product, year, month, with_minute, start_date, reset_checkpoint=False)
+        totals["D1"] += res.get("D1", 0)
+        totals["M5"] += res.get("M5", 0)
+        totals["contracts"] += res.get("contracts", 0)
+        totals["months"].append({"month": month, **res})
+    return totals
+
+
+def collect_stocks_month(year: int, month: int,
+                          symbols: Optional[List[str]] = None,
+                          stock_limit: Optional[int] = None) -> Dict:
+    """采集股票某年某月的数据。按月处理，断点续传友好。
+
+    Args:
+        year: 年份
+        month: 月份 (1-12)
+        symbols: 股票代码列表 (空时自动获取全市场)
+        stock_limit: 限制采集数量 (测试用)
+    """
+    sc = StocksCollector()
+    key = f"stk:{year}m{month:02d}"
+    ckpt = _read_ckpt()
+    if key in ckpt.get("done", []):
+        logger.info(f"[{key}] 已完成，跳过")
+        return {"rows": 0, "stocks": 0, "skipped": 0, "universe": 0}
+
+    try:
+        if symbols is None:
+            symbols = sc.list_all_symbols()
+        if stock_limit:
+            symbols = symbols[:stock_limit]
+
+        stats = sc.collect_kline_month(symbols=symbols, year=year, month=month)
+        # 保存进度
+        ckpt = _read_ckpt()
+        if key not in ckpt.get("done", []):
+            ckpt.setdefault("done", []).append(key)
+            ckpt["stats"] = ckpt.get("stats", {})
+            ckpt["stats"][key] = {"rows": stats.get("rows", 0),
+                                  "stocks": stats.get("synced", 0)}
+            _write_ckpt(ckpt)
+        logger.info(f"[{key}] 完成: rows={stats.get('rows', 0)}, stocks={stats.get('synced', 0)}")
+        return stats
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"[{key}] 采集失败: {e}")
+        ckpt = _read_ckpt()
+        ckpt.setdefault("failures", {})[key] = str(e)
+        _write_ckpt(ckpt)
+        return {"rows": 0, "stocks": 0, "skipped": 0, "universe": 0, "error": str(e)}
+
+
+async def run_stocks_month(year: int, month: int,
+                            stock_limit: Optional[int] = None,
+                            reset_checkpoint: bool = False) -> Dict:
+    """异步入口: 按月采集股票数据。在线程池运行，不阻塞事件循环。"""
+    if reset_checkpoint:
+        key = f"stk:{year}m{month:02d}"
+        ckpt = _read_ckpt()
+        ckpt["done"] = [k for k in ckpt.get("done", []) if k != key]
+        _write_ckpt(ckpt)
+    return await asyncio.to_thread(
+        collect_stocks_month, year, month, None, stock_limit
+    )
+
+
+def _max_month_for_year(year: int) -> int:
+    """返回某年最大可同步月份：未来年=0，当前年=当前月，历史年=12。"""
+    today = datetime.now()
+    if year > today.year:
+        return 0
+    if year < today.year:
+        return 12
+    return today.month
+
+
+async def run_full_stocks_year(year: int,
+                                stock_limit: Optional[int] = None,
+                                reset_checkpoint: bool = False) -> Dict:
+    """异步入口: 按年采集股票数据。最多同步到当前月份，避免下载未来数据。"""
+    if reset_checkpoint:
+        reset_ckpt()
+    max_month = _max_month_for_year(year)
+    if max_month == 0:
+        logger.info(f"[stock] {year}年是未来年份，跳过")
+        return {"rows": 0, "stocks": 0, "months": [], "note": f"{year}年未到，跳过"}
+    totals = {"rows": 0, "stocks": 0, "months": []}
+    for month in range(1, max_month + 1):
+        res = await run_stocks_month(year, month, stock_limit, reset_checkpoint=False)
+        totals["rows"] += res.get("rows", 0)
+        totals["stocks"] += res.get("stocks", 0)
+        totals["months"].append({"month": month, **res})
+    return totals
+
+
+async def run_full_options_year(year: int, reset_checkpoint: bool = False) -> Dict:
+    """异步入口: 按年采集期权数据 (按月分批，写 opt:YYYYmMM checkpoint)。"""
+    import time as _time
+    if reset_checkpoint:
+        reset_ckpt()
+    max_month = _max_month_for_year(year)
+    if max_month == 0:
+        logger.info(f"[option] {year}年是未来年份，跳过")
+        return {"rows": 0, "contracts": 0, "months": [], "note": f"{year}年未到，跳过"}
+    totals = {"rows": 0, "contracts": 0, "months": []}
+    oc = OptionsCollector()
+    for month in range(1, max_month + 1):
+        key = f"opt:{year}m{month:02d}"
+        ckpt = _read_ckpt()
+        if key in ckpt.get("done", []):
+            logger.info(f"[{key}] 已完成，跳过")
+            continue
+        try:
+            res = await asyncio.to_thread(oc.collect_month, year, month)
+            totals["rows"] += res.get("greeks_rows", 0)
+            totals["contracts"] += res.get("etf_contracts", 0) + res.get("index_contracts", 0)
+            totals["months"].append({"month": month, **res})
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"期权 {year}年{month}月采集失败: {e}")
+        # 月份之间休眠，避免数据库压力
+        _time.sleep(2)
+    return totals
+
+
 def _run_full_sync(phase: str, year: Optional[int], end_year: Optional[int],
                    start_date: Optional[str], with_minute: bool,
                    stock_limit: Optional[int], reset_checkpoint: bool = False) -> Dict:
@@ -87,24 +271,32 @@ def _run_full_sync(phase: str, year: Optional[int], end_year: Optional[int],
     results: Dict = {}
 
     if phase in ("futures", "all"):
+        fc = FuturesCollector()
         totals = {"D1": 0, "M5": 0, "contracts": 0, "products": 0}
         for product in _products("futures"):
-            key = f"fut:{product}:{year or 'live'}-{end_year or ''}"
-            if key in ckpt["done"]:
-                continue
-            try:
-                res = collect_futures_product(product, year, end_year, with_minute, start_date)
-                totals["D1"] += res.get("D1", 0)
-                totals["M5"] += res.get("M5", 0)
-                totals["contracts"] += res.get("contracts", 0)
-                totals["products"] += 1
-                ckpt["done"].append(key)
-                ckpt["stats"][key] = {"D1": res.get("D1", 0), "contracts": res.get("contracts", 0)}
-                _write_ckpt(ckpt)
-            except Exception as e:  # noqa: BLE001
-                logger.warning(f"{product} 采集失败: {e}")
-                ckpt["failures"][key] = str(e)
-                _write_ckpt(ckpt)
+            # 按月分批处理，断点续传友好
+            for month in range(1, 13):
+                key = f"fut:{product}:{year}m{month:02d}"
+                if key in ckpt["done"]:
+                    continue
+                try:
+                    res = fc.collect_product_month(product, year, month,
+                                                   with_minute, 0.3, start_date)
+                    totals["D1"] += res.get("D1", 0)
+                    totals["M5"] += res.get("M5", 0)
+                    totals["contracts"] += res.get("contracts", 0)
+                    totals["products"] += 1
+                    ckpt = _read_ckpt()
+                    if key not in ckpt["done"]:
+                        ckpt.setdefault("done", []).append(key)
+                        ckpt.setdefault("stats", {})[key] = {
+                            "D1": res.get("D1", 0), "contracts": res.get("contracts", 0)}
+                        _write_ckpt(ckpt)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning(f"{product} {year}m{month:02d} 采集失败: {e}")
+                    ckpt = _read_ckpt()
+                    ckpt.setdefault("failures", {})[key] = str(e)
+                    _write_ckpt(ckpt)
         results["futures"] = totals
 
     if phase in ("stocks", "all"):
@@ -113,60 +305,68 @@ def _run_full_sync(phase: str, year: Optional[int], end_year: Optional[int],
         if stock_limit:
             symbols = symbols[:stock_limit]
         totals = {"rows": 0, "stocks": 0, "universe": len(symbols)}
-        for code in symbols:
-            key = f"stk:{code}:{start_date or 'full'}"
-            if key in ckpt["done"]:
-                continue
-            try:
-                n = sc.collect_kline(code, start_date=start_date)
-                totals["rows"] += n
-                if n > 0:
-                    totals["stocks"] += 1
-                ckpt["done"].append(key)
-                _write_ckpt(ckpt)
-            except Exception as e:  # noqa: BLE001
-                logger.warning(f"{code} 股票采集失败: {e}")
-                ckpt["failures"][key] = str(e)
-                _write_ckpt(ckpt)
+        # 按月处理: year 指定时按月循环，断点续传
+        if year is not None:
+            for month in range(1, 13):
+                key = f"stk:{year}m{month:02d}"
+                if key in ckpt["done"]:
+                    continue
+                try:
+                    stats = sc.collect_kline_month(symbols=symbols, year=year, month=month)
+                    totals["rows"] += stats.get("rows", 0)
+                    totals["stocks"] += stats.get("synced", 0)
+                    ckpt["done"].append(key)
+                    ckpt["stats"] = ckpt.get("stats", {})
+                    ckpt["stats"][key] = {"rows": stats.get("rows", 0),
+                                          "stocks": stats.get("synced", 0)}
+                    _write_ckpt(ckpt)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning(f"{year}年{month}月 股票采集失败: {e}")
+                    ckpt["failures"][key] = str(e)
+                    _write_ckpt(ckpt)
+        else:
+            # 不指定年份时: 逐股票采集 (旧行为)
+            for code in symbols:
+                key = f"stk:{code}:{start_date or 'full'}"
+                if key in ckpt["done"]:
+                    continue
+                try:
+                    n = sc.collect_kline(code, start_date=start_date)
+                    totals["rows"] += n
+                    if n > 0:
+                        totals["stocks"] += 1
+                    ckpt["done"].append(key)
+                    _write_ckpt(ckpt)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning(f"{code} 股票采集失败: {e}")
+                    ckpt["failures"][key] = str(e)
+                    _write_ckpt(ckpt)
         results["stocks"] = totals
 
     if phase in ("options", "all"):
         oc = OptionsCollector()
         totals = {"rows": 0, "contracts": 0, "underlyings": 0,
-                  "commodity_kline": 0, "commodity_greeks": 0}
+                  "commodity_kline": 0, "commodity_greeks": 0, "months": []}
+
+        # 按月采集 ETF/股指期权 (写入 opt:YYYYmMM checkpoint)
+        max_month = _max_month_for_year(year) if year else 12
+        for month in range(1, max_month + 1):
+            key = f"opt:{year}m{month:02d}"
+            if key in ckpt.get("done", []):
+                logger.info(f"[{key}] 已完成，跳过")
+                continue
+            try:
+                res = oc.collect_month(year, month)
+                totals["rows"] += res.get("greeks_rows", 0)
+                totals["contracts"] += res.get("etf_contracts", 0) + res.get("index_contracts", 0)
+                totals["months"].append({"month": month, **res})
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"期权 {year}年{month}月采集失败: {e}")
 
         def _codes_col(df):
             if df is None or df.empty:
                 return None
             return next((c for c in ("期权代码", "合约代码", "代码") if c in df.columns), None)
-
-        # ETF 期权优先: 50/300/500 ETF, 看涨+看跌 (当前在挂, 代码无年月, 有数据)
-        # 放在商品期权之前 — 避免被商品期权全年逐日空转的长循环堵住。
-        for und in ("510050", "510300", "510500"):
-            got = False
-            for otype in ("看涨期权", "看跌期权"):
-                try:
-                    cdf = oc._opt.get_etf_option_codes(option_type=otype, underlying=und)
-                    col = _codes_col(cdf)
-                    if not col:
-                        continue
-                    for c in [str(x) for x in cdf[col].tolist()]:
-                        key = f"opt:{und}:{c}"
-                        if key in ckpt["done"]:
-                            continue
-                        try:
-                            n = oc.collect_etf_option_daily(c, und)
-                            totals["rows"] += n
-                            if n > 0:
-                                totals["contracts"] += 1; got = True
-                            ckpt["done"].append(key); _write_ckpt(ckpt)
-                        except Exception as e:  # noqa: BLE001
-                            logger.warning(f"{c} 期权采集失败: {e}")
-                            ckpt["failures"][key] = str(e); _write_ckpt(ckpt)
-                except Exception as e:  # noqa: BLE001
-                    logger.warning(f"{und}/{otype} 合约枚举失败: {e}")
-            if got:
-                totals["underlyings"] += 1
 
         # 商品期权: 指定 year 时按年逐交易日全量 (覆盖该年所有挂过的合约 + IV/Delta)
         # 注意 2026 时钟下远程数据滞后, 多数交易日返回空属正常。

@@ -173,6 +173,9 @@ export default function DataCenter() {
   const [yearSyncLoading, setYearSyncLoading] = useState(false);
   const [verifyResult, setVerifyResult] = useState<any>(null);
   const [yearWithMinute, setYearWithMinute] = useState(false);
+  // 一键同步最新
+  const [latestSyncResult, setLatestSyncResult] = useState<any>(null);
+  const [latestSyncLoading, setLatestSyncLoading] = useState(false);
   // 实时同步添加品种表单
   const [syncAddSym, setSyncAddSym] = useState("");
   const [syncAddAsset, setSyncAddAsset] = useState("futures");
@@ -194,6 +197,7 @@ export default function DataCenter() {
     loadSources();
     loadExchanges();
     loadWhStats();
+    loadSyncStatus();
   }, []);
 
   const loadWhStats = async () => {
@@ -252,7 +256,12 @@ export default function DataCenter() {
     try {
       const res = await API.get("/sync/status");
       setSyncStatus(res.data);
-    } catch { /* ignore */ }
+    } catch (e: any) {
+      if (e.code === "ECONNABORTED" || e.message?.includes("timeout")) {
+        console.warn("同步状态加载超时，后端可能繁忙");
+      }
+      // ignore other errors - sync status is optional
+    }
   };
 
   const loadStorage = async () => {
@@ -1741,16 +1750,119 @@ export default function DataCenter() {
     }
   };
 
+  const syncLatest = async () => {
+    setLatestSyncLoading(true);
+    setLatestSyncResult(null);
+    setCollectProgress(null);
+    try {
+      const res = await WH.get("/sync/latest", { params: { buffer_days: 5, start_days: 180, with_minute: true } });
+      const data = res.data;
+      setLatestSyncResult(data);
+      const triggered = Object.values(data.assets || {}).some((a: any) => a.sync_triggered);
+      if (triggered) {
+        message.success("已触发近6个月多周期同步 (后台运行中)！");
+        pollLatestProgress();
+      } else {
+        const allLatest = Object.values(data.assets || {}).every((a: any) => !a.need_sync);
+        message.info(allLatest ? "数据已最新，无需同步。" : "落后不足5天，暂不触发同步。");
+      }
+    } catch (err: any) {
+      message.error(`同步失败: ${err.response?.data?.detail || err.message}`);
+    } finally {
+      setLatestSyncLoading(false);
+    }
+  };
+
+  const pollLatestProgress = async () => {
+    try {
+      const res = await WH.get("/jobs/status");
+      setCollectProgress(res.data);
+      if (res.data?.running) {
+        setTimeout(pollLatestProgress, 3000);
+      }
+    } catch { /* ignore */ }
+  };
+
   const syncYear = async (asset: string, year: number, reset = false) => {
     setYearSyncLoading(true);
     try {
       const res = await WH.post("/sync/year", null,
         { params: { asset_type: asset, year, reset_checkpoint: reset, with_minute: yearWithMinute } });
-      message.success(`${year}年${asset}同步已启动 (后台${yearWithMinute ? ", 含分钟线" : ""}): ${res.data.job}`);
-      setTimeout(loadYearStatus, 1500);
+      message.success(`${year}年${asset}同步已启动: ${res.data.job}`);
+      pollYearProgress(asset, year);
     } catch (err: any) {
       message.error(`启动失败: ${err.response?.data?.detail || err.message}`);
-    } finally { setYearSyncLoading(false); }
+      setYearSyncLoading(false);
+    }
+  };
+
+  // 按年同步的实时进度轮询 (每个资产独立轮询)
+  const pollYearProgress = (asset: string, year: number) => {
+    let pollCount = 0;
+    const doPoll = async () => {
+      try {
+        const [progRes, yearRes] = await Promise.all([
+          WH.get("/collect/progress"),
+          WH.get("/sync/year-status"),
+        ]);
+        const prog = progRes.data;
+        setCollectProgress(prog);
+        setYearStatus(yearRes.data?.years || []);
+        pollCount++;
+        // 任务运行中或轮询次数<120 (最多10分钟) 则继续
+        if (prog?.job?.running && pollCount < 120) {
+          setTimeout(doPoll, 5000);
+        } else {
+          setYearSyncLoading(false);
+          if (pollCount >= 120) message.warning("轮询超时，任务可能仍在后台运行");
+          else if (prog?.job?.result) {
+            message.success(`同步完成: ${JSON.stringify(prog.job.result)}`);
+            loadYearStatus(); // 完成后刷新年份状态
+          }
+        }
+      } catch (e: any) {
+        console.warn("轮询失败:", e.message);
+        setYearSyncLoading(false);
+      }
+    };
+    setTimeout(doPoll, 2000); // 2秒后开始首次轮询
+  };
+
+  // 同步进度条组件
+  const SyncProgressBar = ({ prog }: { prog: any }) => {
+    if (!prog?.job?.running) return null;
+    const cur = prog.current_item;
+    return (
+      <div style={{ marginTop: 8, padding: '8px 12px', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6 }}>
+        <Space wrap size={[16, 8]}>
+          <Badge status="processing" text={<Text strong style={{ fontSize: 13 }}>{prog.job.name}</Text>} />
+          {cur && (
+            <>
+              <Tag color="blue">{cur.asset === "futures" ? "期货" : cur.asset === "stock" ? "股票" : "期权"} {cur.year}年</Tag>
+              {cur.last_product && <Tag color="processing">{cur.last_product}</Tag>}
+              <Text type="secondary">已完成 {cur.total_done} 项</Text>
+            </>
+          )}
+          {prog.checkpoint?.recent_stats && Object.keys(prog.checkpoint.recent_stats).length > 0 && (
+            <Text type="secondary" style={{ fontSize: 11 }}>
+              最近: {Object.keys(prog.checkpoint.recent_stats).slice(-3).map(k => k.split(":")[1]).join(", ")}
+            </Text>
+          )}
+        </Space>
+        {prog.started_at && (
+          <div style={{ marginTop: 4 }}>
+            <Text type="secondary" style={{ fontSize: 11 }}>
+              开始于 {new Date(prog.started_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}
+            </Text>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const exportYearData = (asset: string, year: number, format = "csv") => {
+    const params = new URLSearchParams({ asset_type: asset, year: String(year), format });
+    window.open(`/api/v1/warehouse/export?${params.toString()}`, "_blank");
   };
 
   const verifyYear = async (asset: string, year: number) => {
@@ -1766,28 +1878,137 @@ export default function DataCenter() {
   };
 
   const renderSyncPanel = () => {
+    // 按月同步 (期货/股票/期权通用)
+    const syncMonth = async (asset: string, year: number, month: number, product?: string) => {
+      try {
+        const params: any = { asset_type: asset, year, month };
+        if (asset === "futures") params.product = product || whProduct || "RB";
+        const res = await WH.post("/sync/month", null, { params });
+        message.success(`${asset === "futures" ? params.product : asset} ${year}年${month}月同步已启动`);
+        // 轮询进度
+        pollMonthProgress(asset, year, month);
+      } catch (err: any) {
+        message.error(`启动失败: ${err.response?.data?.detail || err.message}`);
+      }
+    };
+
+    // 按月同步的实时进度轮询
+    const pollMonthProgress = (asset: string, year: number, month: number) => {
+      let pollCount = 0;
+      const doPoll = async () => {
+        try {
+          const [progRes, yearRes] = await Promise.all([
+            WH.get("/collect/progress"),
+            WH.get("/sync/year-status"),
+          ]);
+          const prog = progRes.data;
+          setCollectProgress(prog);
+          setYearStatus(yearRes.data?.years || []);
+          pollCount++;
+          if (prog?.job?.running && pollCount < 60) {
+            setTimeout(doPoll, 5000);
+          } else {
+            if (prog?.job?.result) {
+              message.success(`同步完成: ${JSON.stringify(prog.job.result)}`);
+              loadYearStatus(); // 完成后刷新年份状态
+            }
+          }
+        } catch (e: any) {
+          console.warn("轮询失败:", e.message);
+        }
+      };
+      setTimeout(doPoll, 2000);
+    };
+
     const cell = (asset: string, year: number, c: any) => {
-      const color = c?.status === "已同步" ? "#52c41a" : c?.status === "同步中" ? "#1677ff" : "#999";
+      const months = c?.months || {};
+      const doneCount = Object.values(months).filter((m: any) => m?.done).length;
       return (
         <div>
           <Tag color={c?.status === "已同步" ? "green" : c?.status === "同步中" ? "blue" : "default"}>
             {c?.status || "未同步"}
             {c?.status === "同步中" && c?.checkpoint_done != null ? ` (${c.checkpoint_done})` : ""}
           </Tag>
-          <div style={{ fontSize: 11, color }}>
+          <div style={{ fontSize: 11 }}>
             {asset === "stock" ? `${c?.with_data || 0} 只` : `${c?.with_data || 0}/${c?.contracts || 0} 合约`}
+            {doneCount > 0 && <span style={{ color: "#52c41a", marginLeft: 4 }}>✓{doneCount}/12月</span>}
           </div>
-          <Space size={4} style={{ marginTop: 4 }}>
-            <Button size="small" type="link" style={{ padding: 0 }}
-              loading={yearSyncLoading} onClick={() => syncYear(asset, year)}>同步</Button>
-            <Button size="small" type="link" style={{ padding: 0 }}
-              onClick={() => verifyYear(asset, year)}>校验</Button>
-          </Space>
+          {/* 月份进度 - 期货/股票/期权通用 */}
+          <div style={{ marginTop: 4, display: "flex", gap: 2, flexWrap: "wrap" }}>
+            {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+              <Tooltip key={m} title={`${m}月${months[m]?.done ? " (已同步)" : ""}`}>
+                <Tag
+                  size="small"
+                  style={{ width: 20, height: 20, padding: 0, textAlign: "center", margin: 0,
+                    fontSize: 10, cursor: "pointer", lineHeight: "18px",
+                    background: months[m]?.done ? "#f6ffed" : "#f5f5f5",
+                    borderColor: months[m]?.done ? "#b7eb8f" : "#d9d9d9",
+                    color: months[m]?.done ? "#52c41a" : "#999" }}
+                  onClick={() => !months[m]?.done && syncMonth(asset, year, m, asset === "futures" ? (whProduct || "RB") : undefined)}
+                >
+                  {months[m]?.done ? "✓" : m}
+                </Tag>
+              </Tooltip>
+            ))}
+          </div>
         </div>
       );
     };
     return (
       <div>
+        <Card size="small" style={{ marginBottom: 12, border: '1px solid #1677ff', background: '#f0f5ff' }}>
+          <Space wrap style={{ alignItems: 'center' }}>
+            <Text strong style={{ fontSize: 15 }}>一键同步最新</Text>
+            <Button type="primary" icon={<SyncOutlined />} loading={latestSyncLoading}
+              onClick={syncLatest} size="middle">
+              同步到最新
+            </Button>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              近6个月 M5/M15/M30/H1/H4/D1 全品种同步，完成后自动开启5分钟实时累加
+            </Text>
+          </Space>
+          {latestSyncResult && (
+            <div style={{ marginTop: 10 }}>
+              <Space wrap size={[12, 8]}>
+                {Object.entries(latestSyncResult.assets || {}).map(([asset, info]: [string, any]) => (
+                  <Tag key={asset} color={info.need_sync ? (info.sync_triggered ? "processing" : "warning") : "success"}
+                    style={{ fontSize: 12, padding: '2px 8px' }}>
+                    {asset === "futures" ? "期货" : asset === "stock" ? "股票" : "期权"}:
+                    {info.latest_date || "无数据"} ({info.days_behind}天
+                    {info.sync_triggered ? " → 已触发" : info.need_sync ? " → 跳过" : " → 最新"})
+                  </Tag>
+                ))}
+              </Space>
+              <div style={{ marginTop: 6 }}>
+                <Text type="secondary" style={{ fontSize: 11 }}>
+                  触发时间: {new Date().toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })} 北京时间
+                </Text>
+              </div>
+            </div>
+          )}
+          {collectProgress?.running && (
+            <div style={{ marginTop: 10, padding: '8px 12px', background: '#f6ffed', border: '1px solid #b7eb8f', borderRadius: 6 }}>
+              <Space>
+                <Badge status="processing" />
+                <Text strong style={{ fontSize: 13 }}>{collectProgress.name || "同步中..."}</Text>
+              </Space>
+              {collectProgress.started_at && (
+                <Text type="secondary" style={{ fontSize: 12, marginLeft: 12 }}>
+                  开始于 {new Date(collectProgress.started_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}
+                </Text>
+              )}
+              <Button size="small" style={{ marginLeft: 12 }} onClick={pollLatestProgress}>刷新</Button>
+            </div>
+          )}
+          {!collectProgress?.running && collectProgress?.result && (
+            <div style={{ marginTop: 10, padding: '8px 12px', background: '#f9f9f9', borderRadius: 6 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                <CheckCircleOutlined style={{ color: '#52c41a', marginRight: 6 }} />
+                同步完成: {JSON.stringify(collectProgress.result)}
+              </Text>
+            </div>
+          )}
+        </Card>
         <Card size="small" style={{ marginBottom: 12 }}>
           <Space wrap>
             <Text strong>按年全量同步 (生产)</Text>
@@ -1803,14 +2024,7 @@ export default function DataCenter() {
               </span>
             </Tooltip>
           </Space>
-          {collectProgress?.job?.running && (
-            <div style={{ marginTop: 8 }}>
-              <Badge status="processing" text={`运行中: ${collectProgress.job.name}`} />
-              <Text type="secondary" style={{ marginLeft: 12 }}>
-                已完成 {collectProgress.checkpoint?.done || 0} 项
-              </Text>
-            </div>
-          )}
+          <SyncProgressBar prog={collectProgress} />
         </Card>
         <Table size="small" rowKey="year" pagination={false}
           dataSource={yearStatus}
@@ -1820,6 +2034,25 @@ export default function DataCenter() {
             { title: "期货", key: "futures", render: (_: any, r: any) => cell("futures", r.year, r.futures) },
             { title: "股票", key: "stock", render: (_: any, r: any) => cell("stock", r.year, r.stock) },
             { title: "期权", key: "option", render: (_: any, r: any) => cell("option", r.year, r.option) },
+            { title: "操作", key: "actions", width: 120, render: (_: any, r: any) => (
+              <Space size={4}>
+                <Button size="small" icon={<FileExcelOutlined />}
+                  onClick={() => exportYearData("futures", r.year)}
+                  title="导出期货">
+                  期货
+                </Button>
+                <Button size="small" icon={<FileExcelOutlined />}
+                  onClick={() => exportYearData("stock", r.year)}
+                  title="导出股票">
+                  股票
+                </Button>
+                <Button size="small" icon={<FileExcelOutlined />}
+                  onClick={() => exportYearData("option", r.year)}
+                  title="导出期权">
+                  期权
+                </Button>
+              </Space>
+            )},
           ]} />
         {verifyResult && (
           <Card size="small" style={{ marginTop: 12 }}

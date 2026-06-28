@@ -11,7 +11,9 @@
 
 from __future__ import annotations
 
+import json
 from datetime import date, datetime
+from pathlib import Path
 from typing import Dict, Optional
 
 import pandas as pd
@@ -20,6 +22,21 @@ from loguru import logger
 from ..fetchers.options_fetcher import ChinaOptionsFetcher
 from ..options_analytics import DEFAULT_RISK_FREE, compute_option_greeks
 from .base_collector import BaseCollector
+
+_CKPT = Path(__file__).resolve().parent.parent / "download_checkpoint.json"
+
+
+def _ckpt_read() -> Dict:
+    if _CKPT.exists():
+        try:
+            return json.loads(_CKPT.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {"done": [], "failures": {}, "stats": {}}
+
+
+def _ckpt_write(data: Dict) -> None:
+    _CKPT.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
 class OptionsCollector(BaseCollector):
@@ -69,7 +86,10 @@ class OptionsCollector(BaseCollector):
         if "open_interest" in df.columns:
             out["open_interest"] = pd.to_numeric(df["open_interest"], errors="coerce")
         out = out.dropna(subset=["close"])
-        return self.store.upsert_df("kline", out, ["datetime", "symbol_id", "timeframe"])
+        # 按 key 去重: 同一合约+时间帧保留最后一条 (数据源可能有重复)
+        key_cols = ["datetime", "symbol_id", "timeframe"]
+        out = out.drop_duplicates(subset=key_cols, keep="last")
+        return self.store.upsert_df("kline", out, key_cols)
 
     def collect_greeks_snapshot(self) -> int:
         """当日全市场期权希腊值快照 (东财, ETF/股指期权) -> options_daily。
@@ -117,6 +137,92 @@ class OptionsCollector(BaseCollector):
         n = self.store.upsert_df("options_daily", out, ["date", "symbol_id"])
         logger.info(f"期权希腊值快照入库 {n} 行 ({today})")
         return n
+
+    def collect_month(self, year: int, month: int = None) -> Dict[str, int]:
+        """按月采集期权数据 (ETF/股指期权 Greeks 快照 + K线)。
+
+        Args:
+            year: 年份
+            month: 月份 (1-12)，留空则采集当月
+
+        Returns:
+            {greeks_rows, etf_contracts, index_contracts, error}
+        """
+        import calendar
+        import datetime as _dt
+        import time
+
+        if month is None:
+            now = _dt.datetime.now()
+            year = year or now.year
+            month = month or now.month
+
+        # 月度 checkpoint: opt:YYYYmMM 格式
+        key = f"opt:{year}m{month:02d}"
+        ckpt = _ckpt_read()
+        if key in ckpt.get("done", []):
+            logger.info(f"[{key}] 已完成，跳过")
+            return {"greeks_rows": 0, "etf_contracts": 0, "index_contracts": 0, "skipped": True}
+        # 计算月份范围
+        start_day = f"{year}-{month:02d}-01"
+        last_day = calendar.monthrange(year, month)[1]
+        end_day = f"{year}-{month:02d}-{last_day:02d}"
+
+        totals = {"greeks_rows": 0, "etf_contracts": 0, "index_contracts": 0}
+
+        # ETF 期权: 50/300/500 ETF，每个标的分批处理
+        for und in ("510050", "510300", "510500"):
+            for otype in ("看涨期权", "看跌期权"):
+                try:
+                    cdf = self._opt.get_etf_option_codes(option_type=otype, underlying=und)
+                    col = _first_col(cdf, ["期权代码", "合约代码", "代码"])
+                    if not col:
+                        continue
+                    for c in [str(x) for x in cdf[col].tolist()]:
+                        try:
+                            n = self.collect_etf_option_daily(c, und)
+                            if n > 0:
+                                totals["etf_contracts"] += 1
+                                totals["greeks_rows"] += n
+                            # 每个合约后休眠一下，减少数据库压力
+                            time.sleep(0.05)
+                        except Exception as e:
+                            logger.warning(f"{c} ETF期权采集失败: {e}")
+                except Exception as e:
+                    logger.warning(f"{und}/{otype} 枚举失败: {e}")
+            # 每个标的完成后休眠一下
+            time.sleep(0.3)
+
+        # 股指期权: IO/HO
+        for idx in ("IO", "HO", "IM"):
+            try:
+                cdf = self._opt.get_index_option_codes(index_code=idx)
+                col = _first_col(cdf, ["期权代码", "合约代码"])
+                if col:
+                    for c in [str(x) for x in cdf[col].tolist()]:
+                        try:
+                            n = self.collect_index_option_daily(c)
+                            if n > 0:
+                                totals["index_contracts"] += 1
+                                totals["greeks_rows"] += n
+                        except Exception as e:
+                            logger.warning(f"{c} 股指期权采集失败: {e}")
+            except Exception as e:
+                logger.warning(f"{idx} 枚举失败: {e}")
+
+        # 写月度 checkpoint
+        try:
+            ckpt = _ckpt_read()
+            if key not in ckpt.get("done", []):
+                ckpt.setdefault("done", []).append(key)
+                ckpt["stats"] = ckpt.get("stats", {})
+                ckpt["stats"][key] = totals
+                _ckpt_write(ckpt)
+        except Exception as e:
+            logger.warning(f"写入checkpoint失败: {e}")
+
+        logger.info(f"期权 {year}年{month}月采集: {totals}")
+        return totals
 
     # ─── 商品期权 Greeks (akshare 不提供 -> Black76 自算) ───────────────
     def _underlying_close(self, underlying_code: str, on: date) -> Optional[tuple[int, float]]:
@@ -221,7 +327,9 @@ class OptionsCollector(BaseCollector):
                 if d.year == year and d <= today]
         ckpt_done = ckpt_done if ckpt_done is not None else set()
         totals = {"kline_rows": 0, "greeks_rows": 0, "contracts": 0, "days": 0}
-        exchanges = self._opt.COMMODITY_OPTION_SYMBOLS  # {交易所中文: [品种中文]}
+        # ponytail: DCE API 持续失败，跳过大商所，只同步 CZCE 和 SHFE
+        exchanges = {k: v for k, v in self._opt.COMMODITY_OPTION_SYMBOLS.items()
+                     if k != "大商所"}  # {交易所中文: [品种中文]}
         import time
         for d in days:
             td = d.strftime("%Y%m%d")
@@ -236,7 +344,6 @@ class OptionsCollector(BaseCollector):
                     except Exception as e:  # noqa: BLE001
                         logger.warning(f"{key} 拉取失败: {e}")
                         continue
-                    ckpt_done.add(key)
                     if df is None or df.empty:
                         continue
                     k, g = self._store_commodity_day(df, sym, d)
@@ -244,6 +351,13 @@ class OptionsCollector(BaseCollector):
                     totals["greeks_rows"] += g
                     if k > 0:
                         day_has = True
+                        ckpt_done.add(key)
+                        # 只在数据成功存储后才写 checkpoint
+                        ck = _ckpt_read()
+                        ckey = f"copt:{key}"
+                        if ckey not in ck["done"]:
+                            ck["done"].append(ckey)
+                            _ckpt_write(ck)
                     time.sleep(sleep)
             if day_has:
                 totals["days"] += 1
