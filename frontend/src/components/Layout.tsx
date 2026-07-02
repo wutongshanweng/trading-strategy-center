@@ -29,22 +29,22 @@ const { Text } = Typography;
 
 const menuItems = [
   { key: "/", icon: <DashboardOutlined />, label: "Dashboard" },
-  { key: "/research-center", icon: <ThunderboltOutlined />, label: "研究中枢" },
   { key: "/macro-news", icon: <FundOutlined />, label: "新闻聚合" },
+  { key: "/research-center", icon: <ThunderboltOutlined />, label: "研究中枢" },
   { key: "/vstock", icon: <SafetyCertificateOutlined />, label: "游资分析" },
   { key: "/factors", icon: <ExperimentOutlined />, label: "因子研究" },
   { key: "/china-finance", icon: <DollarOutlined />, label: "金融框架" },
-  { key: "/trading", icon: <StockOutlined />, label: "模拟交易" },
-  { key: "/backtest", icon: <ExperimentOutlined />, label: "回测" },
-  { key: "/portfolio", icon: <PieChartOutlined />, label: "组合" },
-  { key: "/phase3", icon: <ThunderboltOutlined />, label: "ML+期权" },
-  { key: "/strategy-library", icon: <AppstoreOutlined />, label: "策略军火库" },
-  { key: "/feedback", icon: <SyncOutlined />, label: "反馈闭环" },
-  { key: "/llm-config", icon: <ApiOutlined />, label: "LLM配置" },
-  { key: "/data", icon: <DatabaseOutlined />, label: "数据中心" },
-  { key: "/tournament", icon: <TrophyOutlined />, label: "锦标赛" },
+  { key: "/phase3", icon: <ThunderboltOutlined />, label: "机器学习" },
+  { key: "/strategy-library", icon: <AppstoreOutlined />, label: "策略工坊" },
   { key: "/iteration", icon: <BranchesOutlined />, label: "智能中心" },
-  { key: "/settings", icon: <SettingOutlined />, label: "设置" },
+  { key: "/tournament", icon: <TrophyOutlined />, label: "策略赛马" },
+  { key: "/trading", icon: <StockOutlined />, label: "模拟交易" },
+  { key: "/feedback", icon: <SyncOutlined />, label: "反馈闭环" },
+  { key: "/backtest", icon: <ExperimentOutlined />, label: "策略回测" },
+  { key: "/portfolio", icon: <PieChartOutlined />, label: "模拟持仓" },
+  { key: "/llm-config", icon: <ApiOutlined />, label: "LLM配置" },
+  { key: "/settings", icon: <SettingOutlined />, label: "系统设置" },
+  { key: "/data", icon: <DatabaseOutlined />, label: "数据中心" },
 ];
 
 export default function Layout() {

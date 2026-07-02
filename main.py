@@ -2,10 +2,15 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
+import asyncio
+import time
 from contextlib import asynccontextmanager
+from datetime import datetime, timedelta, timezone
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
+
+BJ_TZ = timezone(timedelta(hours=8))
 
 from core.config.settings import get_settings
 from core.utils.logger import setup_logger
@@ -38,6 +43,8 @@ from api.routes.market_intelligence_routes import router as market_intelligence_
 from api.routes.vstock_routes import router as vstock_router
 from api.routes.vibe_routes import router as vibe_router
 from api.routes.china_finance_routes import router as china_finance_router
+from api.routes.briefing_routes import router as briefing_router
+from api.routes.index_routes import router as index_router
 
 
 @asynccontextmanager
@@ -45,13 +52,14 @@ async def lifespan(app: FastAPI):
     settings = get_settings()
     setup_logger(debug=settings.debug)
     logger.info("Trading Strategy Center starting...")
-    _start_background_refresh()
+    # 启动后台定时刷新任务 (替代旧的 daemon thread + asyncio.run 方案)
+    stop_event = asyncio.Event()
+    bg_task = asyncio.create_task(_background_loop(stop_event))
     # 触发数据库引擎初始化（延迟加载）
     from core.db.session import get_engine
     get_engine()
-    # 启动时自动抓取新闻 (在后台线程执行, 避免 GIL 问题)
+    # 启动时自动抓取新闻
     try:
-        import asyncio
         from api.routes.news_routes import bootstrap_news
         asyncio.create_task(bootstrap_news())
         logger.info("[bootstrap] 新闻抓取已启动")
@@ -64,56 +72,81 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"实时同步自启失败: {e}")
     yield
+    # 优雅关闭后台任务
+    stop_event.set()
+    bg_task.cancel()
+    try:
+        await bg_task
+    except asyncio.CancelledError:
+        pass
     from core.db.session import async_engine
     if async_engine is not None:
         await async_engine.dispose()
     logger.info("Shutting down.")
 
 
-def _start_background_refresh():
-    """后台线程: 定时刷新新闻缓存(30min) 与信号扫描(15min)。
+async def _background_loop(stop_event: asyncio.Event):
+    """后台协程: 定时刷新新闻缓存(5min) 与信号扫描(5min)。
 
-    daemon 线程, 随主进程退出。首轮延迟启动避免拖慢启动。
+    由 lifespan 管理, 主进程退出时通过 stop_event 通知取消。
     """
-    import threading
-    import time
-
-    def _loop():
-        time.sleep(20)  # 启动后稍等, 避免与首批请求争抢
-        news_every, scan_every = 1800, 300  # 新闻30min / 信号扫描5min
-        auto_check_every = 3600  # 每小时检查一次是否到自动迭代周期
-        last_news = last_scan = last_auto = 0.0
-        while True:
-            now = time.time()
-            if now - last_news >= news_every:
-                try:
-                    from news.pipeline import get_pipeline
-                    get_pipeline().refresh()
-                except Exception as e:
-                    logger.warning(f"[bg] news refresh failed: {e}")
-                last_news = now
-            if now - last_scan >= scan_every:
-                try:
-                    from signals.alert_aggregator import get_aggregator
-                    get_aggregator().run_once()
-                except Exception as e:
-                    logger.warning(f"[bg] signal scan failed: {e}")
-                last_scan = now
-            if now - last_auto >= auto_check_every:
-                try:
-                    import asyncio
-                    from core.adaptive.auto_iteration import should_run_now, run_safe_cycle
-                    if should_run_now():
-                        logger.info("[bg] auto-iteration cycle triggered")
-                        asyncio.run(run_safe_cycle(trigger="scheduled"))
-                except Exception as e:
-                    logger.warning(f"[bg] auto-iteration failed: {e}")
-                last_auto = now
-            time.sleep(60)
-
-    t = threading.Thread(target=_loop, name="bg-refresh", daemon=True)
-    t.start()
-    logger.info("Background refresh thread started (news 30min / signals 15min / auto-iteration hourly-check)")
+    await asyncio.sleep(20)  # 启动后稍等, 避免与首批请求争抢
+    news_every, scan_every = 300, 300  # 新闻5min / 信号扫描5min
+    auto_check_every = 3600  # 每小时检查一次是否到自动迭代周期
+    briefing_hour = 8  # 简报: 每天 8:00 AM 自动生成
+    last_news = last_scan = last_auto = 0.0
+    briefing_done_today = False
+    while not stop_event.is_set():
+        now = time.time()
+        local = datetime.now(BJ_TZ)
+        if now - last_news >= news_every:
+            try:
+                from news.pipeline import get_pipeline
+                await asyncio.to_thread(get_pipeline().refresh)
+                from api.routes.news_routes import rss_fetch
+                await rss_fetch()
+            except Exception as e:
+                logger.warning(f"[bg] news refresh failed: {e}")
+            last_news = now
+        if now - last_scan >= scan_every:
+            try:
+                from signals.alert_aggregator import get_aggregator
+                await asyncio.to_thread(get_aggregator().run_once)
+            except Exception as e:
+                logger.warning(f"[bg] signal scan failed: {e}")
+            last_scan = now
+        if now - last_auto >= auto_check_every:
+            try:
+                from core.adaptive.auto_iteration import should_run_now, run_safe_cycle
+                if should_run_now():
+                    logger.info("[bg] auto-iteration cycle triggered")
+                    await run_safe_cycle(trigger="scheduled")
+            except Exception as e:
+                logger.warning(f"[bg] auto-iteration failed: {e}")
+            last_auto = now
+        if local.hour == briefing_hour and local.minute < 30 and not briefing_done_today:
+            try:
+                from news.morning_briefing import run_morning_briefing
+                logger.info("[bg] morning briefing triggered at 8:00")
+                await run_morning_briefing()
+                briefing_done_today = True
+                logger.info("[bg] morning briefing completed")
+            except Exception as e:
+                logger.warning(f"[bg] morning briefing failed: {e}")
+        if local.hour == 8 and local.minute >= 30:
+            briefing_done_today = False
+        elif local.hour > 8:
+            briefing_done_today = False
+        if not hasattr(_background_loop, '_last_vstock') or time.time() - _background_loop._last_vstock >= 1800:
+            try:
+                from api.routes.vstock_routes import scan_hot_stocks
+                n = await scan_hot_stocks()
+                if n:
+                    logger.info(f"[bg] vstock auto-scan: {n} reports generated")
+            except Exception as e:
+                logger.warning(f"[bg] vstock scan failed: {e}")
+            _background_loop._last_vstock = time.time()
+        await asyncio.sleep(60)
 
 
 settings = get_settings()
@@ -161,12 +194,14 @@ app.include_router(market_intelligence_router)
 app.include_router(vstock_router)
 app.include_router(vibe_router)
 app.include_router(china_finance_router)
+app.include_router(briefing_router)
+app.include_router(index_router)
 
 
 if __name__ == "__main__":
     import os
     import uvicorn
-    # 默认单进程运行 — DuckDB 是单进程独占锁, --reload 的双进程会冲突,
+    # 默认单进程运行 — PostgreSQL 单进程模式, --reload 会双进程冲突,
     # 且长时下载任务会被文件改动重启打断。开发期可设 DEV_RELOAD=1 开启热重载。
     dev_reload = os.getenv("DEV_RELOAD") == "1"
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=dev_reload)

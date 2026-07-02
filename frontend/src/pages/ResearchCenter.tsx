@@ -446,14 +446,54 @@ export default function ResearchCenter() {
               activeKey={activeTab}
               onChange={setActiveTab}
               items={[
-                { key: "overview", label: "📊 系统概览", children: null },
-                { key: "datasource", label: "🔗 数据源", children: dataSourceTab },
-                { key: "history", label: "🕐 分析历史", children: historyTab },
+                { key: "overview", label: <><PieChartOutlined /> 系统概览</>, children: <PipelineOverview
+                    newsStats={newsStats} marketStats={marketStats} swarmStatus={swarmStatus}
+                    vibeStatus={vibeStatus} cfStatus={cfStatus} factors={factors}
+                  /> },
+                { key: "datasource", label: <><CloudServerOutlined /> 数据源</>, children: dataSourceTab },
+                { key: "history", label: <><ClockCircleOutlined /> 分析历史</>, children: historyTab },
               ]}
             />
           </>
         )}
       </Space>
     </div>
+  );
+}
+
+function PipelineOverview({ newsStats, marketStats, swarmStatus, vibeStatus, cfStatus, factors }: {
+  newsStats: { total: number; avg_sentiment: number } | null;
+  marketStats: { positive_pct: number } | null;
+  swarmStatus: { total_agents: number; agents: { name: string; status: string; tasks?: number }[] } | null;
+  vibeStatus: { datasources: { name: string; status: string }[] } | null;
+  cfStatus: { skills_count: number } | null;
+  factors: { count: number } | null;
+}) {
+  const stages = [
+    { icon: <CloudServerOutlined />, title: "数据采集", status: vibeStatus?.datasources?.length ? "运行中" : "待启动",
+      detail: `${vibeStatus?.datasources?.filter(d => d.status === "available").length ?? 0}/${vibeStatus?.datasources?.length ?? 0} 数据源在线` },
+    { icon: <LineChartOutlined />, title: "AI分析", status: newsStats ? "运行中" : "待启动",
+      detail: `新闻 ${newsStats?.total ?? 0} 条 · 情感 ${(newsStats?.avg_sentiment ?? 0).toFixed(1)}/10` },
+    { icon: <RobotOutlined />, title: "多Agent决策", status: swarmStatus?.total_agents ? "运行中" : "待启动",
+      detail: `${swarmStatus?.total_agents ?? 0} Agent · ${swarmStatus?.agents?.filter(a => a.status === "idle").length ?? 0} 空闲` },
+    { icon: <ExperimentOutlined />, title: "信号输出", status: factors?.count ? "运行中" : "待启动",
+      detail: `因子库 ${factors?.count ?? 0} 个 · 金融Skills ${cfStatus?.skills_count ?? 0} 个` },
+  ];
+  return (
+    <Row gutter={[12, 12]}>
+      {stages.map((s, i) => (
+        <Col span={6} key={s.title}>
+          <Card size="small" hoverable>
+            <Space direction="vertical" size={4} style={{ width: "100%", textAlign: "center" }}>
+              <span style={{ fontSize: 22 }}>{s.icon}</span>
+              <Text strong>{s.title}</Text>
+              <Tag color={s.status === "运行中" ? "green" : "default"}>{s.status}</Tag>
+              <Text type="secondary" style={{ fontSize: 11 }}>{s.detail}</Text>
+              {i < 3 && <Text type="secondary" style={{ fontSize: 18 }}>→</Text>}
+            </Space>
+          </Card>
+        </Col>
+      ))}
+    </Row>
   );
 }

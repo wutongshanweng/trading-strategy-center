@@ -215,7 +215,7 @@ export const promoteCandidates = (body?: { strategies?: string[]; products?: str
   client.post("/tournament/promote", body ?? {}, { timeout: 600000 });
 
 export const getLifecycle = () =>
-  client.get<{ champions: any[]; challengers: any[]; retired: any[] }>("/tournament/lifecycle");
+  client.get<{ champions: Record<string, unknown>[]; challengers: Record<string, unknown>[]; retired: Record<string, unknown>[] }>("/tournament/lifecycle");
 
 export const graduateStrategy = (name: string, approved_by: string, allocation = 0.1) =>
   client.post("/tournament/graduate", { name, approved_by, allocation });
@@ -251,5 +251,13 @@ export const listRealMLModels = () =>
 // ─── Alpha Factors ────────────────────────────────────────────────
 export const listAlphaFactors = () =>
   client.get<{ id: string; name: string; description: string }[]>("/alpha/factors");
+
+// ─── Global Market Indices ─────────────────────────────────────────
+export interface IndexQuote {
+  symbol: string; name: string; region: string; currency: string;
+  price: number | null; change: number | null; change_pct: number | null; timestamp: string;
+}
+export const getMarketIndices = () =>
+  client.get<{ indices: IndexQuote[]; count: number }>("/market/indices");
 
 export default client;

@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { Row, Col, Card, Statistic, Table, Typography, Tag, Spin, Empty } from "antd";
+import { Row, Col, Card, Statistic, Table, Typography, Tag, Spin, Empty, Space } from "antd";
 import {
   ArrowUpOutlined,
   ArrowDownOutlined,
@@ -9,27 +9,27 @@ import {
   SwapOutlined,
   TrophyOutlined,
 } from "@ant-design/icons";
-import { createChart, ColorType, IChartApi } from "lightweight-charts";
-import { listStrategies, getMarketData, getTournamentStandings } from "../api/client";
+import { createChart, ColorType, IChartApi, type Time } from "lightweight-charts";
+import { listStrategies, getMarketData, getTournamentStandings, getMarketIndices, IndexQuote } from "../api/client";
 import type { Strategy, TournamentEntry } from "../api/client";
 
 const { Title, Text } = Typography;
 
 /* ── Mock data for development (backend may not be running) ── */
 const MOCK_EQUITY = Array.from({ length: 200 }, (_, i) => ({
-  time: (new Date(2024, 0, i + 1).getTime() / 1000) as any,
+  time: (new Date(2024, 0, i + 1).getTime() / 1000) as number,
   value: 1000000 * (1 + (Math.random() - 0.5) * 0.6 + i * 0.0015),
 }));
 
 const MOCK_VOLUME = Array.from({ length: 200 }, (_, i) => ({
-  time: (new Date(2024, 0, i + 1).getTime() / 1000) as any,
+  time: (new Date(2024, 0, i + 1).getTime() / 1000) as number,
   value: Math.floor(Math.random() * 50000 + 10000),
 }));
 
 const MOCK_CANDLES = Array.from({ length: 200 }, (_, i) => {
   const base = 5000 + Math.sin(i / 10) * 200 + Math.random() * 50;
   return {
-    time: (new Date(2024, 0, i + 1).getTime() / 1000) as any,
+    time: (new Date(2024, 0, i + 1).getTime() / 1000) as number,
     open: base + (Math.random() - 0.5) * 30,
     high: base + Math.random() * 40 + 20,
     low: base - Math.random() * 40 - 20,
@@ -67,7 +67,7 @@ function EquityChart({ data }: { data: typeof MOCK_EQUITY }) {
       crosshairMarkerRadius: 4,
       priceFormat: { type: "custom", formatter: (v: number) => `¥${v.toLocaleString()}` },
     });
-    line.setData(data);
+    line.setData(data as { time: Time; value: number }[]);
     chart.timeScale().fitContent();
 
     chartApiRef.current = chart;
@@ -137,14 +137,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [standings, setStandings] = useState<TournamentEntry[]>([]);
+  const [indices, setIndices] = useState<IndexQuote[]>([]);
 
   useEffect(() => {
     Promise.allSettled([
       listStrategies(),
       getTournamentStandings(),
-    ]).then(([s, t]) => {
+      getMarketIndices(),
+    ]).then(([s, t, ix]) => {
       if (s.status === "fulfilled") setStrategies(s.value.data.strategies);
       if (t.status === "fulfilled") setStandings(t.value.data);
+      if (ix.status === "fulfilled") setIndices(ix.value.data.indices);
       setLoading(false);
     });
   }, []);
@@ -215,6 +218,40 @@ export default function Dashboard() {
           </Card>
         </Col>
       </Row>
+
+      {/* ── Global Indices ── */}
+      {indices.length > 0 && (
+        <Row gutter={[8, 8]} style={{ marginBottom: 24 }}>
+          <Col span={24}>
+            <Card size="small" title={<><FundOutlined /> 全球主要指数</>} extra={indices.some((ix: any) => ix.fallback) && <Tag color="warning" style={{ fontSize: 10 }}>参考值</Tag>} bordered={false}>
+              <Row gutter={[8, 8]}>
+                {indices.map((ix) => {
+                  const isUp = ix.change_pct !== null && ix.change_pct >= 0;
+                  const color = ix.change_pct === null ? "#999" : isUp ? "#ff4d6a" : "#00d4aa";
+                  return (
+                    <Col xs={12} sm={8} md={6} lg={4} key={ix.symbol}>
+                      <Card size="small" hoverable style={{ background: "#141414", borderLeft: `3px solid ${color}`, borderRadius: 6 }}>
+                        <Space direction="vertical" size={2} style={{ width: "100%" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <Text style={{ fontSize: 12, fontWeight: 600, color: "#e0e0e0" }}>{ix.name}</Text>
+                            <Tag style={{ fontSize: 9, lineHeight: "16px", height: 18 }}>{ix.region}</Tag>
+                          </div>
+                          <Text style={{ fontSize: 15, fontWeight: 700, fontFamily: "monospace", color: "#fff" }}>
+                            {ix.price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) ?? "--"}
+                          </Text>
+                          <span style={{ fontSize: 12, color }}>
+                            {isUp ? "▲" : "▼"} {ix.change !== null ? ix.change.toFixed(2) : "--"} ({ix.change_pct !== null ? `${ix.change_pct >= 0 ? "+" : ""}${ix.change_pct.toFixed(2)}%` : "--"})
+                          </span>
+                        </Space>
+                      </Card>
+                    </Col>
+                  );
+                })}
+              </Row>
+            </Card>
+          </Col>
+        </Row>
+      )}
 
       {/* ── Charts Row ── */}
       <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>

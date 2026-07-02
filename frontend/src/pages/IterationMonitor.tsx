@@ -1,13 +1,14 @@
 import { useEffect, useState, useCallback } from "react";
 import {
   Card, Row, Col, Statistic, Typography, Tag, Table, Spin, Empty, Alert, Button,
-  Collapse, Space, message, Tooltip, Tabs, Switch, InputNumber, Descriptions,
+  Collapse, Space, message, Tooltip as AntTooltip, Tabs, Switch, InputNumber, Descriptions,
 } from "antd";
 import {
   ThunderboltOutlined, SafetyCertificateOutlined, ReloadOutlined,
   ExperimentOutlined, HistoryOutlined, BranchesOutlined, RobotOutlined,
   PlayCircleOutlined,
 } from "@ant-design/icons";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import {
   getIterationOverview, getParamVersions, getPromotionHistory, getRetrainHistory,
   runRetrainCycle, getAutomationConfig, setAutomationConfig, runAutomationNow, listRealMLModels,
@@ -21,14 +22,14 @@ function degColor(v: number) {
 
 export default function IterationMonitor() {
   const [loading, setLoading] = useState(false);
-  const [overview, setOverview] = useState<any>(null);
-  const [paramVersions, setParamVersions] = useState<Record<string, any[]>>({});
-  const [promoHist, setPromoHist] = useState<any[]>([]);
-  const [retrainHist, setRetrainHist] = useState<any[]>([]);
+  const [overview, setOverview] = useState<Record<string, unknown> | null>(null);
+  const [paramVersions, setParamVersions] = useState<Record<string, Record<string, unknown>[]>>({});
+  const [promoHist, setPromoHist] = useState<Record<string, unknown>[]>([]);
+  const [retrainHist, setRetrainHist] = useState<Record<string, unknown>[]>([]);
   const [retraining, setRetraining] = useState(false);
   // 自动化
-  const [autoCfg, setAutoCfg] = useState<any>(null);
-  const [autoLog, setAutoLog] = useState<any[]>([]);
+  const [autoCfg, setAutoCfg] = useState<Record<string, unknown> | null>(null);
+  const [autoLog, setAutoLog] = useState<Record<string, unknown>[]>([]);
   const [autoBusy, setAutoBusy] = useState(false);
   // ML 模型
   const [mlModels, setMlModels] = useState<string[]>([]);
@@ -92,7 +93,7 @@ export default function IterationMonitor() {
     } finally { setAutoBusy(false); }
   };
 
-  const c = overview?.counts || {};
+  const c = (overview?.counts || {}) as Record<string, number>;
 
   return (
     <div>
@@ -113,21 +114,21 @@ export default function IterationMonitor() {
             <Col>
               <Space direction="vertical" size={0}>
                 <Text type="secondary" style={{ fontSize: 12 }}>自动迭代开关</Text>
-                <Switch checked={autoCfg.enabled} onChange={toggleAuto}
+                <Switch checked={autoCfg.enabled as boolean} onChange={toggleAuto}
                   checkedChildren="自动" unCheckedChildren="手动" />
               </Space>
             </Col>
             <Col>
               <Space direction="vertical" size={0}>
                 <Text type="secondary" style={{ fontSize: 12 }}>周期 (小时)</Text>
-                <InputNumber min={1} max={168} value={autoCfg.interval_hours}
+                <InputNumber min={1} max={168} value={autoCfg.interval_hours as number}
                   onChange={(v) => v && saveInterval(v)} style={{ width: 90 }} />
               </Space>
             </Col>
             <Col>
               <Space direction="vertical" size={0}>
                 <Text type="secondary" style={{ fontSize: 12 }}>上次运行</Text>
-                <Text>{autoCfg.last_run ? new Date(autoCfg.last_run).toLocaleString("zh-CN") : "从未"}</Text>
+                <Text>{autoCfg.last_run ? new Date(autoCfg.last_run as string | number).toLocaleString("zh-CN") : "从未"}</Text>
               </Space>
             </Col>
             <Col flex="auto" style={{ textAlign: "right" }}>
@@ -191,6 +192,13 @@ function MLPanel({ models }: { models: string[] }) {
     linear_regression: "线性回归", arima: "ARIMA 时序", garch: "GARCH 波动率",
     hmm: "HMM 市场状态", random_forest: "随机森林",
   };
+  const MODEL_PARAMS: Record<string, string[]> = {
+    linear_regression: ["fit_intercept"],
+    arima: ["order", "trend"],
+    garch: ["p", "q"],
+    hmm: ["n_components", "n_iter", "random_state"],
+    random_forest: ["n_estimators", "max_depth", "random_state"],
+  };
   return (
     <Card size="small" title={<><RobotOutlined /> 可用 ML 模型 (后端真实注册)</>}>
       {models.length === 0 ? <Empty description="后端未返回模型, 检查 /api/v1/models" image={Empty.PRESENTED_IMAGE_SIMPLE} /> : (
@@ -205,6 +213,10 @@ function MLPanel({ models }: { models: string[] }) {
                     <Text strong>{MODEL_CN[m] || m}</Text>
                     <Tag color="blue">{m}</Tag>
                   </Space>
+                  <div style={{ marginTop: 8 }}>
+                    <Text type="secondary" style={{ fontSize: 11 }}>可调参数: </Text>
+                    <span>{(MODEL_PARAMS[m] || []).map((p) => <Tag key={p} color="cyan" style={{ fontSize: 10 }}>{p}</Tag>)}</span>
+                  </div>
                 </Card>
               </Col>
             ))}
@@ -216,7 +228,7 @@ function MLPanel({ models }: { models: string[] }) {
 }
 
 function MonitorBody({ paramVersions, promoHist, retrainHist }: {
-  paramVersions: Record<string, any[]>; promoHist: any[]; retrainHist: any[];
+  paramVersions: Record<string, Record<string, unknown>[]>; promoHist: Record<string, unknown>[]; retrainHist: Record<string, unknown>[];
 }) {
   const paramStrategies = Object.keys(paramVersions).filter((s) => paramVersions[s]?.length);
 
@@ -228,17 +240,28 @@ function MonitorBody({ paramVersions, promoHist, retrainHist }: {
           <Collapse items={paramStrategies.map((s) => ({
             key: s,
             label: <Space><Text strong>{s}</Text><Tag color="blue">{paramVersions[s].length} 个版本</Tag>
-              <Text type="secondary">最新分 {paramVersions[s][paramVersions[s].length - 1]?.score}</Text></Space>,
+              <Text type="secondary">最新分 {(paramVersions[s][paramVersions[s].length - 1] as Record<string, unknown>)?.score as string}</Text></Space>,
             children: (
-              <Table size="small" pagination={false}
-                dataSource={paramVersions[s].map((v: any, i: number) => ({ ...v, key: i }))}
-                columns={[
-                  { title: "版本", dataIndex: "version", key: "v", width: 70 },
-                  { title: "得分(夏普)", dataIndex: "score", key: "score",
-                    render: (x: number) => <span style={{ color: x > 0 ? "#52c41a" : "#ff4d4f" }}>{x}</span> },
-                  { title: "参数", dataIndex: "params", key: "p",
-                    render: (p: any) => <Text code style={{ fontSize: 11 }}>{JSON.stringify(p)}</Text> },
-                ]} />
+              <>
+                <ResponsiveContainer width="100%" height={100}>
+                  <LineChart data={paramVersions[s].map((v: Record<string, unknown>, i: number) => ({ idx: i + 1, score: v.score as number }))}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="idx" tick={{ fontSize: 10 }} label={{ value: "版本", position: "bottom", offset: -4 }} />
+                    <YAxis tick={{ fontSize: 10 }} domain={["auto", "auto"]} />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="score" stroke="#1677ff" dot={{ r: 3 }} />
+                  </LineChart>
+                </ResponsiveContainer>
+                <Table size="small" pagination={false}
+                  dataSource={paramVersions[s].map((v: Record<string, unknown>, i: number) => ({ ...v, key: i }))}
+                  columns={[
+                    { title: "版本", dataIndex: "version", key: "v", width: 70 },
+                    { title: "得分(夏普)", dataIndex: "score", key: "score",
+                      render: (x: number) => <span style={{ color: x > 0 ? "#52c41a" : "#ff4d4f" }}>{x}</span> },
+                    { title: "参数", dataIndex: "params", key: "p",
+                      render: (p: any) => <Text code style={{ fontSize: 11 }}>{JSON.stringify(p)}</Text> },
+                  ]} />
+              </>
             ),
           }))} />}
       </Card>
@@ -249,18 +272,18 @@ function MonitorBody({ paramVersions, promoHist, retrainHist }: {
           <Collapse items={promoHist.map((run, ri) => ({
             key: String(ri),
             label: <Space>
-              <Text>{run.timestamp?.slice(5, 19).replace("T", " ")}</Text>
-              <Tag>评估 {run.evaluated}</Tag>
-              <Tag color="green">晋级 {run.n_promoted}</Tag>
-              <Text type="secondary">市态冠军: {(run.champions_by_regime || []).join("/") || "无"}</Text>
+              <Text>{(run.timestamp as string)?.slice(5, 19).replace("T", " ")}</Text>
+              <Tag>评估 {run.evaluated as number}</Tag>
+              <Tag color="green">晋级 {run.n_promoted as number}</Tag>
+              <Text type="secondary">市态冠军: {((run.champions_by_regime as string[]) || []).join("/") || "无"}</Text>
             </Space>,
             children: (
               <Table size="small" pagination={false}
-                dataSource={(run.verdicts || []).map((v: any, i: number) => ({ ...v, key: i }))}
+                dataSource={((run.verdicts as Record<string, unknown>[]) || []).map((v: Record<string, unknown>, i: number) => ({ ...v, key: i }))}
                 expandable={{
                   expandedRowRender: (v: any) => (
                     <Table size="small" pagination={false}
-                      dataSource={(v.windows || []).map((w: any, i: number) => ({ ...w, key: i }))}
+                      dataSource={(v.windows || []).map((w: Record<string, unknown>, i: number) => ({ ...w, key: i }))}
                       columns={[
                         { title: "窗口", dataIndex: "window_id", key: "w", width: 60 },
                         { title: "样本内夏普", dataIndex: "is_sharpe", key: "is" },
@@ -298,7 +321,7 @@ function MonitorBody({ paramVersions, promoHist, retrainHist }: {
             columns={[
               { title: "时间", dataIndex: "timestamp", key: "t", render: (x: string) => x?.slice(5, 19).replace("T", " ") },
               { title: "参数层优化", dataIndex: "n_params_optimized", key: "np",
-                render: (n: number, r: any) => <Tooltip title={(r.param_optimized || []).map((p: any) => `${p.strategy}:${p.best_score}`).join(", ")}><Tag color="blue">{n} 个</Tag></Tooltip> },
+                render: (n: number, r: Record<string, unknown>) => <AntTooltip title={((r.param_optimized as Record<string, unknown>[]) || []).map((p: Record<string, unknown>) => `${String(p.strategy)}:${String(p.best_score)}`).join(", ")}><Tag color="blue">{n} 个</Tag></AntTooltip> },
               { title: "因子检测", dataIndex: "n_factors_checked", key: "nf", render: (n: number) => `${n}` },
               { title: "模型检测", dataIndex: "n_models_checked", key: "nm", render: (n: number) => `${n}` },
               { title: "已重训模型", dataIndex: "models_retrained", key: "mr", render: (m: string[]) => (m || []).length || "-" },
